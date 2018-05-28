@@ -44,6 +44,7 @@ public interface BossLoggerConfig extends Config
 		description = "Configures whether or not loot from Barrows Chests is recorded",
 		position = 0
 	)
+
 	default boolean recordBarrowsChest()
 	{
 		return true;
@@ -55,6 +56,7 @@ public interface BossLoggerConfig extends Config
 		description = "Configures whether or not loot from Raids is recorded",
 		position = 1
 	)
+
 	default boolean recordRaidsChest()
 	{
 		return true;
@@ -66,6 +68,7 @@ public interface BossLoggerConfig extends Config
 		description = "Configures whether or not loot from Zulrah is recorded",
 		position = 2
 	)
+
 	default boolean recordZulrahKills()
 	{
 		return true;
@@ -77,6 +80,7 @@ public interface BossLoggerConfig extends Config
 		description = "Configures whether or not loot from Vorkath is recorded",
 		position = 3
 	)
+
 	default boolean recordVorkathKills()
 	{
 		return true;
@@ -88,17 +92,19 @@ public interface BossLoggerConfig extends Config
 		description = "Configures whether or not loot from Kree'arra is recorded",
 		position = 4
 	)
+
 	default boolean recordArmadylKills()
 	{
 		return true;
 	}
 
 	@ConfigItem(
-			keyName = "recordBandosKills",
-			name = "Record General Graardor Loot",
-			description = "Configures whether or not loot from General Graardor is recorded",
-			position = 5
+		keyName = "recordBandosKills",
+		name = "Record General Graardor Loot",
+		description = "Configures whether or not loot from General Graardor is recorded",
+		position = 5
 	)
+
 	default boolean recordBandosKills()
 	{
 		return true;
@@ -110,6 +116,7 @@ public interface BossLoggerConfig extends Config
 		description = "Configures whether or not loot from Commander Zilyana is recorded",
 		position = 6
 	)
+
 	default boolean recordSaradominKills()
 	{
 		return true;
@@ -121,6 +128,7 @@ public interface BossLoggerConfig extends Config
 		description = "Configures whether or not loot from K'ril Tsutsaroth is recorded",
 		position = 7
 	)
+
 	default boolean recordZammyKills()
 	{
 		return true;
@@ -132,6 +140,7 @@ public interface BossLoggerConfig extends Config
 		description = "Configures whether or not loot from Vet'ion is recorded",
 		position = 8
 	)
+
 	default boolean recordVetionKills()
 	{
 		return true;
@@ -143,6 +152,7 @@ public interface BossLoggerConfig extends Config
 		description = "Configures whether or not loot from Venenatis is recorded",
 		position = 9
 	)
+
 	default boolean recordVenenatisKills()
 	{
 		return true;
@@ -154,6 +164,7 @@ public interface BossLoggerConfig extends Config
 		description = "Configures whether or not loot from Callisto is recorded",
 		position = 10
 	)
+
 	default boolean recordCallistoKills()
 	{
 		return true;
@@ -165,6 +176,7 @@ public interface BossLoggerConfig extends Config
 		description = "Configures whether or not loot from Chaos Elemental is recorded",
 		position = 11
 	)
+
 	default boolean recordChaosElementalKills()
 	{
 		return true;
@@ -176,6 +188,7 @@ public interface BossLoggerConfig extends Config
 		description = "Configures whether or not loot from Chaos Fanatic is recorded",
 		position = 12
 	)
+
 	default boolean recordChaosFanaticKills()
 	{
 		return true;
@@ -187,6 +200,7 @@ public interface BossLoggerConfig extends Config
 		description = "Configures whether or not loot from Crazy Archaeologist is recorded",
 		position = 13
 	)
+
 	default boolean recordCrazyArchaeologistKills()
 	{
 		return true;
@@ -198,149 +212,163 @@ public interface BossLoggerConfig extends Config
 		description = "Configures whether or not loot from Scorpia is recorded",
 		position = 14
 	)
+
 	default boolean recordScorpiaKills()
 	{
 		return true;
 	}
 
 	@ConfigItem(
-			keyName = "recordKbdKills",
-			name = "Record King Black Dragon Loot",
-			description = "Configures whether or not loot from King Black Dragon is recorded",
-			position = 15
+		keyName = "recordKbdKills",
+		name = "Record King Black Dragon Loot",
+		description = "Configures whether or not loot from King Black Dragon is recorded",
+		position = 15
 	)
+
 	default boolean recordKbdKills()
 	{
 		return true;
 	}
 
 	@ConfigItem(
-			keyName = "recordSkotizoKills",
-			name = "Record Skotizo Loot",
-			description = "Configures whether or not loot from Skotizo is recorded",
-			position = 16
+		keyName = "recordSkotizoKills",
+		name = "Record Skotizo Loot",
+		description = "Configures whether or not loot from Skotizo is recorded",
+		position = 16
 	)
+
 	default boolean recordSkotizoKills()
 	{
 		return true;
 	}
 
 	@ConfigItem(
-			keyName = "recordGrotesqueGuardiansKills",
-			name = "Record Grotesque Guardians Loot",
-			description = "Configures whether or not loot from Grotesque Guardians is recorded",
-			position = 17
+		keyName = "recordGrotesqueGuardiansKills",
+		name = "Record Grotesque Guardians Loot",
+		description = "Configures whether or not loot from Grotesque Guardians is recorded",
+		position = 17
 	)
+
 	default boolean recordGrotesqueGuardiansKills()
 	{
 		return true;
 	}
 
 	@ConfigItem(
-			keyName = "recordAbyssalSireKills",
-			name = "Record Abyssal Sire Loot",
-			description = "Configures whether or not loot from Abyssal Sire is recorded",
-			position = 18
+		keyName = "recordAbyssalSireKills",
+		name = "Record Abyssal Sire Loot",
+		description = "Configures whether or not loot from Abyssal Sire is recorded",
+		position = 18
 	)
+
 	default boolean recordAbyssalSireKills()
 	{
 		return true;
 	}
 
 	@ConfigItem(
-			keyName = "recordKrakenKills",
-			name = "Record Kraken Loot",
-			description = "Configures whether or not loot from Kraken is recorded",
-			position = 19
+		keyName = "recordKrakenKills",
+		name = "Record Kraken Loot",
+		description = "Configures whether or not loot from Kraken is recorded",
+		position = 19
 	)
+
 	default boolean recordKrakenKills()
 	{
 		return true;
 	}
 
 	@ConfigItem(
-			keyName = "recordCerberusKills",
-			name = "Record Cerberus Loot",
-			description = "Configures whether or not loot from Cerberus is recorded",
-			position = 20
+		keyName = "recordCerberusKills",
+		name = "Record Cerberus Loot",
+		description = "Configures whether or not loot from Cerberus is recorded",
+		position = 20
 	)
+
 	default boolean recordCerberusKills()
 	{
 		return true;
 	}
 
 	@ConfigItem(
-			keyName = "recordThermonuclearSmokeDevilKills",
-			name = "Record Thermonuclear Smoke Devil Loot",
-			description = "Configures whether or not loot from Thermonuclear Smoke Devil is recorded",
-			position = 21
+		keyName = "recordThermonuclearSmokeDevilKills",
+		name = "Record Thermonuclear Smoke Devil Loot",
+		description = "Configures whether or not loot from Thermonuclear Smoke Devil is recorded",
+		position = 21
 	)
+
 	default boolean recordThermonuclearSmokeDevilKills()
 	{
 		return true;
 	}
 
 	@ConfigItem(
-			keyName = "recordGiantMoleKills",
-			name = "Record Giant Mole Loot",
-			description = "Configures whether or not loot from Giant Mole is recorded",
-			position = 22
+		keyName = "recordGiantMoleKills",
+		name = "Record Giant Mole Loot",
+		description = "Configures whether or not loot from Giant Mole is recorded",
+		position = 22
 	)
+
 	default boolean recordGiantMoleKills()
 	{
 		return true;
 	}
 
 	@ConfigItem(
-			keyName = "recordKalphiteQueenKills",
-			name = "Record Kalphite Queen Loot",
-			description = "Configures whether or not loot from Kalphite Queen is recorded",
-			position = 23
+		keyName = "recordKalphiteQueenKills",
+		name = "Record Kalphite Queen Loot",
+		description = "Configures whether or not loot from Kalphite Queen is recorded",
+		position = 23
 	)
+
 	default boolean recordKalphiteQueenKills()
 	{
 		return true;
 	}
 
 	@ConfigItem(
-			keyName = "recordCorporealBeastKills",
-			name = "Record Corporeal Beast Loot",
-			description = "Configures whether or not loot from Corporeal Beast is recorded",
-			position = 24
+		keyName = "recordCorporealBeastKills",
+		name = "Record Corporeal Beast Loot",
+		description = "Configures whether or not loot from Corporeal Beast is recorded",
+		position = 24
 	)
+
 	default boolean recordCorporealBeastKills()
 	{
 		return true;
 	}
 
 	@ConfigItem(
-			keyName = "recordDagannothRexKills",
-			name = "Record Dagannoth Rex Loot",
-			description = "Configures whether or not loot from Dagannoth Rex is recorded",
-			position = 25
+		keyName = "recordDagannothRexKills",
+		name = "Record Dagannoth Rex Loot",
+		description = "Configures whether or not loot from Dagannoth Rex is recorded",
+		position = 25
 	)
+
 	default boolean recordDagannothRexKills()
 	{
 		return true;
 	}
 
 	@ConfigItem(
-			keyName = "recordDagannothPrimeKills",
-			name = "Record Dagannoth Prime Loot",
-			description = "Configures whether or not loot from Dagannoth Prime is recorded",
-			position = 26
+		keyName = "recordDagannothPrimeKills",
+		name = "Record Dagannoth Prime Loot",
+		description = "Configures whether or not loot from Dagannoth Prime is recorded",
+		position = 26
 	)
+
 	default boolean recordDagannothPrimeKills()
 	{
 		return true;
 	}
 
 	@ConfigItem(
-			keyName = "recordDagannothSupremeKills",
-			name = "Record Dagannoth Supreme Loot",
-			description = "Configures whether or not loot from Dagannoth Supreme is recorded",
-			position = 27
+		keyName = "recordDagannothSupremeKills",
+		name = "Record Dagannoth Supreme Loot",
+		description = "Configures whether or not loot from Dagannoth Supreme is recorded",
+		position = 27
 	)
+
 	default boolean recordDagannothSupremeKills()
 	{
 		return true;
@@ -352,6 +380,7 @@ public interface BossLoggerConfig extends Config
 		description = "In-Game Chat Messages when Loot Recorded",
 		position = 96
 	)
+
 	default boolean showChatMessages()
 	{
 		return true;
@@ -363,6 +392,7 @@ public interface BossLoggerConfig extends Config
 		description = "Color of the Chat Message alerts",
 		position = 97
 	)
+
 	default Color chatMessageColor()
 	{
 		return new Color(0, 75, 255);
@@ -375,6 +405,7 @@ public interface BossLoggerConfig extends Config
 		description = "Create Notification Tray alerts when Loot Recorded?",
 		position = 98
 	)
+
 	default boolean showTrayAlerts()
 	{
 		return true;
@@ -386,6 +417,7 @@ public interface BossLoggerConfig extends Config
 		description = "Configures whether or not the Recorded Loots Panel is shown",
 		position = 99
 	)
+
 	default boolean showLootTotals()
 	{
 		return true;

@@ -192,8 +192,12 @@ public class BossLoggerPlugin extends Plugin
 		// Barrows Chests
 		if (event.getGroupId() == WidgetID.BARROWS_REWARD_GROUP_ID && bossLoggerConfig.recordBarrowsChest())
 		{
-			// ID 141 (Reward Chest)
-			ItemContainer rewardContainer = client.getItemContainer(InventoryID.BARROWS_REWARD);
+			ItemContainer rewardContainer = client.getItemContainer(InventoryID.REWARD_CHEST);
+			if (rewardContainer == null)
+			{
+				BossLoggedAlert("Couldn't find Barrows Chest Loot");
+				return;
+			}
 			int kc = killcountMap.get("BARROWS");
 			LootEntry entry = createLootEntry(kc, rewardContainer);
 			addLootEntry("Barrows", entry);
@@ -203,8 +207,12 @@ public class BossLoggerPlugin extends Plugin
 		// Raids Chest
 		if (event.getGroupId() == WidgetID.RAIDS_REWARD_GROUP_ID && bossLoggerConfig.recordRaidsChest())
 		{
-			// Id 581 (Chambers of xeric chest)
-			ItemContainer rewardContainer = client.getItemContainer(InventoryID.valueOf("RAIDS_REWARD_GROUP_ID")); // TODO: Update to RAIDS REWARD ONCE implemented
+			ItemContainer rewardContainer = client.getItemContainer(InventoryID.CHAMBERS_OF_XERIC_CHEST);
+			if (rewardContainer == null)
+			{
+				BossLoggedAlert("Couldn't find Raids Chest Loot");
+				return;
+			}
 			int kc = killcountMap.get("RAIDS");
 			LootEntry entry = createLootEntry(kc, rewardContainer);
 			addLootEntry("Raids", entry);
