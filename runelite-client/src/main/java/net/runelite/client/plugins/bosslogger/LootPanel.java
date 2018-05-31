@@ -154,6 +154,16 @@ class LootPanel extends JPanel
 			c.gridy++;
 		});
 
+		// Attach Kill Count Panel
+		if (this.records.size() > 0)
+		{
+			int amount = this.records.size();
+			LootEntry entry = this.records.get(amount - 1);
+			LootRecordPanel p = new LootRecordPanel(amount, entry.getKill_count());
+			panel.add(p, c);
+			c.gridy++;
+		}
+
 		// Track total price of all tracked items for this panel
 		long totalValue = 0;
 		// Ensure it is placed on top of all other panels

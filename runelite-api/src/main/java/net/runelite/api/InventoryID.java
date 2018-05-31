@@ -46,9 +46,13 @@ public enum InventoryID
 	 */
 	PUZZLE_BOX(140),
 	/**
-	 * Barrows reward chest inventory.
+	 * Clue Scroll / Barrows reward chest inventory.
 	 */
-	BARROWS_REWARD(141);
+	REWARD_CHEST(141),
+	/**
+	 * Raids reward chest inventory.
+	 */
+	CHAMBERS_OF_XERIC_CHEST(581);
 
 	private final int id;
 

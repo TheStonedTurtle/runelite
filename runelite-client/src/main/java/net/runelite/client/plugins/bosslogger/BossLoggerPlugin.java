@@ -153,10 +153,6 @@ public class BossLoggerPlugin extends Plugin
 	private Boolean watching = false;				// Watching for ActorDespawn?
 	private Boolean watchingItemLayers = false;		// Watching for ItemLayerChanged?
 
-	// Grotesque guardian has two npcs so we should only check for loot if both are dead.
-	private Boolean duskDead = false;
-	private Boolean dawnDead = false;
-
 	@Provides
 	BossLoggerConfig provideConfig(ConfigManager configManager)
 	{
@@ -192,8 +188,12 @@ public class BossLoggerPlugin extends Plugin
 		// Barrows Chests
 		if (event.getGroupId() == WidgetID.BARROWS_REWARD_GROUP_ID && bossLoggerConfig.recordBarrowsChest())
 		{
-			// ID 141 (Reward Chest)
-			ItemContainer rewardContainer = client.getItemContainer(InventoryID.BARROWS_REWARD);
+			ItemContainer rewardContainer = client.getItemContainer(InventoryID.REWARD_CHEST);
+			if (rewardContainer == null)
+			{
+				BossLoggedAlert("Couldn't find Barrows Chest Loot");
+				return;
+			}
 			int kc = killcountMap.get("BARROWS");
 			LootEntry entry = createLootEntry(kc, rewardContainer);
 			addLootEntry("Barrows", entry);
@@ -203,8 +203,12 @@ public class BossLoggerPlugin extends Plugin
 		// Raids Chest
 		if (event.getGroupId() == WidgetID.RAIDS_REWARD_GROUP_ID && bossLoggerConfig.recordRaidsChest())
 		{
-			// Id 581 (Chambers of xeric chest)
-			ItemContainer rewardContainer = client.getItemContainer(InventoryID.valueOf("RAIDS_REWARD_GROUP_ID")); // TODO: Update to RAIDS REWARD ONCE implemented
+			ItemContainer rewardContainer = client.getItemContainer(InventoryID.CHAMBERS_OF_XERIC_CHEST);
+			if (rewardContainer == null)
+			{
+				BossLoggedAlert("Couldn't find Raids Chest Loot");
+				return;
+			}
 			int kc = killcountMap.get("RAIDS");
 			LootEntry entry = createLootEntry(kc, rewardContainer);
 			addLootEntry("Raids", entry);
@@ -257,7 +261,14 @@ public class BossLoggerPlugin extends Plugin
 			Actor target = interacting.getInteracting();
 			if (target != null && target.getName().equals(client.getLocalPlayer().getName()))
 			{
-				Boolean flag = recordingMap.get(interacting.getName().toUpperCase());
+
+				String name = interacting.getName();
+				Boolean flag = recordingMap.get(name.toUpperCase());
+				// Special Cases
+				if (name.equals("Dusk"))
+				{
+					flag = recordingMap.get("GROTESQUE GUARDIANS");
+				}
 				if (flag != null && flag)
 				{
 					actors.putIfAbsent(interacting, interacting);
@@ -283,19 +294,14 @@ public class BossLoggerPlugin extends Plugin
 	// Use to be a subscribe event but was removed on 5/27/2018. Recreated above.
 	private void onActorDeath(Actor actor)
 	{
-		// Grotesque Guardians Handling
-		Boolean gFlag = recordingMap.get("GROTESQUE GUARDIANS");
-		if (gFlag != null && gFlag)
-		{
-			if (actor.getName().equals("Dusk"))
-				duskDead = true;
-			if (actor.getName().equals("Dawn"))
-				dawnDead = true;
-		}
 		// Are kills for this Boss being recorded?
 		Boolean flag = recordingMap.get(actor.getName().toUpperCase());
-		if (duskDead && dawnDead)
-			flag = true;
+		// Grotesque Guardians Handling
+		if (actor.getName().equals("Dusk"))
+		{
+			flag = recordingMap.get("GROTESQUE GUARDIANS");
+		}
+		// Can't find NPC in recording map or should not be recording the npc loot
 		if (flag == null || !flag)
 			return;
 
@@ -328,10 +334,6 @@ public class BossLoggerPlugin extends Plugin
 		watching = true;
 		if (deathName.equals("Zulrah"))
 			watchingItemLayers = true;
-
-		// Reset Grotesque Guardians flags
-		duskDead = false;
-		dawnDead = false;
 	}
 
 	@Subscribe
@@ -352,9 +354,9 @@ public class BossLoggerPlugin extends Plugin
 				watching = false;
 				// Find the drops from the correct tile and return them in the correct format
 				ArrayList<DropEntry> drops = createDropEntryArray((NPC) npc);
-				// Specific use case
+				// Specific use case(s)
 				String npcName = npc.getName();
-				if (npcName.equals("Dusk") || npcName.equals("Dawn"))
+				if (npcName.equals("Dusk"))
 					npcName = "Grotesque Guardians";
 
 				if (drops != null)
@@ -457,6 +459,32 @@ public class BossLoggerPlugin extends Plugin
 		}
 	}
 
+	private void resetStoredData()
+	{
+		for (Tab tab : Tab.values())
+		{
+			lootMap.put(tab.getBossName().toUpperCase(), new ArrayList<>());
+		}
+	}
+
+	private void updateTabData()
+	{
+		// Do nothing is panel isn't enabled
+		if (!bossLoggerConfig.showLootTotals())
+		{
+			return;
+		}
+
+		for (Tab tab : Tab.values())
+		{
+			// Only update tabs if the tabs are being shown.
+			if (isBeingRecorded(tab.getName()))
+			{
+				panel.updateTab(tab.getName());
+			}
+		}
+	}
+
 	private void init()
 	{
 		// Create maps for easy management of certain features
@@ -548,6 +576,12 @@ public class BossLoggerPlugin extends Plugin
 	// Will use the main loots folder if your ingame username is not available
 	private void updatePlayerFolder()
 	{
+		String old = "";
+		if (playerFolder != null)
+		{
+			old = playerFolder.toString();
+		}
+
 		if (client.getLocalPlayer() != null && client.getLocalPlayer().getName() != null)
 		{
 			playerFolder = new File(LOOTS_DIR, client.getLocalPlayer().getName());
@@ -557,6 +591,13 @@ public class BossLoggerPlugin extends Plugin
 		else
 		{
 			playerFolder = LOOTS_DIR;
+		}
+
+		// Reset Stored and UI Data on change of data directory
+		if (!playerFolder.toString().equals(old))
+		{
+			resetStoredData();
+			updateTabData();
 		}
 	}
 
@@ -769,7 +810,7 @@ public class BossLoggerPlugin extends Plugin
 				.collect(Collectors.toList());
 	}
 
-	// Taken from Wooxs droplogger plugin
+	// Taken from Wooxs droplogger plugin, should be added to ItemManager in the future.
 	private int getUnnotedItemId(int itemId)
 	{
 		ItemComposition comp = itemManager.getItemComposition(itemId);
@@ -803,11 +844,6 @@ public class BossLoggerPlugin extends Plugin
 				// Location is determined at start of death animation
 				location = playerLocation;
 				break;
-			//case NpcID.DAWN:
-			//case NpcID.DAWN_7852:
-			//case NpcID.DAWN_7853:
-			//case NpcID.DAWN_7884:
-			//case NpcID.DAWN_7885:
 			case NpcID.DUSK:
 			case NpcID.DUSK_7851:
 			case NpcID.DUSK_7854:
