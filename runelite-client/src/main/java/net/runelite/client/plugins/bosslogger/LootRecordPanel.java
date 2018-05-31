@@ -100,6 +100,32 @@ class LootRecordPanel extends JPanel
 		this.add(total, c);
 	}
 
+
+	// Used specifically for the Killcount entry
+	LootRecordPanel(int size, int last)
+	{
+		GridBagLayout layout = new GridBagLayout();
+		this.setLayout(layout);
+		this.setBorder(new MatteBorder( 0, 0, 1, 0, Color.GRAY));
+
+		GridBagConstraints c = new GridBagConstraints();
+		c.fill = GridBagConstraints.BOTH;
+		c.weightx = 1;
+		c.gridx = 0;
+		c.gridy = 0;
+		c.ipady = 20;
+
+
+		JLabel current = new JLabel("Current KC: " + last, SwingConstants.LEFT);
+		current.setForeground(Color.CYAN);
+		JLabel recorder = new JLabel("Kills Logged: " + size, SwingConstants.RIGHT);
+		recorder.setForeground(Color.CYAN);
+
+		this.add(current, c);
+		c.gridx++;
+		this.add(recorder, c);
+	}
+
 	// Add K and M Suffix to items
 	private String numberToString(long v)
 	{
