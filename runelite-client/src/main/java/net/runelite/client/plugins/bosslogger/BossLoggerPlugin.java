@@ -459,6 +459,32 @@ public class BossLoggerPlugin extends Plugin
 		}
 	}
 
+	private void resetStoredData()
+	{
+		for (Tab tab : Tab.values())
+		{
+			lootMap.put(tab.getBossName().toUpperCase(), new ArrayList<>());
+		}
+	}
+
+	private void updateTabData()
+	{
+		// Do nothing is panel isn't enabled
+		if (!bossLoggerConfig.showLootTotals())
+		{
+			return;
+		}
+
+		for (Tab tab : Tab.values())
+		{
+			// Only update tabs if the tabs are being shown.
+			if (isBeingRecorded(tab.getName()))
+			{
+				panel.updateTab(tab.getName());
+			}
+		}
+	}
+
 	private void init()
 	{
 		// Create maps for easy management of certain features
@@ -550,6 +576,12 @@ public class BossLoggerPlugin extends Plugin
 	// Will use the main loots folder if your ingame username is not available
 	private void updatePlayerFolder()
 	{
+		String old = "";
+		if (playerFolder != null)
+		{
+			old = playerFolder.toString();
+		}
+
 		if (client.getLocalPlayer() != null && client.getLocalPlayer().getName() != null)
 		{
 			playerFolder = new File(LOOTS_DIR, client.getLocalPlayer().getName());
@@ -559,6 +591,13 @@ public class BossLoggerPlugin extends Plugin
 		else
 		{
 			playerFolder = LOOTS_DIR;
+		}
+
+		// Reset Stored and UI Data on change of data directory
+		if (!playerFolder.toString().equals(old))
+		{
+			resetStoredData();
+			updateTabData();
 		}
 	}
 
