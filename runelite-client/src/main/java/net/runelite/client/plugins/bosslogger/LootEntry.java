@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, Adam <Adam@sigterm.info>
+ * Copyright (c) 2018, TheStonedTurtle <www.github.com/TheStonedTurtle>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -22,52 +22,22 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package net.runelite.api;
+package net.runelite.client.plugins.bosslogger;
 
-/**
- * An enumeration of possible inventory types.
- */
-public enum InventoryID
+import java.util.ArrayList;
+import lombok.Getter;
+
+class LootEntry
 {
-	/**
-	 * Standard player inventory.
-	 */
-	INVENTORY(93),
-	/**
-	 * Equipment inventory.
-	 */
-	EQUIPMENT(94),
-	/**
-	 * Bank inventory.
-	 */
-	BANK(95),
-	/**
-	 * A puzzle box inventory.
-	 */
-	PUZZLE_BOX(140),
-	/**
-	 * Clue Scroll / Barrows reward chest inventory.
-	 */
-	REWARD_CHEST(141),
-	/**
-	 * Raids reward chest inventory.
-	 */
-	CHAMBERS_OF_XERIC_CHEST(581);
-
-	private final int id;
-
-	InventoryID(int id)
+	LootEntry(Integer kill_count, ArrayList<DropEntry> drops)
 	{
-		this.id = id;
+		this.kill_count = kill_count;
+		this.drops = drops;
 	}
 
-	/**
-	 * Gets the raw inventory type ID.
-	 *
-	 * @return inventory type
-	 */
-	public int getId()
-	{
-		return id;
-	}
+	@Getter
+	private final Integer kill_count;
+
+	@Getter
+	final ArrayList<DropEntry> drops;
 }
