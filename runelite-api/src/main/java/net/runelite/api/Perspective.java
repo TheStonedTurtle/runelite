@@ -494,6 +494,19 @@ public class Perspective
 		return clickBox;
 	}
 
+	/**
+	 * Determine if a given point is off-screen.
+	 *
+	 * @param client
+	 * @param point
+	 * @return
+	 */
+	private static boolean isOffscreen(@Nonnull Client client, @Nonnull Point point)
+	{
+		return (point.getX() < 0 || point.getX() >= client.getViewportWidth())
+			&& (point.getY() < 0 || point.getY() >= client.getViewportHeight());
+	}
+
 	private static Area get2DGeometry(
 		@Nonnull Client client,
 		@Nonnull List<Triangle> triangles,
@@ -537,26 +550,37 @@ public class Perspective
 				continue;
 			}
 
+			if (isOffscreen(client, a) && isOffscreen(client, b) && isOffscreen(client, c))
+			{
+				continue;
+			}
+
 			int minX = Math.min(Math.min(a.getX(), b.getX()), c.getX());
 			int minY = Math.min(Math.min(a.getY(), b.getY()), c.getY());
 
 			// For some reason, this calculation is always 4 pixels short of the actual in-client one
-			int maxX = Math.max(Math.max(a.getX(), b.getX()), c.getX()) + client.getViewportXOffset();
-			int maxY = Math.max(Math.max(a.getY(), b.getY()), c.getY()) + client.getViewportYOffset();
+			int maxX = Math.max(Math.max(a.getX(), b.getX()), c.getX()) + 4;
+			int maxY = Math.max(Math.max(a.getY(), b.getY()), c.getY()) + 4;
 
 			// ...and the rectangles in the fixed client are shifted 4 pixels right and down
 			if (!client.isResized())
 			{
-				minX += 4;
-				minY += 4;
-				maxX += 4;
-				maxY += 4;
+				minX += client.getViewportXOffset();
+				minY += client.getViewportYOffset();
+				maxX += client.getViewportXOffset();
+				maxY += client.getViewportYOffset();
 			}
 
 			Rectangle clickableRect = new Rectangle(
 				minX - radius, minY - radius,
 				maxX - minX + radius, maxY - minY + radius
 			);
+
+			if (geometry.contains(clickableRect))
+			{
+				continue;
+			}
+
 			geometry.add(new Area(clickableRect));
 		}
 
