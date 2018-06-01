@@ -155,7 +155,6 @@ class BossLoggerPanel extends PluginPanel
 		scroller.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 		scroller.getVerticalScrollBar().setUnitIncrement(16);
 
-
 		// Refresh Button
 		JButton refresh = new JButton("Refresh Data");
 		refresh.addActionListener(e ->
@@ -209,6 +208,7 @@ class BossLoggerPanel extends PluginPanel
 				}
 			}
 		}
+
 		return insertTabAt;
 	}
 
@@ -224,6 +224,7 @@ class BossLoggerPanel extends PluginPanel
 				tabPositions.put(entry.getKey(), entry.getValue() - 1);
 			}
 		}
+
 		tabPositions.remove(tabName);
 	}
 

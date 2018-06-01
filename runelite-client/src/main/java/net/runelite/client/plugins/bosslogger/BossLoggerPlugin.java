@@ -738,7 +738,7 @@ public class BossLoggerPlugin extends Plugin
 			// Update Killcount map with latest value
 			if (data.size() > 0)
 			{
-				int killcount = data.get(data.size() - 1).getKill_count();
+				int killcount = data.get(data.size() - 1).getKillCount();
 				killcountMap.put(tab.getBossName().toUpperCase(), killcount);
 			}
 		}
@@ -868,7 +868,7 @@ public class BossLoggerPlugin extends Plugin
 							List<DropEntry> groundItems = getGroundItems(x);
 							if (groundItems != null)
 							{
-								return groundItems.stream().anyMatch(y -> y.getItem_id() == ItemID.ZULRAHS_SCALES);
+								return groundItems.stream().anyMatch(y -> y.getItemId() == ItemID.ZULRAHS_SCALES);
 							}
 							return false;
 						})
