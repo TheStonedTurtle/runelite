@@ -34,7 +34,7 @@ class DropEntry
 	@Getter
 	private final int itemAmount;
 
-	DropEntry(Integer itemId, Integer itemAmount)
+	DropEntry(int itemId, int itemAmount)
 	{
 		this.itemId = itemId;
 		this.itemAmount = itemAmount;

@@ -75,7 +75,7 @@ class LootRecordPanel extends JPanel
 	}
 
 	// Used specifically for the Total Value element inside the tab
-	LootRecordPanel(Long totalValue)
+	LootRecordPanel(long totalValue)
 	{
 		GridBagLayout layout = new GridBagLayout();
 		this.setLayout(layout);

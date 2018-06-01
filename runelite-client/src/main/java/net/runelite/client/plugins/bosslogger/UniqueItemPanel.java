@@ -74,13 +74,13 @@ class UniqueItemPanel extends JPanel
 		// Add each Unique Item icon to the panel
 		for (UniqueItem item : items)
 		{
-			Integer id = item.getItemID();
+			int id = item.getItemID();
 			ItemComposition comp = itemManager.getItemComposition(id);
 			LootRecord it = loots.get(comp.getName());
 			boolean shouldStack = comp.isStackable();
-			Integer quantity = 0;
-			Integer imageID = comp.getId();
-			Float alpha = alphaMissing;
+			int quantity = 0;
+			int imageID = comp.getId();
+			float alpha = alphaMissing;
 
 			// If we have a loot entry for this item then update the icon accordingly
 			if (it != null)
@@ -94,8 +94,8 @@ class UniqueItemPanel extends JPanel
 			}
 
 			// Create Image
-			Float finalAlpha = alpha;
-			Integer finalQuantity = quantity;
+			float finalAlpha = alpha;
+			int finalQuantity = quantity;
 			AsyncBufferedImage image = itemManager.getImage(imageID, finalQuantity, shouldStack);
 			BufferedImage opaque = createOpaqueImage(image, finalAlpha);
 			// Attach Image to Label and append label to Panel
@@ -114,7 +114,7 @@ class UniqueItemPanel extends JPanel
 	}
 
 	// Used to refresh the item icon if the image was still loading when attempting to create it earlier
-	private void refreshImage(JLabel label, AsyncBufferedImage image, Float finalAlpha)
+	private void refreshImage(JLabel label, AsyncBufferedImage image, float finalAlpha)
 	{
 		BufferedImage opaque = createOpaqueImage(image, finalAlpha);
 		ImageIcon o = new ImageIcon(opaque);
@@ -125,7 +125,7 @@ class UniqueItemPanel extends JPanel
 	}
 
 	// Creates the Item Icon with opacity depending on if they have received the item or not
-	private BufferedImage createOpaqueImage(AsyncBufferedImage image, Float alpha)
+	private BufferedImage createOpaqueImage(AsyncBufferedImage image, float alpha)
 	{
 		BufferedImage x = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_ARGB);
 		Graphics2D g2d = (Graphics2D)x.getGraphics();

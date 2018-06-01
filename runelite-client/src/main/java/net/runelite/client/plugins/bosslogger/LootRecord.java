@@ -53,7 +53,7 @@ class LootRecord
 	@Setter(AccessLevel.PACKAGE)
 	private ItemComposition item;
 
-	LootRecord(String itemName, Integer itemId, Integer amount, Integer value, AsyncBufferedImage icon, ItemComposition item)
+	LootRecord(String itemName, int itemId, int amount, int value, AsyncBufferedImage icon, ItemComposition item)
 	{
 		this.item = item;
 		this.itemId = itemId;
@@ -65,7 +65,7 @@ class LootRecord
 		this.total = ((long) value) * amount;
 	}
 
-	void incrementAmount(LootRecord l, Integer amount)
+	void incrementAmount(LootRecord l, int amount)
 	{
 		l.amount = l.amount + amount;
 		l.total = this.value * this.amount;
@@ -73,7 +73,7 @@ class LootRecord
 
 	void updateIconAmount(LootRecord l, ItemManager itemManager)
 	{
-		Boolean stackable = l.item.isStackable() || l.amount > 1;
+		boolean stackable = l.item.isStackable() || l.amount > 1;
 		l.icon = itemManager.getImage(l.itemId, l.amount, stackable);
 	}
 }

@@ -35,7 +35,7 @@ class LootEntry
 	@Getter
 	final ArrayList<DropEntry> drops;
 
-	LootEntry(Integer killCount, ArrayList<DropEntry> drops)
+	LootEntry(int killCount, ArrayList<DropEntry> drops)
 	{
 		this.killCount = killCount;
 		this.drops = drops;

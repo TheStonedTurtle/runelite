@@ -84,7 +84,7 @@ class LootPanel extends JPanel
 					// Create new entry
 					boolean shouldStack = item.isStackable() || de.getItemAmount() > 1;
 					AsyncBufferedImage icon = itemManager.getImage(de.getItemId(), de.getItemAmount(), shouldStack);
-					Integer price;
+					int price;
 					try
 					{
 						// Get item price

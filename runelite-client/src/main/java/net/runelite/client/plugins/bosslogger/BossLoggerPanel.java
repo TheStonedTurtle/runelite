@@ -253,7 +253,7 @@ class BossLoggerPanel extends PluginPanel
 	}
 
 	// Toggles Tab panel visibility
-	void toggleTab(String tabName, Boolean status)
+	void toggleTab(String tabName, boolean status)
 	{
 		Tab tab = Tab.getByName(tabName);
 		if (status)
