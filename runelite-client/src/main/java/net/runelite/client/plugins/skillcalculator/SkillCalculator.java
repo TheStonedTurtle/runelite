@@ -59,6 +59,7 @@ class SkillCalculator extends JPanel
 {
 	private static final int MAX_XP = 200_000_000;
 	private static final DecimalFormat XP_FORMAT = new DecimalFormat("#.#");
+	private static final DecimalFormat XP_FORMAT_COMMA = new DecimalFormat("#,###.#");
 
 	static SpriteManager spriteManager;
 	static ItemManager itemManager;
@@ -136,6 +137,8 @@ class SkillCalculator extends JPanel
 
 		// Remove all components (action slots) from this panel.
 		removeAll();
+		// Include detail container
+		detailContainer.removeAll();
 
 		if (calculatorType.isBankedXpFlag() && (bankMap.size() > 0) && plugin.showBankedXp())
 		{
@@ -399,7 +402,7 @@ class SkillCalculator extends JPanel
 				totalBankedXp += getSkillCategoryTotal(skill, category);
 			}
 		}
-		totalLabel.setText("Banked Exp: " + XP_FORMAT.format(totalBankedXp));
+		totalLabel.setText("Banked Exp: " + XP_FORMAT_COMMA.format(totalBankedXp));
 
 		revalidate();
 		repaint();

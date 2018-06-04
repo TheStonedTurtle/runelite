@@ -15,11 +15,14 @@ import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Image;
+import java.text.DecimalFormat;
 
 public class BankedExpPanel extends JPanel
 {
 	private ItemManager itemManager;
 	private static final Dimension ICON_SIZE = new Dimension(32, 32);
+
+	private final DecimalFormat XP_FORMAT_COMMA = new DecimalFormat("#,###.#");
 
 	BankedExpPanel(ItemManager itemManager, BankedItems item, int amount, double total)
 	{
@@ -42,7 +45,7 @@ public class BankedExpPanel extends JPanel
 		amountLabel.setForeground(Color.WHITE);
 		amountLabel.setHorizontalAlignment(SwingConstants.CENTER);
 
-		JShadowedLabel expLabel = new JShadowedLabel(String.valueOf(total) + "xp");
+		JShadowedLabel expLabel = new JShadowedLabel(XP_FORMAT_COMMA.format(total) + "xp");
 		expLabel.setFont(FontManager.getRunescapeSmallFont());
 		expLabel.setForeground(ColorScheme.LIGHT_GRAY_COLOR);
 		expLabel.setHorizontalAlignment(SwingConstants.CENTER);

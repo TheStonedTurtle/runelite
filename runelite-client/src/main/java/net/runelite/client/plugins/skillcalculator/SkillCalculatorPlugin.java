@@ -117,6 +117,7 @@ public class SkillCalculatorPlugin extends Plugin
 	protected void shutDown() throws Exception
 	{
 		pluginToolbar.removeNavigation(uiNavigationButton);
+		bankMap.clear();
 	}
 
 	// Pulled from bankvalue plugin
