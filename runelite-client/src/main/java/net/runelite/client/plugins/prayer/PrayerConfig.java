@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, DennisDeV <https://github.com/DevDennis>
+ * Copyright (c) 2018, Raqes <j.raqes@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -22,27 +22,49 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package net.runelite.client.plugins.antidrag;
+package net.runelite.client.plugins.prayer;
 
 import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
 
 @ConfigGroup(
-	keyName = "antiDrag",
-	name = "Anti Drag",
-	description = "Configuration for the anti drag plugin (shift only)"
+	keyName = "prayer",
+	name = "Prayer",
+	description = "Various tools related to prayer"
 )
-public interface AntiDragConfig extends Config
+public interface PrayerConfig extends Config
 {
 	@ConfigItem(
-		keyName = "dragDelay",
-		name = "Drag Delay",
-		description = "Configures the inventory drag delay in client ticks (20ms)",
-		position = 1
+		position = 0,
+		keyName = "prayerflick",
+		name = "Prayer flick helper",
+		description = "Enable the prayer flick helper"
 	)
-	default int dragDelay()
+	default boolean prayerFlickHelper()
 	{
-		return 600 / 20; // one game tick
+		return true;
+	}
+
+	@ConfigItem(
+		position = 1,
+		keyName = "prayerIndicator",
+		name = "Boost Indicator",
+		description = "Enable infoboxes for prayers"
+	)
+	default boolean prayerIndicator()
+	{
+		return false;
+	}
+
+	@ConfigItem(
+		position = 2,
+		keyName = "prayerIndicatorOverheads",
+		name = "Overhead Indicator",
+		description = "Also enable infoboxes for overheads"
+	)
+	default boolean prayerIndicatorOverheads()
+	{
+		return false;
 	}
 }
