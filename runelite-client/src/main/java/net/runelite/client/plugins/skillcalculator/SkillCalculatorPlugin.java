@@ -35,7 +35,9 @@ import com.google.common.eventbus.Subscribe;
 import com.google.inject.Provides;
 import lombok.Getter;
 import net.runelite.api.Client;
+import net.runelite.api.events.ConfigChanged;
 import net.runelite.api.events.GameTick;
+import net.runelite.api.events.UsernameChanged;
 import net.runelite.api.queries.BankItemQuery;
 import net.runelite.api.widgets.Widget;
 import net.runelite.api.widgets.WidgetInfo;
@@ -118,6 +120,24 @@ public class SkillCalculatorPlugin extends Plugin
 	{
 		pluginToolbar.removeNavigation(uiNavigationButton);
 		bankMap.clear();
+	}
+
+	@Subscribe
+	public void onUsernameChanged(UsernameChanged e)
+	{
+		bankMap.clear();
+		uiPanel.refreshCurrentCalc();
+	}
+
+	@Subscribe
+	public void onConfigChanged(ConfigChanged event)
+	{
+		if (event.getGroup().equals("skillCalculator"))
+		{
+			// Reset everything when banked experience toggled
+			bankMap.clear();
+			uiPanel.refreshCurrentCalc();
+		}
 	}
 
 	// Pulled from bankvalue plugin to grab bank data when bank is open
