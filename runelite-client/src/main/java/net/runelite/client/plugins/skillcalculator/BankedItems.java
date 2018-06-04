@@ -166,7 +166,8 @@ public enum BankedItems
 
 
 
-	// Return the item IDs that we should be searching for inside the bank by skill
+	// Return the items that we should be searching for inside the bank by skill
+	// Unused atm
 	private static final Map<Skill, ArrayList<BankedItems>> bySkillName = buildSkillItemMap();
 
 	public static ArrayList<BankedItems> getBySkillName(Skill skill)
@@ -186,7 +187,7 @@ public enum BankedItems
 	}
 
 
-	// Return the item IDs that we should be searching for inside the bank by skill
+	// Return the different item categories for this skill
 	private static final Map<Skill, Set<String>> bySkillCategory = buildSkillCategoryMap();
 
 	public static Set<String> getSkillCategories(Skill skill)
@@ -206,7 +207,7 @@ public enum BankedItems
 	}
 
 
-	// Return the item IDs that we should be searching for inside the bank by skill
+	// Return the items that we should be searching for by skill & category name
 	private static final Map<String, ArrayList<BankedItems>> itemsBySkillCategory = buildItemSkillCategoryMap();
 
 	public static ArrayList<BankedItems> getItemsForSkillCategories(Skill skill, String category)

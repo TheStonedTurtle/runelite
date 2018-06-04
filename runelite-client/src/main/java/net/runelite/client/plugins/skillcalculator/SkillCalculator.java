@@ -138,11 +138,13 @@ class SkillCalculator extends JPanel
 
 		// Remove all components (action slots) from this panel.
 		removeAll();
-		// Include detail container
-		detailContainer.removeAll();
 
+		// Only adds Banked Experience portion if enabled for this SkillCalc, have seen their bank, and is enabled via config
 		if (calculatorType.isBankedXpFlag() && (bankMap.size() > 0) && plugin.showBankedXp())
 		{
+			// Clear the detailContainer to ensure clean slate
+			detailContainer.removeAll();
+
 			renderBankedExpOptions();
 			calculateBankedExpTotal();
 			add(detailContainer);
@@ -229,6 +231,7 @@ class SkillCalculator extends JPanel
 		}
 	}
 
+	// Adds the Configuration options for Banked Experience to the panel
 	private void renderBankedExpOptions()
 	{
 		Set<String> categories = BankedItems.getSkillCategories(skill);
@@ -276,7 +279,7 @@ class SkillCalculator extends JPanel
 		uiOption.setBorder(BorderFactory.createEmptyBorder(3, 7, 3, 0));
 		uiOption.setBackground(ColorScheme.DARKER_GRAY_COLOR);
 
-		// Adjust Total Banked XP check-state of the box.
+		// Show we show the bank exp details?
 		uiCheckbox.addActionListener(e -> toggleBankExpDetails(uiCheckbox.isSelected()));
 		uiCheckbox.setBackground(ColorScheme.MEDIUM_GRAY_COLOR);
 
@@ -286,7 +289,6 @@ class SkillCalculator extends JPanel
 		add(uiOption);
 		add(Box.createRigidArea(new Dimension(0, 5)));
 
-		// Add total banked experience
 		add(totalLabel);
 		add(detailContainer);
 	}
@@ -328,6 +330,7 @@ class SkillCalculator extends JPanel
 		repaint();
 	}
 
+	// Toggle whether the Banked Experience Detail container should be shown (recreates if should be shown and already exists)
 	private void toggleBankExpDetails(boolean showFlag)
 	{
 		if (showFlag)
@@ -345,6 +348,7 @@ class SkillCalculator extends JPanel
 		repaint();
 	}
 
+	// Recreate the Banked Experience Detail container
 	private void refreshBankedExpDetails()
 	{
 		detailContainer.removeAll();
@@ -388,10 +392,11 @@ class SkillCalculator extends JPanel
 		}
 	}
 
+	// Calculate the total banked experience and display it in the panel
 	private void calculateBankedExpTotal()
 	{
-		// Reset Banked XP
 		totalBankedXp = 0.0f;
+
 		Set<String> categories = BankedItems.getSkillCategories(skill);
 		if (categories == null)
 			return;
@@ -403,6 +408,7 @@ class SkillCalculator extends JPanel
 				totalBankedXp += getSkillCategoryTotal(skill, category);
 			}
 		}
+
 		totalLabel.setText("Banked Exp: " + XP_FORMAT_COMMA.format(totalBankedXp));
 
 		revalidate();
@@ -410,6 +416,7 @@ class SkillCalculator extends JPanel
 
 	}
 
+	// Returns a Map of Items with the amount inside the bank as the value. Items added by category.
 	private Map<BankedItems, Integer> getBankedExpBreakdown()
 	{
 		Map<BankedItems, Integer> map = new LinkedHashMap<>();
@@ -430,6 +437,7 @@ class SkillCalculator extends JPanel
 		return map;
 	}
 
+	// Calculates Total Banked XP for this Skill Category
 	private int getSkillCategoryTotal(Skill skill, String category)
 	{
 		ArrayList<BankedItems> items = BankedItems.getItemsForSkillCategories(skill, category);

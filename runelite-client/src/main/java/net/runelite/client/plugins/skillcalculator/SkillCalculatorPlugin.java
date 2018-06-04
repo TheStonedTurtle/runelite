@@ -120,7 +120,7 @@ public class SkillCalculatorPlugin extends Plugin
 		bankMap.clear();
 	}
 
-	// Pulled from bankvalue plugin
+	// Pulled from bankvalue plugin to grab bank data when bank is open
 	@Subscribe
 	public void onGameTick(GameTick event)
 	{
@@ -132,9 +132,11 @@ public class SkillCalculatorPlugin extends Plugin
 			return;
 		}
 
+		// Is there a way to only run when bank first opened/bank gets updated? Currently runs every tick bank is open.
 		updateBankItems();
 	}
 
+	// Recreates the bankMap hashmap
 	private void updateBankItems()
 	{
 		if (showBankedXp())
@@ -158,6 +160,7 @@ public class SkillCalculatorPlugin extends Plugin
 		}
 	}
 
+	// Wrapper function so i don't need to pass the config to SkillCalculator
 	boolean showBankedXp()
 	{
 		return skillCalculatorConfig.showBankedXp();
