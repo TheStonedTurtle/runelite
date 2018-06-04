@@ -26,9 +26,21 @@
 package net.runelite.client.plugins.skillcalculator;
 
 import java.awt.image.BufferedImage;
+import java.util.HashMap;
+import java.util.Map;
 import javax.imageio.ImageIO;
 import javax.inject.Inject;
+
+import com.google.common.eventbus.Subscribe;
+import com.google.inject.Provides;
+import lombok.Getter;
 import net.runelite.api.Client;
+import net.runelite.api.events.GameTick;
+import net.runelite.api.queries.BankItemQuery;
+import net.runelite.api.widgets.Widget;
+import net.runelite.api.widgets.WidgetInfo;
+import net.runelite.api.widgets.WidgetItem;
+import net.runelite.client.config.ConfigManager;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.game.SkillIconManager;
 import net.runelite.client.game.SpriteManager;
@@ -37,6 +49,7 @@ import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.ClientUI;
 import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.ui.PluginToolbar;
+import net.runelite.client.util.QueryRunner;
 
 @PluginDescriptor(name = "Skill Calculator")
 public class SkillCalculatorPlugin extends Plugin
@@ -59,8 +72,23 @@ public class SkillCalculatorPlugin extends Plugin
 	@Inject
 	private PluginToolbar pluginToolbar;
 
+	@Inject
+	private SkillCalculatorConfig skillCalculatorConfig;
+
 	private NavigationButton uiNavigationButton;
 	private SkillCalculatorPanel uiPanel;
+
+	@Inject
+	private QueryRunner queryRunner;
+
+	@Getter
+	private Map<Integer, Integer> bankMap = new HashMap<>();
+
+	@Provides
+	SkillCalculatorConfig getConfig(ConfigManager configManager)
+	{
+		return configManager.getConfig(SkillCalculatorConfig.class);
+	}
 
 	@Override
 	protected void startUp() throws Exception
@@ -73,6 +101,7 @@ public class SkillCalculatorPlugin extends Plugin
 
 		SkillCalculator.spriteManager = spriteManager;
 		SkillCalculator.itemManager = itemManager;
+		SkillCalculator.plugin = this;
 
 		uiPanel = new SkillCalculatorPanel(skillIconManager, client);
 		uiNavigationButton = NavigationButton.builder()
@@ -88,5 +117,48 @@ public class SkillCalculatorPlugin extends Plugin
 	protected void shutDown() throws Exception
 	{
 		pluginToolbar.removeNavigation(uiNavigationButton);
+	}
+
+	// Pulled from bankvalue plugin
+	@Subscribe
+	public void onGameTick(GameTick event)
+	{
+		Widget widgetBankTitleBar = client.getWidget(WidgetInfo.BANK_TITLE_BAR);
+
+		// Don't update on a search because rs seems to constantly update the title
+		if (widgetBankTitleBar == null || widgetBankTitleBar.isHidden() || widgetBankTitleBar.getText().contains("Showing"))
+		{
+			return;
+		}
+
+		updateBankItems();
+	}
+
+	private void updateBankItems()
+	{
+		if (showBankedXp())
+		{
+
+			WidgetItem[] widgetItems = queryRunner.runQuery(new BankItemQuery());
+
+			if (widgetItems.length == 0)
+			{
+				return;
+			}
+
+			Map<Integer, Integer> map = new HashMap<>();
+
+			for (WidgetItem widgetItem : widgetItems)
+			{
+				map.put(widgetItem.getId(), widgetItem.getQuantity());
+			}
+
+			bankMap = map;
+		}
+	}
+
+	boolean showBankedXp()
+	{
+		return skillCalculatorConfig.showBankedXp();
 	}
 }
