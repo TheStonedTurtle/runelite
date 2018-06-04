@@ -3,7 +3,6 @@ package net.runelite.client.plugins.skillcalculator;
 import net.runelite.client.game.AsyncBufferedImage;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.ui.ColorScheme;
-import net.runelite.client.ui.FontManager;
 import net.runelite.client.ui.components.shadowlabel.JShadowedLabel;
 
 import javax.swing.ImageIcon;
@@ -18,9 +17,8 @@ import java.awt.GridBagLayout;
 import java.awt.Image;
 import java.text.DecimalFormat;
 
-public class BankedExpPanel extends JPanel
+class BankedExpPanel extends JPanel
 {
-	private ItemManager itemManager;
 	private static final Dimension ICON_SIZE = new Dimension(35, 35);
 
 	private final DecimalFormat FORMAT_COMMA = new DecimalFormat("#,###.#");
@@ -39,7 +37,7 @@ public class BankedExpPanel extends JPanel
 		image.setBorder(new EmptyBorder(0, 8, 0, 0));
 
 		Runnable resize = () ->
-				image.setIcon(new ImageIcon(icon.getScaledInstance((int)ICON_SIZE.getWidth(), (int)ICON_SIZE.getHeight(), Image.SCALE_SMOOTH)));
+			image.setIcon(new ImageIcon(icon.getScaledInstance((int)ICON_SIZE.getWidth(), (int)ICON_SIZE.getHeight(), Image.SCALE_SMOOTH)));
 		icon.onChanged(resize);
 		resize.run();
 

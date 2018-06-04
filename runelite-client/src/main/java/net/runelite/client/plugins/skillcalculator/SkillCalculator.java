@@ -253,6 +253,7 @@ class SkillCalculator extends JPanel
 
 			// Everything is enabled by default
 			uiCheckbox.setSelected(true);
+			categoryMap.put(category, true);
 
 			// Adjust Total Banked XP check-state of the box.
 			uiCheckbox.addActionListener(e -> adjustBankedXp(uiCheckbox.isSelected(), category));
@@ -263,8 +264,6 @@ class SkillCalculator extends JPanel
 
 			add(uiOption);
 			add(Box.createRigidArea(new Dimension(0, 5)));
-
-			categoryMap.put(category, true);
 		}
 
 		// Add final option
@@ -279,7 +278,7 @@ class SkillCalculator extends JPanel
 		uiOption.setBorder(BorderFactory.createEmptyBorder(3, 7, 3, 0));
 		uiOption.setBackground(ColorScheme.DARKER_GRAY_COLOR);
 
-		// Show we show the bank exp details?
+		// Should we show the bank exp details?
 		uiCheckbox.addActionListener(e -> toggleBankExpDetails(uiCheckbox.isSelected()));
 		uiCheckbox.setBackground(ColorScheme.MEDIUM_GRAY_COLOR);
 

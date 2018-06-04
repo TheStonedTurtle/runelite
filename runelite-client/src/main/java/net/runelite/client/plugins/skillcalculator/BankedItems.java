@@ -15,11 +15,12 @@ public enum BankedItems
 	/*
 	 * Construction Items
 	 */
+	// Planks
 	PLANK(ItemID.PLANK, "Planks", Skill.CONSTRUCTION, 29.0),
 	OAK_PLANK(ItemID.OAK_PLANK, "Planks", Skill.CONSTRUCTION, 60.0),
 	TEAK_PLANK(ItemID.TEAK_PLANK, "Planks", Skill.CONSTRUCTION, 90.0),
 	MAHOGANY_PLANK(ItemID.MAHOGANY_PLANK, "Planks", Skill.CONSTRUCTION, 140.0),
-
+	// Logs
 	LOGS(ItemID.LOGS, "Logs", Skill.CONSTRUCTION, 29.0),
 	OAK_LOGS(ItemID.OAK_LOGS, "Logs", Skill.CONSTRUCTION, 60.0),
 	TEAK_LOGS(ItemID.TEAK_LOGS, "Logs", Skill.CONSTRUCTION, 90.0),
@@ -132,8 +133,7 @@ public enum BankedItems
 	//GOLD_ORE(ItemID.GOLD_ORE, "Bars", Skill.SMITHING, 56.2),
 	MITHRIL_BAR(ItemID.MITHRIL_BAR, "Bars", Skill.SMITHING, 50.0),
 	ADAMANTITE_BAR(ItemID.ADAMANTITE_BAR, "Bars", Skill.SMITHING, 62.5),
-	RUNITE_BAR(ItemID.RUNITE_BAR, "Bars", Skill.SMITHING, 75.0),
-	;
+	RUNITE_BAR(ItemID.RUNITE_BAR, "Bars", Skill.SMITHING, 75.0);
 
 	@Getter
 	private final int itemID;
