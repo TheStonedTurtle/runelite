@@ -39,13 +39,13 @@ import java.util.Map;
 import java.util.Set;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import net.runelite.api.Client;
 import net.runelite.api.Experience;
 import net.runelite.api.Skill;
-import net.runelite.client.config.ConfigManager;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.game.SpriteManager;
 import net.runelite.client.plugins.skillcalculator.beans.SkillData;
@@ -85,6 +85,8 @@ class SkillCalculator extends JPanel
 	private Skill skill;
 	private float totalBankedXp = 0.0f;
 	private JLabel totalLabel = new JLabel();
+	private JPanel detailContainer;
+	private boolean detailFlag;
 
 	SkillCalculator(Client client, UICalculatorInputArea uiInput)
 	{
@@ -108,6 +110,9 @@ class SkillCalculator extends JPanel
 
 		uiInput.uiFieldTargetLevel.addActionListener(e -> onFieldTargetLevelUpdated());
 		uiInput.uiFieldTargetXP.addActionListener(e -> onFieldTargetXPUpdated());
+
+		detailContainer = new JPanel();
+		detailContainer.setLayout(new BoxLayout(detailContainer, BoxLayout.Y_AXIS));
 	}
 
 	void openCalculator(CalculatorType calculatorType)
@@ -136,6 +141,7 @@ class SkillCalculator extends JPanel
 		{
 			renderBankedExpOptions();
 			calculateBankedExpTotal();
+			add(detailContainer);
 		}
 
 		// Add in checkboxes for available skill bonuses.
@@ -253,8 +259,34 @@ class SkillCalculator extends JPanel
 
 			categoryMap.put(category, true);
 		}
+
+		// Add final option
+		JPanel uiOption = new JPanel(new BorderLayout());
+		JLabel uiLabel = new JLabel("Show Experience Breakdown");
+		JCheckBox uiCheckbox = new JCheckBox();
+		detailFlag = false;
+
+		uiLabel.setForeground(Color.WHITE);
+		uiLabel.setFont(FontManager.getRunescapeSmallFont());
+
+		uiOption.setBorder(BorderFactory.createEmptyBorder(3, 7, 3, 0));
+		uiOption.setBackground(ColorScheme.DARKER_GRAY_COLOR);
+
+		// Adjust Total Banked XP check-state of the box.
+		uiCheckbox.addActionListener(e -> toggleBankExpDetails(uiCheckbox.isSelected()));
+		uiCheckbox.setBackground(ColorScheme.MEDIUM_GRAY_COLOR);
+
+		uiOption.add(uiLabel, BorderLayout.WEST);
+		uiOption.add(uiCheckbox, BorderLayout.EAST);
+
+		add(uiOption);
+		add(Box.createRigidArea(new Dimension(0, 5)));
+
+		// Add total banked experience
 		add(totalLabel);
+		add(detailContainer);
 	}
+
 
 	private void renderActionSlots()
 	{
@@ -290,6 +322,47 @@ class SkillCalculator extends JPanel
 		// Refresh the rendering of this panel.
 		revalidate();
 		repaint();
+	}
+
+	private void toggleBankExpDetails(boolean showFlag)
+	{
+		if (showFlag)
+		{
+			refreshBankedExpDetails();
+		}
+		else
+		{
+			detailContainer.removeAll();
+		}
+
+		detailFlag = showFlag;
+
+		revalidate();
+		repaint();
+	}
+
+	private void refreshBankedExpDetails()
+	{
+		detailContainer.removeAll();
+
+		Map<BankedItems, Integer> map = getBankedExpBreakdown();
+		for (Map.Entry<BankedItems, Integer> entry : map.entrySet())
+		{
+			BankedItems item = entry.getKey();
+			Boolean flag = categoryMap.get(item.getCategory());
+			if (flag != null && flag)	// Only adds items that are in enabled categories.
+			{
+				double xp = item.getBasexp();
+				if (!item.isBonusExempt())
+					xp = xp * xpFactor;
+				double total = entry.getValue() * xp;
+
+				detailContainer.add(new BankedExpPanel(itemManager, item, entry.getValue(), total));
+			}
+		}
+
+		detailContainer.revalidate();
+		detailContainer.repaint();
 	}
 
 	private void calculate()
@@ -331,6 +404,23 @@ class SkillCalculator extends JPanel
 		revalidate();
 		repaint();
 
+	}
+
+	private Map<BankedItems, Integer> getBankedExpBreakdown()
+	{
+		Map<BankedItems, Integer> map = new HashMap<>();
+
+		ArrayList<BankedItems> items = BankedItems.getBySkillName(skill);
+		for (BankedItems item : items)
+		{
+			Integer amount = bankMap.get(item.getItemID());
+			if (amount != null && amount > 0)
+			{
+				map.put(item, amount);
+			}
+		}
+
+		return map;
 	}
 
 	private int getSkillCategoryTotal(Skill skill, String category)
@@ -381,12 +471,14 @@ class SkillCalculator extends JPanel
 		xpFactor += addBonus ? value : -value;
 		calculate();
 		calculateBankedExpTotal();
+		toggleBankExpDetails(detailFlag);
 	}
 
 	private void adjustBankedXp(boolean removeBonus, String category)
 	{
 		categoryMap.put(category, removeBonus);
 		calculateBankedExpTotal();
+		toggleBankExpDetails(detailFlag);
 	}
 
 	private void onFieldCurrentLevelUpdated()
