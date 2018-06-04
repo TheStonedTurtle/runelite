@@ -34,6 +34,7 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -411,15 +412,18 @@ class SkillCalculator extends JPanel
 
 	private Map<BankedItems, Integer> getBankedExpBreakdown()
 	{
-		Map<BankedItems, Integer> map = new HashMap<>();
+		Map<BankedItems, Integer> map = new LinkedHashMap<>();
 
-		ArrayList<BankedItems> items = BankedItems.getBySkillName(skill);
-		for (BankedItems item : items)
+		for (String category : BankedItems.getSkillCategories(skill))
 		{
-			Integer amount = bankMap.get(item.getItemID());
-			if (amount != null && amount > 0)
+			ArrayList<BankedItems> items = BankedItems.getItemsForSkillCategories(skill, category);
+			for (BankedItems item : items)
 			{
-				map.put(item, amount);
+				Integer amount = bankMap.get(item.getItemID());
+				if (amount != null && amount > 0)
+				{
+					map.put(item, amount);
+				}
 			}
 		}
 

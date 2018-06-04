@@ -10,6 +10,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
+import javax.swing.border.EmptyBorder;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
@@ -20,9 +21,9 @@ import java.text.DecimalFormat;
 public class BankedExpPanel extends JPanel
 {
 	private ItemManager itemManager;
-	private static final Dimension ICON_SIZE = new Dimension(32, 32);
+	private static final Dimension ICON_SIZE = new Dimension(35, 35);
 
-	private final DecimalFormat XP_FORMAT_COMMA = new DecimalFormat("#,###.#");
+	private final DecimalFormat FORMAT_COMMA = new DecimalFormat("#,###.#");
 
 	BankedExpPanel(ItemManager itemManager, BankedItems item, int amount, double total)
 	{
@@ -34,18 +35,19 @@ public class BankedExpPanel extends JPanel
 		image.setMinimumSize(ICON_SIZE);
 		image.setMaximumSize(ICON_SIZE);
 		image.setPreferredSize(ICON_SIZE);
-		image.setHorizontalAlignment(SwingConstants.CENTER);
+		image.setHorizontalAlignment(SwingConstants.LEFT);
+		image.setBorder(new EmptyBorder(0, 8, 0, 0));
 
 		Runnable resize = () ->
-				image.setIcon(new ImageIcon(icon.getScaledInstance(35, 35, Image.SCALE_SMOOTH)));
+				image.setIcon(new ImageIcon(icon.getScaledInstance((int)ICON_SIZE.getWidth(), (int)ICON_SIZE.getHeight(), Image.SCALE_SMOOTH)));
 		icon.onChanged(resize);
 		resize.run();
 
-		JShadowedLabel amountLabel = new JShadowedLabel(String.valueOf(amount));
+		JShadowedLabel amountLabel = new JShadowedLabel(FORMAT_COMMA.format(amount));
 		amountLabel.setForeground(Color.WHITE);
 		amountLabel.setHorizontalAlignment(SwingConstants.CENTER);
 
-		JShadowedLabel expLabel = new JShadowedLabel(XP_FORMAT_COMMA.format(total) + "xp");
+		JShadowedLabel expLabel = new JShadowedLabel(FORMAT_COMMA.format(total) + "xp");
 		expLabel.setFont(FontManager.getRunescapeSmallFont());
 		expLabel.setForeground(ColorScheme.LIGHT_GRAY_COLOR);
 		expLabel.setHorizontalAlignment(SwingConstants.CENTER);
