@@ -48,8 +48,7 @@ public class BankedExpPanel extends JPanel
 		amountLabel.setHorizontalAlignment(SwingConstants.CENTER);
 
 		JShadowedLabel expLabel = new JShadowedLabel(FORMAT_COMMA.format(total) + "xp");
-		expLabel.setFont(FontManager.getRunescapeSmallFont());
-		expLabel.setForeground(ColorScheme.LIGHT_GRAY_COLOR);
+		expLabel.setForeground(Color.WHITE);
 		expLabel.setHorizontalAlignment(SwingConstants.CENTER);
 
 		GridBagConstraints c = new GridBagConstraints();
