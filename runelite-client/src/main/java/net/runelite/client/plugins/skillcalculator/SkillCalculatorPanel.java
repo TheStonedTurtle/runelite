@@ -220,20 +220,19 @@ class SkillCalculatorPanel extends PluginPanel
 		selectedTab(currentTab);
 	}
 
-
 	// Refresh entire panel
 	void refreshPanel()
 	{
 		String oldTab = currentTab;
 
-		// Recreate Tabs (in case of Config change)
+		// Recreate Tabs (in case of Config change) and selects the first tab
 		createTabs();
 
 		// Reselect old tab if available
 		if (tabs.contains(oldTab))
-			currentTab = tabs.get(tabs.indexOf(oldTab));
+			currentTab = oldTab;
 
-		// For some reason this isn't giving it the bottom border but is selecting it.
+		// For some reason this isn't giving it the bottom border but is selecting the correct tab?
 		refreshCurrentCalc();
 	}
 
