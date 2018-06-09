@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, TheStonedTurtle <http://www.github.com/TheStonedTurtle>
+ * Copyright (c) 2018, TheStonedTurtle <https://github.com/TheStonedTurtle>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,7 +44,6 @@ import java.text.DecimalFormat;
 class BankedExpPanel extends JPanel
 {
 	private static final Dimension ICON_SIZE = new Dimension(35, 35);
-
 	private final DecimalFormat FORMAT_COMMA = new DecimalFormat("#,###.#");
 
 	BankedExpPanel(ItemManager itemManager, BankedItems item, int amount, double total)
@@ -52,6 +51,7 @@ class BankedExpPanel extends JPanel
 		setLayout(new GridBagLayout());
 		setBackground(ColorScheme.DARKER_GRAY_COLOR);
 
+		// Icon
 		AsyncBufferedImage icon = itemManager.getImage(item.getItemID());
 		JLabel image = new JLabel();
 		image.setMinimumSize(ICON_SIZE);
@@ -65,10 +65,12 @@ class BankedExpPanel extends JPanel
 		icon.onChanged(resize);
 		resize.run();
 
+		// Amount
 		JShadowedLabel amountLabel = new JShadowedLabel(FORMAT_COMMA.format(amount));
 		amountLabel.setForeground(Color.WHITE);
 		amountLabel.setHorizontalAlignment(SwingConstants.CENTER);
 
+		// Total Experience
 		JShadowedLabel expLabel = new JShadowedLabel(FORMAT_COMMA.format(total) + "xp");
 		expLabel.setForeground(Color.WHITE);
 		expLabel.setHorizontalAlignment(SwingConstants.CENTER);

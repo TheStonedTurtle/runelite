@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, TheStonedTurtle <http://www.github.com/TheStonedTurtle>
+ * Copyright (c) 2018, TheStonedTurtle <https://github.com/TheStonedTurtle>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -24,7 +24,6 @@
  */
 package net.runelite.client.plugins.skillcalculator;
 
-
 import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
@@ -40,15 +39,17 @@ public interface  SkillCalculatorConfig extends Config
 			keyName = "showBankedXp",
 			name = "Show Banked xp Tab",
 			description = "Shows the Banked xp tab inside the Calculator Panel")
+
 	default boolean showBankedXp()
 	{
 		return true;
 	}
 
 	@ConfigItem(
-			keyName = "showPlanner",
+			keyName = "showPlannerTab",
 			name = "Show Planner Tab",
 			description = "Shows the Skill Planner tab inside the Calculator Panel")
+
 	default boolean showPlannerTab()
 	{
 		return true;

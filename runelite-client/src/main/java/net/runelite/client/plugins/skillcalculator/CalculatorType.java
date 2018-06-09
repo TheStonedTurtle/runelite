@@ -67,7 +67,6 @@ enum CalculatorType
 	private static Map<Skill, CalculatorType> buildSkillMap()
 	{
 		Map<Skill, CalculatorType> map = new HashMap<>();
-
 		for (CalculatorType c : values())
 			map.put(c.getSkill(), c);
 

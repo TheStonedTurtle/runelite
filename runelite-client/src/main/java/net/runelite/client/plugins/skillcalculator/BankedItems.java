@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, TheStonedTurtle <http://www.github.com/TheStonedTurtle>
+ * Copyright (c) 2018, TheStonedTurtle <https://github.com/TheStonedTurtle>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -147,7 +147,6 @@ public enum BankedItems
 	UNCUT_ONYX(ItemID.UNCUT_ONYX, "Gems", Skill.CRAFTING, 167.5),
 	UNCUT_ZENYTE(ItemID.UNCUT_ZENYTE, "Gems", Skill.CRAFTING, 200.0),
 
-
 	/*
 	 * Smithing Items
 	 */
@@ -188,8 +187,6 @@ public enum BankedItems
 		this.bonusExempt = exemptFlag;
 	}
 
-
-
 	// Return the items that we should be searching for inside the bank by skill
 	// Unused atm
 	private static final Map<Skill, ArrayList<BankedItems>> bySkillName = buildSkillItemMap();
@@ -210,7 +207,6 @@ public enum BankedItems
 		return map;
 	}
 
-
 	// Return the different item categories for this skill
 	private static final Map<Skill, Set<String>> bySkillCategory = buildSkillCategoryMap();
 
@@ -229,7 +225,6 @@ public enum BankedItems
 
 		return map;
 	}
-
 
 	// Return the items that we should be searching for by skill & category name
 	private static final Map<String, ArrayList<BankedItems>> itemsBySkillCategory = buildItemSkillCategoryMap();

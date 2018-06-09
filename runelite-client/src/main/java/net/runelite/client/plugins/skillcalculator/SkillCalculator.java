@@ -96,14 +96,14 @@ class SkillCalculator extends JPanel
 
 	private String currentTab;
 
+	private double totalPlannerXp = 0.0f;
+
 	// Banked Experience Variables
 	private Map<Integer, Integer> bankMap = new HashMap<>();
 	private Map<String, Boolean> categoryMap = new HashMap<>();
 	private float totalBankedXp = 0.0f;
 	private JLabel totalLabel = new JLabel();
 	private JPanel detailContainer;
-
-	private double totalPlannerXp = 0.0f;
 
 	SkillCalculator(Client client, UICalculatorInputArea uiInput)
 	{
@@ -247,6 +247,7 @@ class SkillCalculator extends JPanel
 			detailContainer.removeAll();
 			refreshBankedExpDetails();
 
+			add(totalLabel);
 			add(detailContainer);
 		}
 
@@ -297,6 +298,8 @@ class SkillCalculator extends JPanel
 	{
 		if (skillData.getBonuses() != null)
 		{
+			add(new JLabel("Bonus Experience Configuration:"));
+
 			for (SkillDataBonus bonus : skillData.getBonuses())
 			{
 				JPanel uiOption = new JPanel(new BorderLayout());
@@ -330,6 +333,7 @@ class SkillCalculator extends JPanel
 			return;
 
 		add(new JLabel("Banked Experience Configuration:"));
+
 		for (String category : categories)
 		{
 			JPanel uiOption = new JPanel(new BorderLayout());
@@ -356,9 +360,6 @@ class SkillCalculator extends JPanel
 			add(uiOption);
 			add(Box.createRigidArea(new Dimension(0, 5)));
 		}
-
-		add(totalLabel);
-		add(detailContainer);
 	}
 
 	// Creates uiActionSlots for Calculator and Planner tabs
@@ -395,17 +396,6 @@ class SkillCalculator extends JPanel
 
 			if (currentTab.equals("Planner"))
 			{
-				// On-Click
-				/* slot.addMouseListener(new MouseAdapter()
-				{
-					@Override
-					public void mousePressed(MouseEvent e)
-					{
-						specifyPlannerSlotAmount(slot);
-					}
-				});
-				 */
-
 				// Right-Click Menu
 				JPopupMenu menu = new JPopupMenu("Adjust Action Amount");
 				JMenuItem item = new JMenuItem("Adjust Action Amount");
@@ -456,6 +446,9 @@ class SkillCalculator extends JPanel
 	// Updates the UI Actions for the Calculator Tab
 	private void calculate()
 	{
+		if (!currentTab.equals("Calculator"))
+			return;
+
 		for (UIActionSlot slot : uiActionSlots)
 		{
 			int actionCount = 0;
@@ -475,7 +468,11 @@ class SkillCalculator extends JPanel
 
 	private void calculatePlanner()
 	{
+		if (!currentTab.equals("Planner"))
+			return;
+
 		totalPlannerXp = 0.0f;
+
 		for (UIActionSlot slot : uiActionSlots)
 		{
 			SkillDataEntry action = slot.getAction();
@@ -501,6 +498,7 @@ class SkillCalculator extends JPanel
 		Set<String> categories = BankedItems.getSkillCategories(skill);
 		if (categories == null)
 			return;
+
 		for (String category : categories)
 		{
 			Boolean flag = categoryMap.get(category);
@@ -566,6 +564,7 @@ class SkillCalculator extends JPanel
 		return total;
 	}
 
+	// Updates an individual Planner action panels
 	private void updatePlannerSlot(UIActionSlot slot)
 	{
 		int actionCount = 0;
@@ -586,6 +585,7 @@ class SkillCalculator extends JPanel
 		slot.setValue(actionCount);
 	}
 
+	// Requests user input for Planner Amount and updates the UI
 	private void specifyPlannerSlotAmount(UIActionSlot slot)
 	{
 		// Ask for input if high enough level
