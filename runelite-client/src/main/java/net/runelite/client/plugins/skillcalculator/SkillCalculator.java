@@ -565,13 +565,13 @@ class SkillCalculator extends JPanel
 		// Ask for input if high enough level
 		if (currentLevel < slot.getAction().getLevel())
 		{
-			JOptionPane.showMessageDialog(slot.getRootPane(), "You don't have a high enough level for this action!");
+			JOptionPane.showMessageDialog(slot, "You don't have a high enough level for this action!");
 			return;
 		}
 		
 		int oldVal = slot.getValue();
 
-		String result = JOptionPane.showInputDialog(slot.getRootPane(), "Requested Action Amount:", oldVal);
+		String result = JOptionPane.showInputDialog(slot, "Requested Action Amount:", oldVal);
 
 		// Clicked Cancel Button?
 		if (result == null)
@@ -585,7 +585,7 @@ class SkillCalculator extends JPanel
 		}
 		else
 		{
-			JOptionPane.showMessageDialog(slot.getRootPane(), "Error parsing number, nothing changed!");
+			JOptionPane.showMessageDialog(slot, "Error parsing number, nothing changed!");
 			return;
 		}
 
