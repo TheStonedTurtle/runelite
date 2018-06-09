@@ -169,12 +169,7 @@ class UIActionSlot extends JPanel
 
 	void setIconAmount(int amount)
 	{
-		boolean stackable = true;
-		if (amount <= 0)
-		{
-			stackable = false;
-			amount = 1;
-		}
+		boolean stackable = amount > 0;
 		SkillCalculator.itemManager.getImage(action.getIcon(), amount, stackable).addTo(uiIcon);
 	}
 
