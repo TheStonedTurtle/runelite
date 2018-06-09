@@ -52,6 +52,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 
 import net.runelite.api.Client;
@@ -151,6 +152,18 @@ class SkillCalculator extends JPanel
 		currentLevel = Experience.getLevelForXp(currentXP);
 		targetLevel = enforceSkillBounds(currentLevel + 1);
 		targetXP = Experience.getXpForLevel(targetLevel);
+
+
+		if (currentTab.equals("Planner") || currentTab.equals("Banked Xp"))
+		{
+			uiInput.getUiFieldTargetLevel().setEditable(false);
+			uiInput.getUiFieldTargetXP().setEditable(false);
+		}
+		else
+		{
+			uiInput.getUiFieldTargetLevel().setEditable(true);
+			uiInput.getUiFieldTargetXP().setEditable(true);
+		}
 
 	}
 
