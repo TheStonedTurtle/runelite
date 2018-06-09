@@ -133,6 +133,10 @@ class SkillCalculatorPanel extends PluginPanel
 			matTab.setDefaultFont(FontManager.getRunescapeSmallFont());
 			matTab.setHorizontalAlignment(SwingUtilities.CENTER);
 
+			// Ensure Background is applied
+			matTab.setOpaque(true);
+			matTab.setBackground(ColorScheme.DARKER_GRAY_COLOR);
+
 			// Change the border for less blank space between elements
 			matTab.setUnselectedBorder(UNSELECTED_BORDER);
 			matTab.setSelectedBorder(SELECTED_BORDER);

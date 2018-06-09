@@ -29,6 +29,8 @@ package net.runelite.client.plugins.skillcalculator;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.text.DecimalFormat;
@@ -46,8 +48,10 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
 
 import net.runelite.api.Client;
@@ -382,7 +386,25 @@ class SkillCalculator extends JPanel
 				slot.addMouseListener(calc);
 
 			if (currentTab.equals("Planner"))
-				slot.addMouseListener(planner);
+			{
+				// On-Click
+				//slot.addMouseListener(planner);
+
+				// Right-Click Menu
+				JPopupMenu menu = new JPopupMenu("Adjust Action Amount");
+				JMenuItem item = new JMenuItem("Adjust Action Amount");
+				item.addActionListener(new ActionListener()
+				{
+					@Override
+					public void actionPerformed(ActionEvent e)
+					{
+						specifyPlannerSlotAmount(slot);
+					}
+				});
+				menu.add(item);
+
+				slot.setComponentPopupMenu(menu);
+			}
 		}
 
 		// Refresh the rendering of this panel.
@@ -544,9 +566,9 @@ class SkillCalculator extends JPanel
 		int oldVal = slot.getValue();
 		String result = JOptionPane.showInputDialog(slot.getRootPane(), "Requested Action Amount:", oldVal);
 
-		// Prevent NullPointerException on matcher.
+		// Clicked Cancel Button?
 		if (result == null)
-			result = "";
+			return;
 
 		// Parse number from input
 		Matcher m = NUMBER_PATTERN.matcher(result);
