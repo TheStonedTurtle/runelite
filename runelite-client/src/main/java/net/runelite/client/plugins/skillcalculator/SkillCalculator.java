@@ -52,7 +52,6 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
-import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 
 import net.runelite.api.Client;
@@ -79,6 +78,7 @@ class SkillCalculator extends JPanel
 	static SkillCalculatorPlugin plugin;
 
 	private Client client;
+	private Skill skill;
 	private SkillData skillData;
 	private List<UIActionSlot> uiActionSlots = new ArrayList<>();
 	private UICalculatorInputArea uiInput;
@@ -94,16 +94,15 @@ class SkillCalculator extends JPanel
 	private int targetXP = Experience.getXpForLevel(targetLevel);
 	private float xpFactor = 1.0f;
 
+	private String currentTab;
+
 	// Banked Experience Variables
 	private Map<Integer, Integer> bankMap = new HashMap<>();
 	private Map<String, Boolean> categoryMap = new HashMap<>();
-	private Skill skill;
 	private float totalBankedXp = 0.0f;
 	private JLabel totalLabel = new JLabel();
 	private JPanel detailContainer;
-	private String currentTab;
 
-	// Planner Tab Variables
 	private double totalPlannerXp = 0.0f;
 
 	SkillCalculator(Client client, UICalculatorInputArea uiInput)
@@ -153,7 +152,6 @@ class SkillCalculator extends JPanel
 		targetLevel = enforceSkillBounds(currentLevel + 1);
 		targetXP = Experience.getXpForLevel(targetLevel);
 
-
 		if (currentTab.equals("Planner") || currentTab.equals("Banked Xp"))
 		{
 			uiInput.getUiFieldTargetLevel().setEditable(false);
@@ -167,9 +165,11 @@ class SkillCalculator extends JPanel
 
 	}
 
+	// Opens the Calculator tab for the current Skill
 	void openCalculator(CalculatorType calculatorType)
 	{
 		currentTab = "Calculator";
+
 		// clean slate for creating the required panel
 		removeAll();
 		updateData(calculatorType);
@@ -187,9 +187,11 @@ class SkillCalculator extends JPanel
 		updateInputFields();
 	}
 
+	// Opens the Planner tab for the current Skill
 	void openPlanner(CalculatorType calculatorType)
 	{
 		currentTab = "Planner";
+
 		// clean slate for creating the required panel
 		removeAll();
 		updateData(calculatorType);
@@ -200,18 +202,23 @@ class SkillCalculator extends JPanel
 		// Create action slots for the skill actions.
 		renderActionSlots();
 
+		// Initialize Planner
+		calculatePlanner();
+
 		// Update the input fields.
-		updateInputFields();
+		syncInputFields();
 	}
 
+	// Opens the Banked XP tab for the current Skill
 	void openBanked(CalculatorType calculatorType)
 	{
 		currentTab = "Banked Xp";
+
 		// clean slate for creating the required panel
 		removeAll();
 		updateData(calculatorType);
 
-		// Only adds Banked Experience portion if enabled for this SkillCalc, have seen their bank, and is enabled via config
+		// Only adds Banked Experience portion if enabled for this SkillCalc and have seen their bank
 		if (!calculatorType.isBankedXpFlag())
 		{
 			add(new JLabel("<html><div style='text-align: center;'>Banked Experience is not enabled for this skill.</div></html>", JLabel.CENTER));
@@ -233,18 +240,18 @@ class SkillCalculator extends JPanel
 			// Adds in checkboxes for available skill bonuses, same as Skill Calc
 			renderBonusOptions();
 
-			// Clear the detailContainer to ensure clean slate
-			detailContainer.removeAll();
+			// Total banked experience
 			calculateBankedExpTotal();
 
 			// Create the banked experience details container
+			detailContainer.removeAll();
 			refreshBankedExpDetails();
 
 			add(detailContainer);
 		}
 
 		// Update the input fields.
-		updateInputFields();
+		syncInputFields();
 	}
 
 	private void updateCombinedAction()
@@ -354,7 +361,7 @@ class SkillCalculator extends JPanel
 		add(detailContainer);
 	}
 
-
+	// Creates uiActionSlots for Calculator and Planner tabs
 	private void renderActionSlots()
 	{
 		// Wipe the list of references to the slot components.
@@ -367,41 +374,37 @@ class SkillCalculator extends JPanel
 			uiActionSlots.add(slot); // Keep our own reference.
 			add(slot); // Add component to the panel.
 
-			MouseAdapter calc = new MouseAdapter()
-			{
-				@Override
-				public void mousePressed(MouseEvent e)
-				{
-					if (!e.isShiftDown())
-						clearCombinedSlots();
-
-					if (slot.isSelected())
-						combinedActionSlots.remove(slot);
-					else
-						combinedActionSlots.add(slot);
-
-					slot.setSelected(!slot.isSelected());
-					updateCombinedAction();
-				}
-			};
-
-
-			MouseAdapter planner = new MouseAdapter()
-			{
-				@Override
-				public void mousePressed(MouseEvent e)
-				{
-					specifyPlannerSlotAmount(slot);
-				}
-			};
-
 			if (currentTab.equals("Calculator"))
-				slot.addMouseListener(calc);
+				slot.addMouseListener(new MouseAdapter()
+				{
+					@Override
+					public void mousePressed(MouseEvent e)
+					{
+						if (!e.isShiftDown())
+							clearCombinedSlots();
+
+						if (slot.isSelected())
+							combinedActionSlots.remove(slot);
+						else
+							combinedActionSlots.add(slot);
+
+						slot.setSelected(!slot.isSelected());
+						updateCombinedAction();
+					}
+				});
 
 			if (currentTab.equals("Planner"))
 			{
 				// On-Click
-				//slot.addMouseListener(planner);
+				/* slot.addMouseListener(new MouseAdapter()
+				{
+					@Override
+					public void mousePressed(MouseEvent e)
+					{
+						specifyPlannerSlotAmount(slot);
+					}
+				});
+				 */
 
 				// Right-Click Menu
 				JPopupMenu menu = new JPopupMenu("Adjust Action Amount");
@@ -425,7 +428,7 @@ class SkillCalculator extends JPanel
 		repaint();
 	}
 
-	// Recreate the Banked Experience Detail container
+	// Recreates the Banked Experience Detail container
 	private void refreshBankedExpDetails()
 	{
 		detailContainer.removeAll();
@@ -450,6 +453,7 @@ class SkillCalculator extends JPanel
 		detailContainer.repaint();
 	}
 
+	// Updates the UI Actions for the Calculator Tab
 	private void calculate()
 	{
 		for (UIActionSlot slot : uiActionSlots)
@@ -480,6 +484,7 @@ class SkillCalculator extends JPanel
 			totalPlannerXp += slot.getValue() * xp;
 		}
 
+		// Update Input Fields
 		targetXP = (int) (currentXP + totalPlannerXp);
 		targetLevel = Experience.getLevelForXp(targetXP);
 		syncInputFields();
@@ -508,11 +513,12 @@ class SkillCalculator extends JPanel
 		totalLabel.setText("Banked Exp: " + XP_FORMAT_COMMA.format(totalBankedXp));
 
 		// Update Target XP & Level to include total banked xp
-		adjustTargetXp();
+		targetXP = (int) (currentXP + totalBankedXp);
+		targetLevel = Experience.getLevelForXp(targetXP);
+		syncInputFields();
 
 		revalidate();
 		repaint();
-
 	}
 
 	// Returns a Map of Items with the amount inside the bank as the value. Items added by category.
@@ -559,7 +565,6 @@ class SkillCalculator extends JPanel
 
 		return total;
 	}
-
 
 	private void updatePlannerSlot(UIActionSlot slot)
 	{
@@ -647,8 +652,6 @@ class SkillCalculator extends JPanel
 
 		if (currentTab.equals("Calculator"))
 			calculate();
-		if (currentTab.equals("Planner"))
-			calculatePlanner();
 	}
 
 	private void syncInputFields()
@@ -662,14 +665,18 @@ class SkillCalculator extends JPanel
 	private void adjustXPBonus(boolean addBonus, float value)
 	{
 		xpFactor += addBonus ? value : -value;
-		if (currentTab.equals("Calculator"))
-			calculate();
-		if (currentTab.equals("Planner"))
-			calculatePlanner();
-		if (currentTab.equals("Banked Xp"))
+		switch (currentTab)
 		{
-			calculateBankedExpTotal();
-			refreshBankedExpDetails();
+			case "Calculator":
+				calculate();
+				break;
+			case "Planner":
+				calculatePlanner();
+				break;
+			case "Banked Xp":
+				calculateBankedExpTotal();
+				refreshBankedExpDetails();
+				break;
 		}
 	}
 
@@ -678,13 +685,6 @@ class SkillCalculator extends JPanel
 		categoryMap.put(category, removeBonus);
 		calculateBankedExpTotal();
 		refreshBankedExpDetails();
-	}
-
-	private void adjustTargetXp()
-	{
-		targetXP = (int) (currentXP + totalBankedXp);
-		targetLevel = Experience.getLevelForXp(targetXP);
-		updateInputFields();
 	}
 
 	private void onFieldCurrentLevelUpdated()
@@ -729,16 +729,18 @@ class SkillCalculator extends JPanel
 	{
 		boolean oldMapFlag = (bankMap.size() <= 0);
 		bankMap = map;
-		CalculatorType calc = CalculatorType.getBySkill(skill);
 
 		if (currentTab.equals("Banked Xp"))
 		{
+			CalculatorType calc = CalculatorType.getBySkill(skill);
+
 			// Refresh entire panel if old map was empty
 			if (oldMapFlag)
 			{
 				SwingUtilities.invokeLater(() -> openBanked(calc));
 				return;
 			}
+
 			// Otherwise just update the Total XP banked and the details panel
 			SwingUtilities.invokeLater(this::calculateBankedExpTotal);
 			SwingUtilities.invokeLater(this::refreshBankedExpDetails);
