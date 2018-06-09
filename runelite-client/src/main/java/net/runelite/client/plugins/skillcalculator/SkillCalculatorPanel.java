@@ -30,6 +30,8 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.event.ItemEvent;
+import java.util.ArrayList;
+import java.util.Map;
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JComboBox;
@@ -53,10 +55,11 @@ class SkillCalculatorPanel extends PluginPanel
 {
 	private final SkillCalculator uiCalculator;
 	private final SkillIconManager iconManager;
+	private final SkillCalculatorConfig config;
+
 	private JComboBox<ComboBoxIconEntry> skillSelector;
 	private CalculatorType currentCalc;
 	private final MaterialTabGroup tabGroup;
-	private String[] tabs = {"Calculator", "Planner", "Banked Xp"};
 
 	// Mat Tab Custom Borders
 	private final Border UNSELECTED_BORDER = new EmptyBorder(5, 3, 5, 3);
@@ -64,12 +67,13 @@ class SkillCalculatorPanel extends PluginPanel
 		BorderFactory.createMatteBorder(0, 0, 1, 0, ColorScheme.BRAND_ORANGE),
 		BorderFactory.createEmptyBorder(5, 3, 4, 3));
 
-	SkillCalculatorPanel(SkillIconManager iconManager, Client client)
+	SkillCalculatorPanel(SkillIconManager iconManager, Client client, SkillCalculatorConfig config)
 	{
 		super();
 		getScrollPane().setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
 
 		this.iconManager = iconManager;
+		this.config = config;
 
 		setBorder(new EmptyBorder(10, 10, 10, 10));
 		setLayout(new GridBagLayout());
@@ -107,10 +111,20 @@ class SkillCalculatorPanel extends PluginPanel
 		c.gridy++;
 	}
 
-
 	// Add the tabs at the top to the
 	private void addTabs()
 	{
+		ArrayList<String> tabs = new ArrayList<>();
+		tabs.add("Calculator");
+		System.out.println(config);
+		if (config.showPlannerTab())
+		{
+			tabs.add("Planner");
+		}
+		if (config.showBankedXp())
+		{
+			tabs.add("Banked Xp");
+		}
 		for (String s : tabs)
 		{
 			MaterialTab matTab = new MaterialTab(s, tabGroup, null);
@@ -124,30 +138,35 @@ class SkillCalculatorPanel extends PluginPanel
 			matTab.setSelectedBorder(SELECTED_BORDER);
 
 			// When Clicked
-			matTab.setOnSelectEvent(() -> selectedTab(matTab, s));
+			matTab.setOnSelectEvent(() -> selectedTab(s));
 
 			tabGroup.addTab(matTab);
 		}
+		// Select the first tab
+		tabGroup.select(tabGroup.getTab(0));
 	}
 
-	private void selectedTab(MaterialTab tab, String s)
+	private void selectedTab(String s)
 	{
-		System.out.println(tab);
-		System.out.println(s);
+		// Prevent from running on initial select
+		if (currentCalc == null)
+			return;
 		// Handle switching between the tabs
 		switch (s)
 		{
 			case "Calculator":
+				uiCalculator.openCalculator(currentCalc);
 				break;
 			case "Planner":
+				uiCalculator.openPlanner(currentCalc);
 				break;
 			case "Banked Xp":
+				uiCalculator.openBanked(currentCalc);
 				break;
-			default:
 		}
 	}
 
-
+	// Creates the Skill Selection Drop Down
 	private JComboBox<ComboBoxIconEntry> createSkillSelector()
 	{
 		JComboBox<ComboBoxIconEntry> box = new JComboBox<>();
@@ -179,10 +198,20 @@ class SkillCalculatorPanel extends PluginPanel
 		return box;
 	}
 
+	// Refresh
 	void refreshCurrentCalc()
 	{
 		if (currentCalc == null)
 			return;
+
 		uiCalculator.openCalculator(currentCalc);
+	}
+
+	// Wrapper function for updating SkillCalculator's bankMap
+	void updateBankMap(Map<Integer, Integer> bank)
+	{
+		if (currentCalc == null)
+			return;
+		uiCalculator.setBankMap(bank);
 	}
 }

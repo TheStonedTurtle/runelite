@@ -38,9 +38,18 @@ public interface  SkillCalculatorConfig extends Config
 {
 	@ConfigItem(
 			keyName = "showBankedXp",
-			name = "Show Banked xp",
-			description = "Shows banked xp assuming all raw skill items are used")
+			name = "Show Banked xp Tab",
+			description = "Shows the Banked xp tab inside the Calculator Panel")
 	default boolean showBankedXp()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+			keyName = "showPlanner",
+			name = "Show Planner Tab",
+			description = "Shows the Skill Planner tab inside the Calculator Panel")
+	default boolean showPlannerTab()
 	{
 		return true;
 	}

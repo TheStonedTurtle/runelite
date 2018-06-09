@@ -1,6 +1,7 @@
 /*
  * Copyright (c) 2018, Kruithne <kruithne@gmail.com>
  * Copyright (c) 2018, Psikoi <https://github.com/psikoi>
+ * Copyright (c) 2018, TheStonedTurtle <https://github.com/TheStonedTurtle>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,6 +45,8 @@ import javax.swing.BoxLayout;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
+
 import net.runelite.api.Client;
 import net.runelite.api.Experience;
 import net.runelite.api.Skill;
@@ -82,6 +85,7 @@ class SkillCalculator extends JPanel
 	private int targetXP = Experience.getXpForLevel(targetLevel);
 	private float xpFactor = 1.0f;
 
+	// Banked Experience Variables
 	private Map<Integer, Integer> bankMap = new HashMap<>();
 	private Map<String, Boolean> categoryMap = new HashMap<>();
 	private Skill skill;
@@ -117,7 +121,7 @@ class SkillCalculator extends JPanel
 		detailContainer.setLayout(new BoxLayout(detailContainer, BoxLayout.Y_AXIS));
 	}
 
-	void openCalculator(CalculatorType calculatorType)
+	void updateData(CalculatorType calculatorType)
 	{
 		// Load the skill data.
 		skillData = cacheSkillData.getSkillData(calculatorType.getDataFile());
@@ -136,19 +140,13 @@ class SkillCalculator extends JPanel
 		targetLevel = enforceSkillBounds(currentLevel + 1);
 		targetXP = Experience.getXpForLevel(targetLevel);
 
-		// Remove all components (action slots) from this panel.
+	}
+
+	void openCalculator(CalculatorType calculatorType)
+	{
+		// clean slate for creating the required panel
 		removeAll();
-
-		// Only adds Banked Experience portion if enabled for this SkillCalc, have seen their bank, and is enabled via config
-		if (calculatorType.isBankedXpFlag() && (bankMap.size() > 0) && plugin.showBankedXp())
-		{
-			// Clear the detailContainer to ensure clean slate
-			detailContainer.removeAll();
-
-			renderBankedExpOptions();
-			calculateBankedExpTotal();
-			add(detailContainer);
-		}
+		updateData(calculatorType);
 
 		// Add in checkboxes for available skill bonuses.
 		renderBonusOptions();
@@ -161,6 +159,62 @@ class SkillCalculator extends JPanel
 
 		// Update the input fields.
 		updateInputFields();
+	}
+
+	void openPlanner(CalculatorType calculatorType)
+	{
+		// clean slate for creating the required panel
+		removeAll();
+		updateData(calculatorType);
+
+		// Add in checkboxes for available skill bonuses.
+		renderBonusOptions();
+
+		// Create action slots for the skill actions.
+		renderActionSlots();
+
+		// Update the input fields.
+		updateInputFields();
+	}
+
+	void openBanked(CalculatorType calculatorType)
+	{
+		// clean slate for creating the required panel
+		removeAll();
+		updateData(calculatorType);
+
+		// Only adds Banked Experience portion if enabled for this SkillCalc, have seen their bank, and is enabled via config
+		if (!calculatorType.isBankedXpFlag())
+		{
+			add(new JLabel("<html><div style='text-align: center;'>Banked Experience is not enabled for this skill.</div></html>", JLabel.CENTER));
+			revalidate();
+			repaint();
+		}
+		else if (bankMap.size() <= 0)
+		{
+			add(new JLabel( "Please visit a bank!", JLabel.CENTER));
+			revalidate();
+			repaint();
+		}
+		else
+		{
+			// Now we can actually show the Banked Experience Panel
+			// Adds Config Options for this panel
+			renderBankedExpOptions();
+
+			// Adds in checkboxes for available skill bonuses, same as Skill Calc
+			renderBonusOptions();
+
+			// Clear the detailContainer to ensure clean slate
+			detailContainer.removeAll();
+			calculateBankedExpTotal();
+
+			add(detailContainer);
+
+			// Update the input fields.
+			updateInputFields();
+		}
+
 	}
 
 	private void updateCombinedAction()
@@ -410,6 +464,10 @@ class SkillCalculator extends JPanel
 
 		totalLabel.setText("Banked Exp: " + XP_FORMAT_COMMA.format(totalBankedXp));
 
+		// Update Target Level to include total banked xp
+		targetXP = (int) (currentXP + totalBankedXp);
+		targetLevel = Experience.getXpForLevel(targetLevel);
+
 		revalidate();
 		repaint();
 
@@ -531,5 +589,17 @@ class SkillCalculator extends JPanel
 	private static int enforceXPBounds(int input)
 	{
 		return Math.min(MAX_XP, Math.max(0, input));
+	}
+
+	void setBankMap(Map<Integer, Integer> map)
+	{
+		bankMap = map;
+
+		// Only update panel if currently on banked xp tab
+		if (detailFlag)
+		{
+			SwingUtilities.invokeLater(this::calculateBankedExpTotal);
+			SwingUtilities.invokeLater(this::refreshBankedExpDetails);
+		}
 	}
 }

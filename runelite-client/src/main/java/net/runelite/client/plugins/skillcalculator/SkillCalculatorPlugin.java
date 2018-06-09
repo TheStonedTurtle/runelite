@@ -30,6 +30,7 @@ import java.util.HashMap;
 import java.util.Map;
 import javax.imageio.ImageIO;
 import javax.inject.Inject;
+import javax.swing.SwingUtilities;
 
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Provides;
@@ -82,6 +83,9 @@ public class SkillCalculatorPlugin extends Plugin
 	@Getter
 	private Map<Integer, Integer> bankMap = new HashMap<>();
 
+	// Used to check if the bankMap has changed (sends new bank map to panel)
+	private int itemsHash;
+
 	@Provides
 	SkillCalculatorConfig getConfig(ConfigManager configManager)
 	{
@@ -101,7 +105,7 @@ public class SkillCalculatorPlugin extends Plugin
 		SkillCalculator.itemManager = itemManager;
 		SkillCalculator.plugin = this;
 
-		uiPanel = new SkillCalculatorPanel(skillIconManager, client);
+		uiPanel = new SkillCalculatorPanel(skillIconManager, client, skillCalculatorConfig);
 		uiNavigationButton = NavigationButton.builder()
 			.tooltip("Skill Calculator")
 			.icon(icon)
@@ -122,7 +126,7 @@ public class SkillCalculatorPlugin extends Plugin
 	public void onUsernameChanged(UsernameChanged e)
 	{
 		bankMap.clear();
-		uiPanel.refreshCurrentCalc();
+		SwingUtilities.invokeLater(() -> uiPanel.refreshCurrentCalc());
 	}
 
 	@Subscribe
@@ -132,7 +136,7 @@ public class SkillCalculatorPlugin extends Plugin
 		{
 			// Reset everything when banked experience toggled
 			bankMap.clear();
-			uiPanel.refreshCurrentCalc();
+			SwingUtilities.invokeLater(() -> uiPanel.refreshCurrentCalc());
 		}
 	}
 
@@ -155,7 +159,7 @@ public class SkillCalculatorPlugin extends Plugin
 	// Recreates the bankMap hashmap
 	private void updateBankItems()
 	{
-		if (showBankedXp())
+		if (skillCalculatorConfig.showBankedXp())
 		{
 
 			Item[] widgetItems = client.getItemContainer(InventoryID.BANK).getItems();
@@ -173,12 +177,16 @@ public class SkillCalculatorPlugin extends Plugin
 			}
 
 			bankMap = map;
-		}
-	}
 
-	// Wrapper function so i don't need to pass the config to SkillCalculator
-	boolean showBankedXp()
-	{
-		return skillCalculatorConfig.showBankedXp();
+			// Check for change in bank content
+			int curHash = map.hashCode();
+
+			if (curHash != itemsHash)
+			{
+				itemsHash = curHash;
+				// send updated bank map to ui
+				uiPanel.updateBankMap(bankMap);
+			}
+		}
 	}
 }
