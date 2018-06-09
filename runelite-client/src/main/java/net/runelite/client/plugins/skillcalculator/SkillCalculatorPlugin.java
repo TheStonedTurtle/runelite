@@ -142,11 +142,11 @@ public class SkillCalculatorPlugin extends Plugin
 				itemsHash = -1;
 			}
 
-			SwingUtilities.invokeLater(() -> uiPanel.refreshCurrentCalc());
+			SwingUtilities.invokeLater(() -> uiPanel.refreshPanel());
 		}
 	}
 
-	// Pulled from bankvalue plugin to grab bank data when bank is open
+	// Pulled from bankvalue plugin to check if bank is open
 	@Subscribe
 	public void onGameTick(GameTick event)
 	{
@@ -162,7 +162,7 @@ public class SkillCalculatorPlugin extends Plugin
 		updateBankItems();
 	}
 
-	// Recreates the bankMap hashmap
+	// Recreates the bankMap hashmap and sends it to the panel if its changed
 	private void updateBankItems()
 	{
 		if (skillCalculatorConfig.showBankedXp())

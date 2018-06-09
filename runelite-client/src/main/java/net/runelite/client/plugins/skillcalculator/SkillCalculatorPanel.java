@@ -61,6 +61,7 @@ class SkillCalculatorPanel extends PluginPanel
 	private CalculatorType currentCalc;
 	private final MaterialTabGroup tabGroup;
 	private String currentTab;
+	private	ArrayList<String> tabs;
 
 	// Mat Tab Custom Borders
 	private final Border UNSELECTED_BORDER = new EmptyBorder(5, 3, 5, 3);
@@ -89,7 +90,7 @@ class SkillCalculatorPanel extends PluginPanel
 		tabGroup.setLayout(new GridLayout(0, 3, 7, 7));
 		tabGroup.setBorder(new EmptyBorder(0, 0, 10, 0));
 
-		addTabs();
+		createTabs();
 
 		skillSelector = createSkillSelector();
 
@@ -112,10 +113,12 @@ class SkillCalculatorPanel extends PluginPanel
 		c.gridy++;
 	}
 
-	// Add the tabs at the top to the
-	private void addTabs()
+	// Creates all Panel Tabs (Calculator, Planner, Banked)
+	private void createTabs()
 	{
-		ArrayList<String> tabs = new ArrayList<>();
+		tabGroup.removeAll();
+
+		tabs = new ArrayList<>();
 		tabs.add("Calculator");
 		if (config.showPlannerTab())
 		{
@@ -125,6 +128,10 @@ class SkillCalculatorPanel extends PluginPanel
 		{
 			tabs.add("Banked Xp");
 		}
+
+		// Tab Size
+		tabGroup.setLayout(new GridLayout(0, tabs.size(), 7, 7));
+
 		for (String s : tabs)
 		{
 			MaterialTab matTab = new MaterialTab(s, tabGroup, null);
@@ -157,6 +164,7 @@ class SkillCalculatorPanel extends PluginPanel
 		// Only open a panel if a skill is selected
 		if (currentCalc == null)
 			return;
+
 		// Handle switching between the tabs
 		switch (s)
 		{
@@ -203,13 +211,30 @@ class SkillCalculatorPanel extends PluginPanel
 		return box;
 	}
 
-	// Refresh
+	// Refresh the current tab
 	void refreshCurrentCalc()
 	{
 		if (currentCalc == null)
 			return;
 
 		selectedTab(currentTab);
+	}
+
+
+	// Refresh entire panel
+	void refreshPanel()
+	{
+		String oldTab = currentTab;
+
+		// Recreate Tabs (in case of Config change)
+		createTabs();
+
+		// Reselect old tab if available
+		if (tabs.contains(oldTab))
+			currentTab = tabs.get(tabs.indexOf(oldTab));
+
+		// For some reason this isn't giving it the bottom border but is selecting it.
+		refreshCurrentCalc();
 	}
 
 	// Wrapper function for updating SkillCalculator's bankMap

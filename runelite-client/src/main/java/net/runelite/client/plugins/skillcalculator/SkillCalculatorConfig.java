@@ -36,21 +36,21 @@ import net.runelite.client.config.ConfigItem;
 public interface  SkillCalculatorConfig extends Config
 {
 	@ConfigItem(
-			keyName = "showBankedXp",
-			name = "Show Banked xp Tab",
-			description = "Shows the Banked xp tab inside the Calculator Panel")
-
-	default boolean showBankedXp()
-	{
-		return true;
-	}
-
-	@ConfigItem(
 			keyName = "showPlannerTab",
 			name = "Show Planner Tab",
 			description = "Shows the Skill Planner tab inside the Calculator Panel")
 
 	default boolean showPlannerTab()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+			keyName = "showBankedXp",
+			name = "Show Banked xp Tab",
+			description = "Shows the Banked xp tab inside the Calculator Panel")
+
+	default boolean showBankedXp()
 	{
 		return true;
 	}
