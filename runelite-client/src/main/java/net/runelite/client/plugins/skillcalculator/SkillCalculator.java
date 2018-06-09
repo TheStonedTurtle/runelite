@@ -458,10 +458,18 @@ class SkillCalculator extends JPanel
 
 	private void calculatePlanner()
 	{
+		totalPlannerXp = 0.0f;
 		for (UIActionSlot slot : uiActionSlots)
 		{
+			SkillDataEntry action = slot.getAction();
+			double xp = (action.isIgnoreBonus()) ? action.getXp() : action.getXp() * xpFactor;
 			updatePlannerSlot(slot);
+			totalPlannerXp += slot.getValue() * xp;
 		}
+
+		targetXP = (int) (currentXP + totalPlannerXp);
+		targetLevel = Experience.getLevelForXp(targetXP);
+		syncInputFields();
 	}
 
 	// Calculate the total banked experience and display it in the panel
@@ -603,7 +611,7 @@ class SkillCalculator extends JPanel
 		// Update UI inputs to account for new XP
 		targetXP = (int) (currentXP + totalPlannerXp);
 		targetLevel = Experience.getLevelForXp(targetXP);
-		updateInputFields();
+		syncInputFields();
 
 		// Update Slot UI
 		updatePlannerSlot(slot);
@@ -622,15 +630,20 @@ class SkillCalculator extends JPanel
 			targetXP = Experience.getXpForLevel(targetLevel);
 		}
 
-		uiInput.setCurrentLevelInput(currentLevel);
-		uiInput.setCurrentXPInput(currentXP);
-		uiInput.setTargetLevelInput(targetLevel);
-		uiInput.setTargetXPInput(targetXP);
+		syncInputFields();
 
 		if (currentTab.equals("Calculator"))
 			calculate();
 		if (currentTab.equals("Planner"))
 			calculatePlanner();
+	}
+
+	private void syncInputFields()
+	{
+		uiInput.setCurrentLevelInput(currentLevel);
+		uiInput.setCurrentXPInput(currentXP);
+		uiInput.setTargetLevelInput(targetLevel);
+		uiInput.setTargetXPInput(targetXP);
 	}
 
 	private void adjustXPBonus(boolean addBonus, float value)

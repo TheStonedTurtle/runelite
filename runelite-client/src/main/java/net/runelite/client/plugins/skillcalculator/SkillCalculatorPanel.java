@@ -99,13 +99,13 @@ class SkillCalculatorPanel extends PluginPanel
 
 		uiCalculator = new SkillCalculator(client, uiInput);
 
-		add(tabGroup, c);
-		c.gridy++;
-
 		add(skillSelector, c);
 		c.gridy++;
 
 		add(uiInput, c);
+		c.gridy++;
+
+		add(tabGroup, c);
 		c.gridy++;
 
 		add(uiCalculator, c);
