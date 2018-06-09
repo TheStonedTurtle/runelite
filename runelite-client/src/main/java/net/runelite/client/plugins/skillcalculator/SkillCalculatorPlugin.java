@@ -26,6 +26,8 @@
 package net.runelite.client.plugins.skillcalculator;
 
 import java.awt.image.BufferedImage;
+import java.lang.reflect.Array;
+import java.util.ArrayList;
 import javax.imageio.ImageIO;
 import javax.inject.Inject;
 import net.runelite.api.Client;
@@ -37,6 +39,9 @@ import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.ClientUI;
 import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.ui.PluginToolbar;
+import net.runelite.http.api.database.DatabaseClient;
+import net.runelite.http.api.database.DatabaseEndpoint;
+import net.runelite.http.api.database.LootRecord;
 
 @PluginDescriptor(name = "Skill Calculator")
 public class SkillCalculatorPlugin extends Plugin
@@ -82,6 +87,9 @@ public class SkillCalculatorPlugin extends Plugin
 			.panel(uiPanel)
 			.build();
 		pluginToolbar.addNavigation(uiNavigationButton);
+		DatabaseClient client = new DatabaseClient();
+		ArrayList<LootRecord> records = client.lookupBoss("stonedturtle", 1000);
+		System.out.println(records.toString());
 	}
 
 	@Override
