@@ -66,7 +66,7 @@ class SkillCalculatorPanel extends PluginPanel
 	private final Border UNSELECTED_BORDER = new EmptyBorder(5, 3, 5, 3);
 	private final Border SELECTED_BORDER = new CompoundBorder(
 		BorderFactory.createMatteBorder(0, 0, 1, 0, ColorScheme.BRAND_ORANGE),
-		BorderFactory.createEmptyBorder(5, 3, 4, 3));
+		BorderFactory.createEmptyBorder(8, 3, 6, 3));
 
 	SkillCalculatorPanel(SkillIconManager iconManager, Client client, SkillCalculatorConfig config)
 	{
@@ -130,7 +130,7 @@ class SkillCalculatorPanel extends PluginPanel
 			MaterialTab matTab = new MaterialTab(s, tabGroup, null);
 
 			// Change font to better fit the containers
-			matTab.setDefaultFont(FontManager.getRunescapeSmallFont());
+			matTab.setDefaultFont(FontManager.getRunescapeFont());
 			matTab.setHorizontalAlignment(SwingUtilities.CENTER);
 
 			// Ensure Background is applied
