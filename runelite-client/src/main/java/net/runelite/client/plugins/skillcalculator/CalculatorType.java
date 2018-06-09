@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2018, Kruithne <kruithne@gmail.com>
+ * Copyright (c) 2018, TheStonedTurtle <https://github.com/TheStonedTurtle>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,6 +29,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import net.runelite.api.Skill;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @AllArgsConstructor
 @Getter
 enum CalculatorType
@@ -53,4 +57,20 @@ enum CalculatorType
 	private final Skill skill;
 	private final String dataFile;
 	private final boolean bankedXpFlag;
+
+	public static CalculatorType getBySkill(Skill skill)
+	{
+		return bySkill.get(skill);
+	}
+
+	private final static Map<Skill, CalculatorType> bySkill = buildSkillMap();
+	private static Map<Skill, CalculatorType> buildSkillMap()
+	{
+		Map<Skill, CalculatorType> map = new HashMap<>();
+
+		for (CalculatorType c : values())
+			map.put(c.getSkill(), c);
+
+		return map;
+	}
 }
