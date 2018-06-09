@@ -33,7 +33,7 @@ public enum DatabaseEndpoint
 
 	private static class Constants
 	{
-		//private static final String BASE_URL = "http://api.runelite.net";
+		//private static final String BASE_URL = "http://api.runelite.net/database";
 		private static final String BASE_URL = "http://localhost:8000";
 	}
 

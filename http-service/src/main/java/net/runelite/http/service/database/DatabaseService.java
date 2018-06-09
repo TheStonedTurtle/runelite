@@ -22,61 +22,69 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package net.runelite.http.api.database;
+package net.runelite.http.service.database;
 
-import com.google.gson.JsonParseException;
+import lombok.extern.slf4j.Slf4j;
 import net.runelite.http.api.RuneLiteAPI;
+import net.runelite.http.api.database.DatabaseClient;
+import net.runelite.http.api.database.DatabaseEndpoint;
+import net.runelite.http.api.database.LootRecord;
+import net.runelite.http.service.util.exception.InternalServerErrorException;
+import net.runelite.http.service.util.exception.NotFoundException;
 import okhttp3.HttpUrl;
 import okhttp3.Request;
 import okhttp3.Response;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 
-public class DatabaseClient
+@Service
+@Slf4j
+public class DatabaseService
 {
-	private static final Logger logger = LoggerFactory.getLogger(DatabaseClient.class);
-	private final DatabaseEndpoint lootEndpoint = DatabaseEndpoint.LOOT;
-;
-	public ArrayList<LootRecord> lookupBoss(String username, int id) throws IOException
+	public ArrayList<LootRecord> lookUpBoss(DatabaseEndpoint endpoint, String username, int boss) throws IOException
 	{
-		return lookupBoss(username, String.valueOf(id));
+		return lookUpBoss(endpoint, username, String.valueOf(boss));
 	}
 
-	public ArrayList<LootRecord> lookupBoss(String username, String boss) throws IOException
+	public ArrayList<LootRecord> lookUpBoss(DatabaseEndpoint endpoint, String username, String boss) throws IOException
 	{
-		DatabaseEndpoint bossEndpoint = DatabaseEndpoint.BOSS;
-		HttpUrl.Builder builder = bossEndpoint.getDatabaseURL().newBuilder()
+		HttpUrl url = endpoint.getDatabaseURL().newBuilder()
 				.addQueryParameter("username", username)
-				.addQueryParameter("id", boss);
+				.addQueryParameter("boss", boss)
+				.build();
 
-		HttpUrl url = builder.build();
+		log.debug("Built URL {}", url);
 
-		logger.debug("Built Database URI: {}", url);
-
-		Request request = new Request.Builder()
+		Request okrequest = new Request.Builder()
 				.url(url)
 				.build();
 
-		try (Response response = RuneLiteAPI.CLIENT.newCall(request).execute())
-		{
-			String result = response.body().string();
-			LootRecord[] element = RuneLiteAPI.GSON.fromJson(result, LootRecord[].class);
-			return unpackLootRecords(element);
-		}
-		catch (JsonParseException ex)
-		{
-			throw new IOException(ex);
-		}
-	}
+		String responseStr;
 
-	public static ArrayList<LootRecord> unpackLootRecords(LootRecord[] r)
-	{
-		ArrayList<LootRecord> result = new ArrayList<>();
-		Collections.addAll(result, r);
+		try (Response okresponse = RuneLiteAPI.CLIENT.newCall(okrequest).execute())
+		{
+			if (!okresponse.isSuccessful())
+			{
+				switch (HttpStatus.valueOf(okresponse.code()))
+				{
+					case NOT_FOUND:
+						throw new NotFoundException();
+					default:
+						throw new InternalServerErrorException("Error retrieving data from RuneLite Web API: " + okresponse.message());
+				}
+			}
+
+			responseStr = okresponse.body().string();
+		}
+
+		LootRecord[] records = RuneLiteAPI.GSON.fromJson(responseStr, LootRecord[].class);
+		ArrayList<LootRecord> result = DatabaseClient.unpackLootRecords(records);
+		System.out.println(result);
+
 		return result;
 	}
+
 }
