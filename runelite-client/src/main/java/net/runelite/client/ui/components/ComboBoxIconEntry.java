@@ -32,7 +32,6 @@ import javax.swing.Icon;
  */
 public class ComboBoxIconEntry
 {
-
 	private Icon icon;
 	private String text;
 

@@ -39,7 +39,6 @@ import net.runelite.client.ui.ColorScheme;
  */
 public final class ComboBoxIconRenderer extends JLabel implements ListCellRenderer
 {
-
 	private String DEFAULT_TEXT = "Select an option...";
 
 	@Override
