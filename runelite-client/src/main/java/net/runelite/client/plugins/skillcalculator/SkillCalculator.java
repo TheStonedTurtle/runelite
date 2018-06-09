@@ -562,8 +562,15 @@ class SkillCalculator extends JPanel
 
 	private void specifyPlannerSlotAmount(UIActionSlot slot)
 	{
-		// Ask for input
+		// Ask for input if high enough level
+		if (currentLevel < slot.getAction().getLevel())
+		{
+			JOptionPane.showMessageDialog(slot.getRootPane(), "You don't have a high enough level for this action!");
+			return;
+		}
+		
 		int oldVal = slot.getValue();
+
 		String result = JOptionPane.showInputDialog(slot.getRootPane(), "Requested Action Amount:", oldVal);
 
 		// Clicked Cancel Button?
