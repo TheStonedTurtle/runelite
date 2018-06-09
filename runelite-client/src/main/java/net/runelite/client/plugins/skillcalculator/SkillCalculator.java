@@ -132,7 +132,7 @@ class SkillCalculator extends JPanel
 		detailContainer.setLayout(new BoxLayout(detailContainer, BoxLayout.Y_AXIS));
 	}
 
-	void updateData(CalculatorType calculatorType)
+	private void updateData(CalculatorType calculatorType)
 	{
 		// Load the skill data.
 		skillData = cacheSkillData.getSkillData(calculatorType.getDataFile());
@@ -376,6 +376,7 @@ class SkillCalculator extends JPanel
 			add(slot); // Add component to the panel.
 
 			if (currentTab.equals("Calculator"))
+			{
 				slot.addMouseListener(new MouseAdapter()
 				{
 					@Override
@@ -393,8 +394,8 @@ class SkillCalculator extends JPanel
 						updateCombinedAction();
 					}
 				});
-
-			if (currentTab.equals("Planner"))
+			}
+			else if (currentTab.equals("Planner"))
 			{
 				// Right-Click Menu
 				JPopupMenu menu = new JPopupMenu("Adjust Action Amount");
@@ -732,11 +733,10 @@ class SkillCalculator extends JPanel
 
 		if (currentTab.equals("Banked Xp"))
 		{
-			CalculatorType calc = CalculatorType.getBySkill(skill);
-
 			// Refresh entire panel if old map was empty
 			if (oldMapFlag)
 			{
+				CalculatorType calc = CalculatorType.getBySkill(skill);
 				SwingUtilities.invokeLater(() -> openBanked(calc));
 				return;
 			}

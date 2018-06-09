@@ -57,7 +57,6 @@ class SkillCalculatorPanel extends PluginPanel
 	private final SkillIconManager iconManager;
 	private final SkillCalculatorConfig config;
 
-	private JComboBox<ComboBoxIconEntry> skillSelector;
 	private CalculatorType currentCalc;
 	private final MaterialTabGroup tabGroup;
 	private String currentTab;
@@ -92,7 +91,7 @@ class SkillCalculatorPanel extends PluginPanel
 
 		createTabs();
 
-		skillSelector = createSkillSelector();
+		final JComboBox<ComboBoxIconEntry> skillSelector = createSkillSelector();
 
 		final UICalculatorInputArea uiInput = new UICalculatorInputArea();
 		uiInput.setBorder(new EmptyBorder(15, 0, 15, 0));
