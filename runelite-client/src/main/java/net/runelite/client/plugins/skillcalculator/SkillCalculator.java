@@ -39,11 +39,14 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
@@ -64,6 +67,7 @@ class SkillCalculator extends JPanel
 	private static final int MAX_XP = 200_000_000;
 	private static final DecimalFormat XP_FORMAT = new DecimalFormat("#.#");
 	private static final DecimalFormat XP_FORMAT_COMMA = new DecimalFormat("#,###.#");
+	private static final Pattern NUMBER_PATTERN = Pattern.compile("([0-9]+)");
 
 	static SpriteManager spriteManager;
 	static ItemManager itemManager;
@@ -93,6 +97,9 @@ class SkillCalculator extends JPanel
 	private JLabel totalLabel = new JLabel();
 	private JPanel detailContainer;
 	private String currentTab;
+
+	// Planner Tab Variables
+	private double totalPlannerXp = 0.0f;
 
 	SkillCalculator(Client client, UICalculatorInputArea uiInput)
 	{
@@ -133,6 +140,7 @@ class SkillCalculator extends JPanel
 		// Reset the XP factor, removing bonuses.
 		xpFactor = 1.0f;
 		totalBankedXp = 0.0f;
+		totalPlannerXp = 0.0f;
 
 		// Update internal skill/XP values.
 		currentXP = client.getSkillExperience(skill);
@@ -342,7 +350,7 @@ class SkillCalculator extends JPanel
 			uiActionSlots.add(slot); // Keep our own reference.
 			add(slot); // Add component to the panel.
 
-			slot.addMouseListener(new MouseAdapter()
+			MouseAdapter calc = new MouseAdapter()
 			{
 				@Override
 				public void mousePressed(MouseEvent e)
@@ -358,7 +366,23 @@ class SkillCalculator extends JPanel
 					slot.setSelected(!slot.isSelected());
 					updateCombinedAction();
 				}
-			});
+			};
+
+
+			MouseAdapter planner = new MouseAdapter()
+			{
+				@Override
+				public void mousePressed(MouseEvent e)
+				{
+					specifyPlannerSlotAmount(slot);
+				}
+			};
+
+			if (currentTab.equals("Calculator"))
+				slot.addMouseListener(calc);
+
+			if (currentTab.equals("Planner"))
+				slot.addMouseListener(planner);
 		}
 
 		// Refresh the rendering of this panel.
@@ -407,6 +431,14 @@ class SkillCalculator extends JPanel
 			slot.setAvailable(currentLevel >= action.getLevel());
 			slot.setOverlapping(action.getLevel() < targetLevel);
 			slot.setValue((int) xp);
+		}
+	}
+
+	private void calculatePlanner()
+	{
+		for (UIActionSlot slot : uiActionSlots)
+		{
+			updatePlannerSlot(slot);
 		}
 	}
 
@@ -485,6 +517,69 @@ class SkillCalculator extends JPanel
 		return total;
 	}
 
+
+	private void updatePlannerSlot(UIActionSlot slot)
+	{
+		int actionCount = 0;
+		SkillDataEntry action = slot.getAction();
+
+		if (slot.getValue() > 0)
+			actionCount = slot.getValue();
+
+		double xp = (action.isIgnoreBonus()) ? action.getXp() : action.getXp() * xpFactor;
+		int actionXP = (int) (actionCount * xp);
+
+		// Update Icon
+		slot.setIconAmount(actionCount);
+
+		// Update Displayed Text
+		slot.setText("Lvl. " + action.getLevel() + " - " + XP_FORMAT_COMMA.format(actionXP) + " xp");
+		slot.setAvailable(currentLevel >= action.getLevel());
+		slot.setValue(actionCount);
+	}
+
+	private void specifyPlannerSlotAmount(UIActionSlot slot)
+	{
+		// Ask for input
+		int oldVal = slot.getValue();
+		String result = JOptionPane.showInputDialog(slot.getRootPane(), "Requested Action Amount:", oldVal);
+
+		// Prevent NullPointerException on matcher.
+		if (result == null)
+			result = "";
+
+		// Parse number from input
+		Matcher m = NUMBER_PATTERN.matcher(result);
+		if (m.find())
+		{
+			slot.setValue(Integer.valueOf(m.group()));
+		}
+		else
+		{
+			JOptionPane.showMessageDialog(slot.getRootPane(), "Error parsing number, nothing changed!");
+			return;
+		}
+
+		// Specified a new
+		SkillDataEntry action = slot.getAction();
+
+		// adjust total planner xp value
+		double xp = (action.isIgnoreBonus()) ? action.getXp() : action.getXp() * xpFactor;
+		// Remove old xp total
+		if (oldVal > 0)
+			totalPlannerXp -= oldVal * xp;
+		// Add new XP total
+		totalPlannerXp = totalPlannerXp + (slot.getValue() * xp);
+
+		// Update UI inputs to account for new XP
+		targetXP = (int) (currentXP + totalPlannerXp);
+		targetLevel = Experience.getLevelForXp(targetXP);
+		updateInputFields();
+
+		// Update Slot UI
+		updatePlannerSlot(slot);
+	}
+
 	private String formatXPActionString(double xp, int actionCount, String expExpression)
 	{
 		return XP_FORMAT.format(xp) + expExpression + NumberFormat.getIntegerInstance().format(actionCount) + (actionCount > 1 ? " actions" : " action");
@@ -505,6 +600,8 @@ class SkillCalculator extends JPanel
 
 		if (currentTab.equals("Calculator"))
 			calculate();
+		if (currentTab.equals("Planner"))
+			calculatePlanner();
 	}
 
 	private void adjustXPBonus(boolean addBonus, float value)
@@ -512,6 +609,8 @@ class SkillCalculator extends JPanel
 		xpFactor += addBonus ? value : -value;
 		if (currentTab.equals("Calculator"))
 			calculate();
+		if (currentTab.equals("Planner"))
+			calculatePlanner();
 		if (currentTab.equals("Banked Xp"))
 		{
 			calculateBankedExpTotal();
