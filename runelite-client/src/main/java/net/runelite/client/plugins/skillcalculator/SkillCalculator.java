@@ -464,9 +464,8 @@ class SkillCalculator extends JPanel
 
 		totalLabel.setText("Banked Exp: " + XP_FORMAT_COMMA.format(totalBankedXp));
 
-		// Update Target Level to include total banked xp
-		targetXP = (int) (currentXP + totalBankedXp);
-		targetLevel = Experience.getXpForLevel(targetLevel);
+		// Update Target XP & Level to include total banked xp
+		adjustTargetXp();
 
 		revalidate();
 		repaint();
@@ -551,6 +550,13 @@ class SkillCalculator extends JPanel
 		categoryMap.put(category, removeBonus);
 		calculateBankedExpTotal();
 		toggleBankExpDetails(detailFlag);
+	}
+
+	private void adjustTargetXp()
+	{
+		targetXP = (int) (currentXP + totalBankedXp);
+		targetLevel = Experience.getLevelForXp(targetXP);
+		updateInputFields();
 	}
 
 	private void onFieldCurrentLevelUpdated()

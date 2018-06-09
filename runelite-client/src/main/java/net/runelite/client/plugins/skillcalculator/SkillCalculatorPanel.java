@@ -60,6 +60,7 @@ class SkillCalculatorPanel extends PluginPanel
 	private JComboBox<ComboBoxIconEntry> skillSelector;
 	private CalculatorType currentCalc;
 	private final MaterialTabGroup tabGroup;
+	private String currentTab;
 
 	// Mat Tab Custom Borders
 	private final Border UNSELECTED_BORDER = new EmptyBorder(5, 3, 5, 3);
@@ -148,7 +149,9 @@ class SkillCalculatorPanel extends PluginPanel
 
 	private void selectedTab(String s)
 	{
-		// Prevent from running on initial select
+		currentTab = s;
+
+		// Only open a panel if a skill is selected
 		if (currentCalc == null)
 			return;
 		// Handle switching between the tabs
@@ -187,9 +190,8 @@ class SkillCalculatorPanel extends PluginPanel
 			{
 				ComboBoxIconEntry entry = (ComboBoxIconEntry) e.getItem();
 				Skill requestSkill = Skill.getByName(entry.getText());
-				CalculatorType requestedCalculator = CalculatorType.getBySkill(requestSkill);
-				uiCalculator.openCalculator(requestedCalculator);
-				currentCalc = requestedCalculator;
+				currentCalc = CalculatorType.getBySkill(requestSkill);
+				selectedTab(currentTab);
 			}
 		});
 
@@ -204,7 +206,7 @@ class SkillCalculatorPanel extends PluginPanel
 		if (currentCalc == null)
 			return;
 
-		uiCalculator.openCalculator(currentCalc);
+		selectedTab(currentTab);
 	}
 
 	// Wrapper function for updating SkillCalculator's bankMap
