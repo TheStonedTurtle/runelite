@@ -120,12 +120,14 @@ public class SkillCalculatorPlugin extends Plugin
 	{
 		pluginToolbar.removeNavigation(uiNavigationButton);
 		bankMap.clear();
+		itemsHash = -1;
 	}
 
 	@Subscribe
 	public void onUsernameChanged(UsernameChanged e)
 	{
 		bankMap.clear();
+		itemsHash = -1;
 		SwingUtilities.invokeLater(() -> uiPanel.refreshCurrentCalc());
 	}
 
@@ -134,8 +136,12 @@ public class SkillCalculatorPlugin extends Plugin
 	{
 		if (event.getGroup().equals("skillCalculator"))
 		{
-			// Reset everything when banked experience toggled
-			bankMap.clear();
+			if (event.getKey().equals("showBankedXp"))
+			{
+				bankMap.clear();
+				itemsHash = -1;
+			}
+
 			SwingUtilities.invokeLater(() -> uiPanel.refreshCurrentCalc());
 		}
 	}

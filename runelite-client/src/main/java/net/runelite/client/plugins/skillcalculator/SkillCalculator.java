@@ -92,7 +92,7 @@ class SkillCalculator extends JPanel
 	private float totalBankedXp = 0.0f;
 	private JLabel totalLabel = new JLabel();
 	private JPanel detailContainer;
-	private boolean detailFlag;
+	private String currentTab;
 
 	SkillCalculator(Client client, UICalculatorInputArea uiInput)
 	{
@@ -144,6 +144,7 @@ class SkillCalculator extends JPanel
 
 	void openCalculator(CalculatorType calculatorType)
 	{
+		currentTab = "Calculator";
 		// clean slate for creating the required panel
 		removeAll();
 		updateData(calculatorType);
@@ -163,6 +164,7 @@ class SkillCalculator extends JPanel
 
 	void openPlanner(CalculatorType calculatorType)
 	{
+		currentTab = "Planner";
 		// clean slate for creating the required panel
 		removeAll();
 		updateData(calculatorType);
@@ -179,6 +181,7 @@ class SkillCalculator extends JPanel
 
 	void openBanked(CalculatorType calculatorType)
 	{
+		currentTab = "Banked Xp";
 		// clean slate for creating the required panel
 		removeAll();
 		updateData(calculatorType);
@@ -209,12 +212,14 @@ class SkillCalculator extends JPanel
 			detailContainer.removeAll();
 			calculateBankedExpTotal();
 
-			add(detailContainer);
+			// Create the banked experience details container
+			refreshBankedExpDetails();
 
-			// Update the input fields.
-			updateInputFields();
+			add(detailContainer);
 		}
 
+		// Update the input fields.
+		updateInputFields();
 	}
 
 	private void updateCombinedAction()
@@ -320,28 +325,6 @@ class SkillCalculator extends JPanel
 			add(Box.createRigidArea(new Dimension(0, 5)));
 		}
 
-		// Add final option
-		JPanel uiOption = new JPanel(new BorderLayout());
-		JLabel uiLabel = new JLabel("Show Experience Breakdown");
-		JCheckBox uiCheckbox = new JCheckBox();
-		detailFlag = false;
-
-		uiLabel.setForeground(Color.WHITE);
-		uiLabel.setFont(FontManager.getRunescapeSmallFont());
-
-		uiOption.setBorder(BorderFactory.createEmptyBorder(3, 7, 3, 0));
-		uiOption.setBackground(ColorScheme.DARKER_GRAY_COLOR);
-
-		// Should we show the bank exp details?
-		uiCheckbox.addActionListener(e -> toggleBankExpDetails(uiCheckbox.isSelected()));
-		uiCheckbox.setBackground(ColorScheme.MEDIUM_GRAY_COLOR);
-
-		uiOption.add(uiLabel, BorderLayout.WEST);
-		uiOption.add(uiCheckbox, BorderLayout.EAST);
-
-		add(uiOption);
-		add(Box.createRigidArea(new Dimension(0, 5)));
-
 		add(totalLabel);
 		add(detailContainer);
 	}
@@ -379,24 +362,6 @@ class SkillCalculator extends JPanel
 		}
 
 		// Refresh the rendering of this panel.
-		revalidate();
-		repaint();
-	}
-
-	// Toggle whether the Banked Experience Detail container should be shown (recreates if should be shown and already exists)
-	private void toggleBankExpDetails(boolean showFlag)
-	{
-		if (showFlag)
-		{
-			refreshBankedExpDetails();
-		}
-		else
-		{
-			detailContainer.removeAll();
-		}
-
-		detailFlag = showFlag;
-
 		revalidate();
 		repaint();
 	}
@@ -448,6 +413,9 @@ class SkillCalculator extends JPanel
 	// Calculate the total banked experience and display it in the panel
 	private void calculateBankedExpTotal()
 	{
+		if (!currentTab.equals("Banked Xp"))
+			return;
+
 		totalBankedXp = 0.0f;
 
 		Set<String> categories = BankedItems.getSkillCategories(skill);
@@ -534,22 +502,28 @@ class SkillCalculator extends JPanel
 		uiInput.setCurrentXPInput(currentXP);
 		uiInput.setTargetLevelInput(targetLevel);
 		uiInput.setTargetXPInput(targetXP);
-		calculate();
+
+		if (currentTab.equals("Calculator"))
+			calculate();
 	}
 
 	private void adjustXPBonus(boolean addBonus, float value)
 	{
 		xpFactor += addBonus ? value : -value;
-		calculate();
-		calculateBankedExpTotal();
-		toggleBankExpDetails(detailFlag);
+		if (currentTab.equals("Calculator"))
+			calculate();
+		if (currentTab.equals("Banked Xp"))
+		{
+			calculateBankedExpTotal();
+			refreshBankedExpDetails();
+		}
 	}
 
 	private void adjustBankedXp(boolean removeBonus, String category)
 	{
 		categoryMap.put(category, removeBonus);
 		calculateBankedExpTotal();
-		toggleBankExpDetails(detailFlag);
+		refreshBankedExpDetails();
 	}
 
 	private void adjustTargetXp()
@@ -599,11 +573,19 @@ class SkillCalculator extends JPanel
 
 	void setBankMap(Map<Integer, Integer> map)
 	{
+		boolean oldMapFlag = (bankMap.size() <= 0);
 		bankMap = map;
+		CalculatorType calc = CalculatorType.getBySkill(skill);
 
-		// Only update panel if currently on banked xp tab
-		if (detailFlag)
+		if (currentTab.equals("Banked Xp"))
 		{
+			// Refresh entire panel if old map was empty
+			if (oldMapFlag)
+			{
+				SwingUtilities.invokeLater(() -> openBanked(calc));
+				return;
+			}
+			// Otherwise just update the Total XP banked and the details panel
 			SwingUtilities.invokeLater(this::calculateBankedExpTotal);
 			SwingUtilities.invokeLater(this::refreshBankedExpDetails);
 		}

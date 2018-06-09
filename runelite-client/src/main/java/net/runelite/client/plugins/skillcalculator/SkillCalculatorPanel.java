@@ -117,7 +117,6 @@ class SkillCalculatorPanel extends PluginPanel
 	{
 		ArrayList<String> tabs = new ArrayList<>();
 		tabs.add("Calculator");
-		System.out.println(config);
 		if (config.showPlannerTab())
 		{
 			tabs.add("Planner");
