@@ -24,14 +24,19 @@
  */
 package net.runelite.http.api.database;
 
+import com.google.gson.reflect.TypeToken;
+import net.runelite.http.api.RuneLiteAPI;
+
 import java.util.ArrayList;
+import java.util.List;
 
 public class LootRecord
 {
 	private final int npcID;
 	private final String npcName;
 	private final int killCount;
-	private final ArrayList<DropEntry> drops;
+	private ArrayList<DropEntry> drops;
+	private String drops2 = null;
 
 	LootRecord(int id, String name, int kc, ArrayList<DropEntry> drops)
 	{
@@ -47,6 +52,18 @@ public class LootRecord
 		this.npcName = name;
 		this.killCount = -1;
 		this.drops = drops;
+	}
+
+	// Used to convert drops2 into an ArrayList via GSON
+	public void parseDrops()
+	{
+		if (this.drops2 != null)
+		{
+			this.drops = RuneLiteAPI.GSON.fromJson(drops2, new TypeToken<List<DropEntry>>()
+			{
+			}.getType());
+			this.drops2 = null;
+		}
 	}
 
 

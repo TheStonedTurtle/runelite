@@ -25,7 +25,7 @@
 package net.runelite.http.service.database;
 
 import java.io.IOException;
-import java.util.List;
+import java.util.ArrayList;
 
 import net.runelite.http.api.database.DatabaseEndpoint;
 import net.runelite.http.api.database.LootRecord;
@@ -76,13 +76,13 @@ public class DatabaseController
 	private DatabaseService service;
 
 	@RequestMapping("/boss")
-	public List<LootRecord> lookupBoss(@RequestParam String username, @RequestParam String boss) throws IOException
+	public ArrayList<LootRecord> lookupBoss(@RequestParam String username, @RequestParam String boss) throws IOException
 	{
 		return service.lookUpBoss(DatabaseEndpoint.BOSS, username, boss);
 	}
 
 	// Wrapper for boss ID (int)
-	public List<LootRecord> lookupBossId(@RequestParam String username, @RequestParam Integer boss) throws IOException
+	public ArrayList<LootRecord> lookupBossId(@RequestParam String username, @RequestParam Integer boss) throws IOException
 	{
 		return service.lookUpBoss(DatabaseEndpoint.BOSS, username, String.valueOf(boss));
 	}

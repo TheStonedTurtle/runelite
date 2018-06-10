@@ -33,6 +33,7 @@ import org.sql2o.Connection;
 import org.sql2o.Sql2o;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -48,29 +49,53 @@ public class DatabaseService
 		this.sql2o = sql2o;
 	}
 
-	public List<LootRecord> lookUpBoss(DatabaseEndpoint endpoint, String username, int boss) throws IOException
+	public ArrayList<LootRecord> lookUpBoss(DatabaseEndpoint endpoint, String username, int boss) throws IOException
 	{
 		return lookUpBoss(endpoint, username, String.valueOf(boss));
 	}
 
-	public List<LootRecord> lookUpBoss(DatabaseEndpoint endpoint, String username, String boss) throws IOException
+	public ArrayList<LootRecord> lookUpBoss(DatabaseEndpoint endpoint, String username, String boss) throws IOException
 	{
+		String queryText = "SELECT kills.*, CONCAT(\"[\", group_concat( CONCAT(\"{'itemId':\", drops.itemId,\",'itemAmount':\",drops.itemAmount,\"}\")), \"]\") as drops2 " +
+				"FROM kills JOIN " +
+				"drops " +
+				"on drops.kill_entry_id = kills.entry_id " +
+				"WHERE (username = :username AND npcID = :id) OR (username = :username AND npcName = :id) " +
+				"group by kills.entry_id";
 		try (Connection con = sql2o.open())
 		{
-			List<LootRecord> records = con.createQuery("SELECT * FROM kills WHERE (username = :username AND npcId = :id) OR (username = :username AND npcName = :id) ")
+			ArrayList<LootRecord> result = new ArrayList<>();
+			List<LootRecord> records = con.createQuery(queryText)
 					.addParameter("username", username)
 					.addParameter("id", boss)
 					.throwOnMappingFailure(false)		// Ignores entry_id mapping error
 					.executeAndFetch(LootRecord.class);
 
-			System.out.println(records);
 			if (records != null)
 			{
-				//ArrayList<LootRecord> r = new ArrayList<>();
-				//r.addAll(records);
-				return records;
+				result = new ArrayList<>(records);
+				for (LootRecord r : result)
+				{
+					r.parseDrops();
+				}
 			}
-			return null;
+
+			return result;
+			/*
+			List<Map<String, Object>> map = con.createQuery(queryText)
+					.addParameter("username", username)
+					.addParameter("id", boss)
+					.executeAndFetchTable().asList();
+
+			for (Map<String, Object> e : map)
+			{
+				System.out.println("KETSET:" + e.keySet());
+				for (String key : e.keySet())
+				{
+					System.out.println("Value: " + e.get(key));
+				}
+			}
+			*/
 		}
 	}
 
