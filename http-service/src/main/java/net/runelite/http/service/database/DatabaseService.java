@@ -24,67 +24,54 @@
  */
 package net.runelite.http.service.database;
 
-import lombok.extern.slf4j.Slf4j;
-import net.runelite.http.api.RuneLiteAPI;
-import net.runelite.http.api.database.DatabaseClient;
 import net.runelite.http.api.database.DatabaseEndpoint;
 import net.runelite.http.api.database.LootRecord;
-import net.runelite.http.service.util.exception.InternalServerErrorException;
-import net.runelite.http.service.util.exception.NotFoundException;
-import okhttp3.HttpUrl;
-import okhttp3.Request;
-import okhttp3.Response;
-import org.springframework.http.HttpStatus;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import org.sql2o.Connection;
+import org.sql2o.Sql2o;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.List;
 
 @Service
-@Slf4j
 public class DatabaseService
 {
-	public ArrayList<LootRecord> lookUpBoss(DatabaseEndpoint endpoint, String username, int boss) throws IOException
+	private final Sql2o sql2o;
+
+	@Autowired
+	public DatabaseService(
+		@Qualifier("Runelite SQL2O") Sql2o sql2o
+	)
+	{
+		this.sql2o = sql2o;
+	}
+
+	public List<LootRecord> lookUpBoss(DatabaseEndpoint endpoint, String username, int boss) throws IOException
 	{
 		return lookUpBoss(endpoint, username, String.valueOf(boss));
 	}
 
-	public ArrayList<LootRecord> lookUpBoss(DatabaseEndpoint endpoint, String username, String boss) throws IOException
+	public List<LootRecord> lookUpBoss(DatabaseEndpoint endpoint, String username, String boss) throws IOException
 	{
-		HttpUrl url = endpoint.getDatabaseURL().newBuilder()
-				.addQueryParameter("username", username)
-				.addQueryParameter("boss", boss)
-				.build();
-
-		log.debug("Built URL {}", url);
-
-		Request okrequest = new Request.Builder()
-				.url(url)
-				.build();
-
-		String responseStr;
-
-		try (Response okresponse = RuneLiteAPI.CLIENT.newCall(okrequest).execute())
+		try (Connection con = sql2o.open())
 		{
-			if (!okresponse.isSuccessful())
+			List<LootRecord> records = con.createQuery("SELECT * FROM kills WHERE (username = :username AND npcId = :id) OR (username = :username AND npcName = :id) ")
+					.addParameter("username", username)
+					.addParameter("id", boss)
+					.throwOnMappingFailure(false)		// Ignores entry_id mapping error
+					.executeAndFetch(LootRecord.class);
+
+			System.out.println(records);
+			if (records != null)
 			{
-				switch (HttpStatus.valueOf(okresponse.code()))
-				{
-					case NOT_FOUND:
-						throw new NotFoundException();
-					default:
-						throw new InternalServerErrorException("Error retrieving data from RuneLite Web API: " + okresponse.message());
-				}
+				//ArrayList<LootRecord> r = new ArrayList<>();
+				//r.addAll(records);
+				return records;
 			}
-
-			responseStr = okresponse.body().string();
+			return null;
 		}
-
-		LootRecord[] records = RuneLiteAPI.GSON.fromJson(responseStr, LootRecord[].class);
-		ArrayList<LootRecord> result = DatabaseClient.unpackLootRecords(records);
-		System.out.println(result);
-
-		return result;
 	}
 
 }

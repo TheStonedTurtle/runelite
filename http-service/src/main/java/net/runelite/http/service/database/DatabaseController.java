@@ -25,13 +25,12 @@
 package net.runelite.http.service.database;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.List;
 
 import net.runelite.http.api.database.DatabaseEndpoint;
 import net.runelite.http.api.database.LootRecord;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -76,15 +75,15 @@ public class DatabaseController
 	@Autowired
 	private DatabaseService service;
 
-	@RequestMapping("/{endpoint}")
-	public ArrayList<LootRecord> lookupBoss(@PathVariable DatabaseEndpoint endpoint, @RequestParam String username, @RequestParam String boss) throws IOException
+	@RequestMapping("/boss")
+	public List<LootRecord> lookupBoss(@RequestParam String username, @RequestParam String boss) throws IOException
 	{
-		return service.lookUpBoss(endpoint, username, boss);
+		return service.lookUpBoss(DatabaseEndpoint.BOSS, username, boss);
 	}
 
 	// Wrapper for boss ID (int)
-	public ArrayList<LootRecord> lookupBossId(@PathVariable DatabaseEndpoint endpoint, @RequestParam String username, @RequestParam Integer boss) throws IOException
+	public List<LootRecord> lookupBossId(@RequestParam String username, @RequestParam Integer boss) throws IOException
 	{
-		return lookupBoss(endpoint, username, String.valueOf(boss));
+		return service.lookUpBoss(DatabaseEndpoint.BOSS, username, String.valueOf(boss));
 	}
 }

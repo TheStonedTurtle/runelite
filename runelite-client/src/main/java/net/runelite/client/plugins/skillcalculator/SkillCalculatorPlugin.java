@@ -26,7 +26,6 @@
 package net.runelite.client.plugins.skillcalculator;
 
 import java.awt.image.BufferedImage;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import javax.imageio.ImageIO;
 import javax.inject.Inject;
@@ -40,7 +39,6 @@ import net.runelite.client.ui.ClientUI;
 import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.ui.PluginToolbar;
 import net.runelite.http.api.database.DatabaseClient;
-import net.runelite.http.api.database.DatabaseEndpoint;
 import net.runelite.http.api.database.LootRecord;
 
 @PluginDescriptor(name = "Skill Calculator")

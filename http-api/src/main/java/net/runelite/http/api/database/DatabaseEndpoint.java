@@ -24,6 +24,7 @@
  */
 package net.runelite.http.api.database;
 
+import net.runelite.http.api.RuneLiteAPI;
 import okhttp3.HttpUrl;
 
 public enum DatabaseEndpoint
@@ -33,8 +34,7 @@ public enum DatabaseEndpoint
 
 	private static class Constants
 	{
-		//private static final String BASE_URL = "http://api.runelite.net/database";
-		private static final String BASE_URL = "http://localhost:8000";
+		private static final String BASE_URL = RuneLiteAPI.getApiBase() + "/database";
 	}
 
 	private final String name;
