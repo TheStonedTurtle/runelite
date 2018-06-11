@@ -104,7 +104,6 @@ public class LootRecord
 		}
 	}
 
-
 	@Override
 	public String toString()
 	{
