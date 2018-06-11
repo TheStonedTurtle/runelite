@@ -60,9 +60,10 @@ public class DatabaseService
 		String queryText = "SELECT kills.*, CONCAT(\"[\", group_concat( CONCAT(\"{'itemId':\", drops.itemId,\",'itemAmount':\",drops.itemAmount,\"}\")), \"]\") as drops2 " +
 				"FROM kills JOIN " +
 				"drops " +
-				"on drops.kill_entry_id = kills.entry_id " +
+				"on drops.killId = kills.killId " +
 				"WHERE (username = :username AND npcID = :id) OR (username = :username AND npcName = :id) " +
-				"group by kills.entry_id";
+				"group by kills.killId";
+
 		try (Connection con = sql2o.open())
 		{
 			ArrayList<LootRecord> result = new ArrayList<>();
@@ -89,7 +90,7 @@ public class DatabaseService
 	public void storeLootRecord(LootRecord record, String username)
 	{
 		String killQuery = "INSERT INTO kills (username, npcName, npcID, killCount) VALUES(:username, :npcName, :npcID, :killCount)";
-		String dropQuery = "INSERT INTO drops (kill_entry_id, itemId, itemAmount) VALUES(LAST_INSERT_ID(), :itemId, :itemAmount)";
+		String dropQuery = "INSERT INTO drops (killId, itemId, itemAmount) VALUES(LAST_INSERT_ID(), :itemId, :itemAmount)";
 		try (Connection con = sql2o.beginTransaction())
 		{
 			// Kill Entry Query

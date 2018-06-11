@@ -41,6 +41,8 @@ import net.runelite.client.ui.PluginToolbar;
 import net.runelite.http.api.database.DatabaseClient;
 import net.runelite.http.api.database.DropEntry;
 import net.runelite.http.api.database.LootRecord;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @PluginDescriptor(name = "Skill Calculator")
 public class SkillCalculatorPlugin extends Plugin
@@ -66,6 +68,8 @@ public class SkillCalculatorPlugin extends Plugin
 	private NavigationButton uiNavigationButton;
 	private SkillCalculatorPanel uiPanel;
 
+	private static final Logger log = LoggerFactory.getLogger(SkillCalculatorPlugin.class);
+
 	@Override
 	protected void startUp() throws Exception
 	{
@@ -87,17 +91,19 @@ public class SkillCalculatorPlugin extends Plugin
 			.build();
 		pluginToolbar.addNavigation(uiNavigationButton);
 
-		DatabaseClient db = new DatabaseClient();
-
+		// Create dummy LootRecord
 		ArrayList<DropEntry> drops = new ArrayList<>();
 		drops.add(new DropEntry(955, 1000));
 		drops.add(new DropEntry(540, 250));
+		LootRecord record = new LootRecord(-1, "barrows", 6, drops);
 
-		Boolean success = db.storeLootRecord(new LootRecord(-1, "barrows", 6, drops), "stonedturtle");
-		System.out.println("Stored Success: " + success);
+		DatabaseClient db = new DatabaseClient();
+
+		Boolean success = db.storeLootRecord(record, "stonedturtle");
+		log.info("Stored Success: " + success);
 
 		ArrayList<LootRecord> records = db.lookupBoss("stonedturtle", "barrows");
-		System.out.println("Stored Loot Record for Query: " + records.toString());
+		log.info("Stored Loot Record(s) for Query: " + records.toString());
 	}
 
 	@Override

@@ -31,13 +31,17 @@ import net.runelite.http.api.RuneLiteAPI;
 import java.util.ArrayList;
 import java.util.List;
 
-@Getter
 public class LootRecord
 {
+	@Getter
 	private final int npcID;
+	@Getter
 	private final String npcName;
+	@Getter
 	private final int killCount;
+	@Getter
 	private ArrayList<DropEntry> drops;
+	// Used when pulling data from API, stores JSON string of drops until parsed via parseDrops()
 	private String drops2 = null;
 
 	public LootRecord(int npcId, String npcName, int kc, ArrayList<DropEntry> drops)
@@ -88,7 +92,7 @@ public class LootRecord
 		this.drops = drops;
 	}
 
-	// Used to convert drops2 into an ArrayList via GSON
+	// Parse drops from JSON string (requesting data from API);
 	public void parseDrops()
 	{
 		if (this.drops2 != null)

@@ -29,8 +29,7 @@ import okhttp3.HttpUrl;
 
 public enum DatabaseEndpoint
 {
-	BOSS("Boss", Constants.BASE_URL + "/boss"),
-	LOOT("Loot", Constants.BASE_URL + "/loot");
+	BOSS("Boss", Constants.BASE_URL + "/boss");
 
 	private static class Constants
 	{
@@ -40,10 +39,10 @@ public enum DatabaseEndpoint
 	private final String name;
 	private final HttpUrl databaseURL;
 
-	DatabaseEndpoint(String name, String databaseURL)
+	DatabaseEndpoint(String name, String url)
 	{
 		this.name = name;
-		this.databaseURL = HttpUrl.parse(databaseURL);
+		this.databaseURL = HttpUrl.parse(url);
 	}
 
 	public String getName()

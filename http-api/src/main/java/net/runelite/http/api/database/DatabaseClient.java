@@ -42,13 +42,15 @@ public class DatabaseClient
 {
 	private static final Logger logger = LoggerFactory.getLogger(DatabaseClient.class);
 
-	public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
+	private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
 
+	// Wrapper for looking up by boss ID (API can find records by name or id)
 	public ArrayList<LootRecord> lookupBoss(String username, int id) throws IOException
 	{
 		return lookupBoss(username, String.valueOf(id));
 	}
 
+	// Returns all LootRecords by
 	public ArrayList<LootRecord> lookupBoss(String username, String boss) throws IOException
 	{
 		DatabaseEndpoint bossEndpoint = DatabaseEndpoint.BOSS;
@@ -69,12 +71,13 @@ public class DatabaseClient
 			if (response.isSuccessful())
 			{
 				String result = response.body().string();
-				LootRecord[] element = RuneLiteAPI.GSON.fromJson(result, LootRecord[].class);
-				return unpackLootRecords(element);
+				LootRecord[] records = RuneLiteAPI.GSON.fromJson(result, LootRecord[].class);
+				return unpackLootRecords(records);
 			}
 			else
 			{
-				logger.debug("Error looking up boss for URI: {}", url);
+				logger.debug("Error Executing Database URI request: {}", url);
+				logger.debug(response.body().toString());
 				return new ArrayList<LootRecord>();
 			}
 		}
@@ -84,6 +87,7 @@ public class DatabaseClient
 		}
 	}
 
+	// Converts LootRecord[] to ArrayList format
 	public static ArrayList<LootRecord> unpackLootRecords(LootRecord[] r)
 	{
 		ArrayList<LootRecord> result = new ArrayList<LootRecord>();
@@ -91,6 +95,7 @@ public class DatabaseClient
 		return result;
 	}
 
+	// Stores the Loot Record via a post request to the API and returns a success boolean
 	public boolean storeLootRecord(LootRecord record, String username) throws IOException
 	{
 		DatabaseEndpoint bossEndpoint = DatabaseEndpoint.BOSS;
@@ -99,16 +104,18 @@ public class DatabaseClient
 
 		HttpUrl url = builder.build();
 
+		logger.debug("Built Database URI: {}", url);
+
 		Request request = new Request.Builder()
 				.url(url)
 				.post(RequestBody.create(JSON, RuneLiteAPI.GSON.toJson(record)))
 				.build();
 
-		logger.debug("Built Database URI: {}", url);
-		logger.debug(RuneLiteAPI.GSON.toJson(record));
+		logger.debug("JSON Data to store: " + request.body().toString());
 
 		try (Response response = RuneLiteAPI.CLIENT.newCall(request).execute())
 		{
+			logger.debug("Data Storage: " + (response.message().equals("OK") ? "SUCCESS" : "FAIL"));
 			return response.message().equals("OK");
 		}
 		catch (JsonParseException ex)

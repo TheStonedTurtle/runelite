@@ -32,7 +32,6 @@ import net.runelite.http.api.database.LootRecord;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -46,34 +45,31 @@ import org.sql2o.Sql2o;
 @RequestMapping("/database")
 public class DatabaseController
 {
+	// Storage for LootRecord's
 	private static final String CREATE_KILLS = "CREATE TABLE IF NOT EXISTS `kills` (\n"
-			+ "  `entry_id` INT AUTO_INCREMENT UNIQUE,\n"
+			+ "  `killId` INT AUTO_INCREMENT UNIQUE,\n"
 			+ "  `username` VARCHAR(255) NOT NULL,\n"
 			+ "  `npcName` VARCHAR(255) NOT NULL,\n"
 			+ "  `npcID` INT NOT NULL,\n"
 			+ "  `killCount` INT NOT NULL\n"
 			+ ") ENGINE=InnoDB";
 
-
+	// Storage for DropEntry (Tied to LootRecord)
 	private static final String CREATE_DROPS = "CREATE TABLE IF NOT EXISTS `drops` (\n"
-			+ "  `kill_entry_id` INT NOT NULL,\n"
+			+ "  `killId` INT NOT NULL,\n"
 			+ "  `itemId` INT NOT NULL,\n"
-			+ "  `itemAmount` INT NOT NULL\n"
+			+ "  `itemAmount` INT NOT NULL,\n"
+			+ "  FOREIGN KEY (killId) REFERENCES kills(killId)\n"
 			+ ") ENGINE=InnoDB";
-
-	private final Sql2o sql2o;
 
 	@Autowired
 	public DatabaseController(@Qualifier("Runelite SQL2O") Sql2o sql2o)
 	{
-		this.sql2o = sql2o;
-
+		// Ensure necessary tables exist
 		try (Connection con = sql2o.open())
 		{
-			con.createQuery(CREATE_KILLS)
-					.executeUpdate();
-			con.createQuery(CREATE_DROPS)
-					.executeUpdate();
+			con.createQuery(CREATE_KILLS).executeUpdate();
+			con.createQuery(CREATE_DROPS).executeUpdate();
 		}
 	}
 
