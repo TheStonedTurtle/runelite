@@ -37,8 +37,6 @@ import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.ClientUI;
 import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.ui.PluginToolbar;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @PluginDescriptor(name = "Skill Calculator")
 public class SkillCalculatorPlugin extends Plugin
@@ -63,8 +61,6 @@ public class SkillCalculatorPlugin extends Plugin
 
 	private NavigationButton uiNavigationButton;
 	private SkillCalculatorPanel uiPanel;
-
-	private static final Logger log = LoggerFactory.getLogger(SkillCalculatorPlugin.class);
 
 	@Override
 	protected void startUp() throws Exception
