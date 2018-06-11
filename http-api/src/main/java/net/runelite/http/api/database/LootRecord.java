@@ -25,11 +25,13 @@
 package net.runelite.http.api.database;
 
 import com.google.gson.reflect.TypeToken;
+import lombok.Getter;
 import net.runelite.http.api.RuneLiteAPI;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Getter
 public class LootRecord
 {
 	private final int npcID;
@@ -38,18 +40,50 @@ public class LootRecord
 	private ArrayList<DropEntry> drops;
 	private String drops2 = null;
 
-	LootRecord(int id, String name, int kc, ArrayList<DropEntry> drops)
+	public LootRecord(int npcId, String npcName, int kc, ArrayList<DropEntry> drops)
 	{
-		this.npcID = id;
-		this.npcName = name;
+		this.npcID = npcId;
+		this.npcName = npcName;
 		this.killCount = kc;
 		this.drops = drops;
 	}
 
-	LootRecord(int id, String name, ArrayList<DropEntry> drops)
+	public LootRecord(int npcId, String npcName, ArrayList<DropEntry> drops)
 	{
-		this.npcID = id;
-		this.npcName = name;
+		this.npcID = npcId;
+		this.npcName = npcName;
+		this.killCount = -1;
+		this.drops = drops;
+	}
+
+	public LootRecord(String npcName, int kc, ArrayList<DropEntry> drops)
+	{
+		this.npcID = -1;
+		this.npcName = npcName;
+		this.killCount = kc;
+		this.drops = drops;
+	}
+
+	public LootRecord(String npcName, ArrayList<DropEntry> drops)
+	{
+		this.npcID = -1;
+		this.npcName = npcName;
+		this.killCount = -1;
+		this.drops = drops;
+	}
+
+	public LootRecord(int npcId, int kc, ArrayList<DropEntry> drops)
+	{
+		this.npcID = npcId;
+		this.npcName = null;
+		this.killCount = kc;
+		this.drops = drops;
+	}
+
+	public LootRecord(int npcId, ArrayList<DropEntry> drops)
+	{
+		this.npcID = npcId;
+		this.npcName = null;
 		this.killCount = -1;
 		this.drops = drops;
 	}

@@ -31,8 +31,13 @@ import net.runelite.http.api.database.DatabaseEndpoint;
 import net.runelite.http.api.database.LootRecord;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.sql2o.Connection;
 import org.sql2o.Sql2o;
@@ -75,15 +80,17 @@ public class DatabaseController
 	@Autowired
 	private DatabaseService service;
 
-	@RequestMapping("/boss")
+	@RequestMapping(value = "/boss", method = RequestMethod.GET)
 	public ArrayList<LootRecord> lookupBoss(@RequestParam String username, @RequestParam String boss) throws IOException
 	{
 		return service.lookUpBoss(DatabaseEndpoint.BOSS, username, boss);
 	}
 
-	// Wrapper for boss ID (int)
-	public ArrayList<LootRecord> lookupBossId(@RequestParam String username, @RequestParam Integer boss) throws IOException
+	@RequestMapping(value = "/boss", method = RequestMethod.POST)
+	@ResponseStatus(value = HttpStatus.OK)
+	public void lookupBossId(@RequestBody LootRecord record, @RequestParam String username) throws IOException
 	{
-		return service.lookUpBoss(DatabaseEndpoint.BOSS, username, String.valueOf(boss));
+		service.storeLootRecord(record, username);
+
 	}
 }

@@ -26,6 +26,7 @@ package net.runelite.http.service.database;
 
 import net.runelite.http.api.database.DatabaseEndpoint;
 import net.runelite.http.api.database.LootRecord;
+import net.runelite.http.api.database.DropEntry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -81,21 +82,33 @@ public class DatabaseService
 			}
 
 			return result;
-			/*
-			List<Map<String, Object>> map = con.createQuery(queryText)
-					.addParameter("username", username)
-					.addParameter("id", boss)
-					.executeAndFetchTable().asList();
+		}
+	}
 
-			for (Map<String, Object> e : map)
+	// Insert loot record into mysql database
+	public void storeLootRecord(LootRecord record, String username)
+	{
+		String killQuery = "INSERT INTO kills (username, npcName, npcID, killCount) VALUES(:username, :npcName, :npcID, :killCount)";
+		String dropQuery = "INSERT INTO drops (kill_entry_id, itemId, itemAmount) VALUES(LAST_INSERT_ID(), :itemId, :itemAmount)";
+		try (Connection con = sql2o.beginTransaction())
+		{
+			// Kill Entry Query
+			con.createQuery(killQuery)
+					.addParameter("username", username)
+					.addParameter("npcName", record.getNpcName())
+					.addParameter("npcID", record.getNpcID())
+					.addParameter("killCount", record.getKillCount())
+					.executeUpdate();
+
+			// Append all queries for inserting drops
+			for (DropEntry drop : record.getDrops())
 			{
-				System.out.println("KETSET:" + e.keySet());
-				for (String key : e.keySet())
-				{
-					System.out.println("Value: " + e.get(key));
-				}
+				con.createQuery(dropQuery)
+					.addParameter("itemId", drop.getItemId())
+					.addParameter("itemAmount", drop.getItemAmount())
+					.executeUpdate();
 			}
-			*/
+			con.commit();
 		}
 	}
 
