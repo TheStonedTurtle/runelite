@@ -79,14 +79,13 @@ public class DatabaseController
 	@RequestMapping(value = "/boss", method = RequestMethod.GET)
 	public ArrayList<LootRecord> lookupBoss(@RequestParam String username, @RequestParam String boss) throws IOException
 	{
-		return service.lookUpBoss(DatabaseEndpoint.BOSS, username, boss);
+		return service.lookupBoss(DatabaseEndpoint.BOSS, username, boss);
 	}
 
 	@RequestMapping(value = "/boss", method = RequestMethod.POST)
 	@ResponseStatus(value = HttpStatus.OK)
-	public void lookupBossId(@RequestBody LootRecord record, @RequestParam String username) throws IOException
+	public void storeLootRecord(@RequestBody LootRecord record, @RequestParam String username) throws IOException
 	{
 		service.storeLootRecord(record, username);
-
 	}
 }

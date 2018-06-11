@@ -26,7 +26,6 @@
 package net.runelite.client.plugins.skillcalculator;
 
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
 import javax.imageio.ImageIO;
 import javax.inject.Inject;
 import net.runelite.api.Client;
@@ -38,9 +37,6 @@ import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.ClientUI;
 import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.ui.PluginToolbar;
-import net.runelite.http.api.database.DatabaseClient;
-import net.runelite.http.api.database.DropEntry;
-import net.runelite.http.api.database.LootRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -90,20 +86,6 @@ public class SkillCalculatorPlugin extends Plugin
 			.panel(uiPanel)
 			.build();
 		pluginToolbar.addNavigation(uiNavigationButton);
-
-		// Create dummy LootRecord
-		ArrayList<DropEntry> drops = new ArrayList<>();
-		drops.add(new DropEntry(955, 1000));
-		drops.add(new DropEntry(540, 250));
-		LootRecord record = new LootRecord(-1, "barrows", 6, drops);
-
-		DatabaseClient db = new DatabaseClient();
-
-		Boolean success = db.storeLootRecord(record, "stonedturtle");
-		log.info("Stored Success: " + success);
-
-		ArrayList<LootRecord> records = db.lookupBoss("stonedturtle", "barrows");
-		log.info("Stored Loot Record(s) for Query: " + records.toString());
 	}
 
 	@Override
