@@ -47,6 +47,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
+import javax.swing.border.MatteBorder;
 
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.game.AsyncBufferedImage;
@@ -84,6 +85,14 @@ class BossLoggerPanel extends PluginPanel
 		this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 
 		tabGroup = new MaterialTabGroup();
+		tabGroup.setBorder(new MatteBorder(1,1,1,1, Color.RED));
+		tabGroup.setLayout(new GridBagLayout());
+
+		title = new JPanel();
+		//title.setBorder(new EmptyBorder(5, 5, 0, 0));
+		title.setBorder(new MatteBorder(1, 1, 1, 1, Color.PINK));
+		title.setLayout(new GridBagLayout());
+
 		display = null;
 
 		this.add(createLandingPanel());
@@ -108,8 +117,6 @@ class BossLoggerPanel extends PluginPanel
 
 	private void createTabGroup()
 	{
-		tabGroup.setBorder(new EmptyBorder(5, 8, 0, 0));
-		tabGroup.setLayout(new GridBagLayout());
 		tabGroup.removeAll();
 
 		GridBagConstraints c = new GridBagConstraints();
@@ -131,9 +138,7 @@ class BossLoggerPanel extends PluginPanel
 	// Creates the title panel for the landing page
 	private void createLandingTitle()
 	{
-		title = new JPanel();
-		title.setBorder(new EmptyBorder(5, 5, 0, 0));
-		title.setLayout(new GridBagLayout());
+		title.removeAll();
 
 		GridBagConstraints c = new GridBagConstraints();
 		c.fill = GridBagConstraints.HORIZONTAL;
@@ -239,6 +244,7 @@ class BossLoggerPanel extends PluginPanel
 
 		bossLoggerPlugin.loadTabData(tab);
 		display = createLootPanel(tab);
+		display.setBorder(new MatteBorder(1, 1, 1, 1, Color.GREEN));
 
 		panel.add(title);
 		panel.add(display);
@@ -249,9 +255,7 @@ class BossLoggerPanel extends PluginPanel
 	// Creates the title panel for the recorded loot tab
 	private void createTabTitle(String name)
 	{
-		title = new JPanel();
-		title.setBorder(new EmptyBorder(5, 5, 0, 0));
-		title.setLayout(new GridBagLayout());
+		title.removeAll();
 
 		GridBagConstraints c = new GridBagConstraints();
 		c.fill = GridBagConstraints.HORIZONTAL;
