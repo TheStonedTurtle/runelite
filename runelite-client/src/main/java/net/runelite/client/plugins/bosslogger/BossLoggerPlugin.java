@@ -1178,6 +1178,8 @@ public class BossLoggerPlugin extends Plugin
 				return bossLoggerConfig.recordDagannothPrimeKills();
 			case "DAGANNOTH SUPREME":
 				return bossLoggerConfig.recordDagannothSupremeKills();
+			case "RAIDS 2":
+				return bossLoggerConfig.recordTobChest();
 			default:
 				return false;
 		}
@@ -1271,6 +1273,9 @@ public class BossLoggerPlugin extends Plugin
 				return;
 			case "recordDagannothSupremeKills":
 				ToggleTab("Dagannoth Supreme", bossLoggerConfig.recordDagannothSupremeKills());
+				return;
+			case "recordTobChest":
+				ToggleTab("Raids 2", bossLoggerConfig.recordTobChest());
 				return;
 			case "showLootTotals":
 				loadAllData();

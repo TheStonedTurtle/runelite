@@ -76,7 +76,10 @@ public enum Tab
 	CORPOREAL_BEAST("Corporeal Beast", ItemID.PET_CORPOREAL_CRITTER, 24),
 	DAGANNOTH_REX("Dagannoth Rex", ItemID.PET_DAGANNOTH_REX, 25),
 	DAGANNOTH_PRIME("Dagannoth Prime", ItemID.PET_DAGANNOTH_PRIME, 26),
-	DAGANNOTH_SUPREME("Dagannoth Supreme", ItemID.PET_DAGANNOTH_SUPREME, 27);
+	DAGANNOTH_SUPREME("Dagannoth Supreme", ItemID.PET_DAGANNOTH_SUPREME, 27),
+
+
+	RAIDS_2("Raids 2", "Theater of Blood", 22473, 28); // Lil ZUK;
 
 	Tab(String name, String bossName, int itemID, int index)
 	{

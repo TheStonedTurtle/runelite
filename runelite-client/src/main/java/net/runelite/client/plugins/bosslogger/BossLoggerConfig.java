@@ -63,6 +63,18 @@ public interface BossLoggerConfig extends Config
 	}
 
 	@ConfigItem(
+			keyName = "recordTobChest",
+			name = "Record Theater of Blood Loot",
+			description = "Configures whether or not loot from Theater of Blood is recorded",
+			position = 2
+	)
+
+	default boolean recordTobChest()
+	{
+		return true;
+	}
+
+	@ConfigItem(
 		keyName = "recordZulrahKills",
 		name = "Record Zulrah Loot",
 		description = "Configures whether or not loot from Zulrah is recorded",
