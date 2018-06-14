@@ -26,7 +26,6 @@ package net.runelite.client.plugins.bosslogger;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
@@ -47,13 +46,13 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.SwingConstants;
-import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.game.AsyncBufferedImage;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.ui.ColorScheme;
+import net.runelite.client.ui.DynamicGridLayout;
 import net.runelite.client.ui.FontManager;
 import net.runelite.client.ui.PluginPanel;
 import net.runelite.client.ui.components.materialtabs.MaterialTab;
@@ -96,10 +95,22 @@ class BossLoggerPanel extends PluginPanel
 		JPanel panel = new JPanel();
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
+		createLandingTitle();
+
+		createTabGroup();
+
+		// Add everything to the panel
+		panel.add(title);
+		panel.add(tabGroup);
+
+		return panel;
+	}
+
+	private void createTabGroup()
+	{
 		tabGroup.setBorder(new EmptyBorder(5, 8, 0, 0));
 		tabGroup.setLayout(new GridBagLayout());
-
-		createLandingTitle();
+		tabGroup.removeAll();
 
 		GridBagConstraints c = new GridBagConstraints();
 		c.fill = GridBagConstraints.HORIZONTAL;
@@ -115,12 +126,6 @@ class BossLoggerPanel extends PluginPanel
 		{
 			createTabCategory(categoryName, c);
 		}
-
-		// Add everything to the panel
-		panel.add(title);
-		panel.add(tabGroup);
-
-		return panel;
 	}
 
 	// Creates the title panel for the landing page
@@ -146,33 +151,6 @@ class BossLoggerPanel extends PluginPanel
 		text.setForeground(Color.WHITE);
 
 		title.add(plugin, c);
-		c.gridy++;
-		title.add(text, c);
-	}
-
-	// Creates the title panel for the recorded loot tab
-	private void createTabTitle(String name)
-	{
-		title = new JPanel();
-		title.setBorder(new EmptyBorder(5, 5, 0, 0));
-		title.setLayout(new GridBagLayout());
-
-		GridBagConstraints c = new GridBagConstraints();
-		c.fill = GridBagConstraints.HORIZONTAL;
-		c.weightx = 1;
-		c.gridy = 0;
-
-		// Back Button
-		JButton button = new JButton("Return to selection screen");
-		button.addActionListener(e -> this.showLandingPage());
-
-		// Plugin Name
-		JLabel text = new JLabel(name, SwingConstants.CENTER);
-		text.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 16));
-		text.setForeground(Color.WHITE);
-		text.setBorder(new EmptyBorder(15, 0, 0, 0));
-
-		title.add(button, c);
 		c.gridy++;
 		title.add(text, c);
 	}
@@ -251,6 +229,49 @@ class BossLoggerPanel extends PluginPanel
 		}
 	}
 
+	// Landing page (Boss Selection Screen)
+	private JPanel createTabPanel(Tab tab)
+	{
+		JPanel panel = new JPanel();
+		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+
+		createTabTitle(tab.getBossName());
+
+		bossLoggerPlugin.loadTabData(tab);
+		display = createLootPanel(tab);
+
+		panel.add(title);
+		panel.add(display);
+
+		return panel;
+	}
+
+	// Creates the title panel for the recorded loot tab
+	private void createTabTitle(String name)
+	{
+		title = new JPanel();
+		title.setBorder(new EmptyBorder(5, 5, 0, 0));
+		title.setLayout(new GridBagLayout());
+
+		GridBagConstraints c = new GridBagConstraints();
+		c.fill = GridBagConstraints.HORIZONTAL;
+		c.weightx = 1;
+		c.gridy = 0;
+
+		// Back Button
+		JButton button = new JButton("Return to selection screen");
+		button.addActionListener(e -> this.showLandingPage());
+
+		// Plugin Name
+		JLabel text = new JLabel(name, SwingConstants.CENTER);
+		text.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 16));
+		text.setForeground(Color.WHITE);
+		text.setBorder(new EmptyBorder(15, 0, 0, 0));
+
+		title.add(button, c);
+		c.gridy++;
+		title.add(text, c);
+	}
 
 	// Wrapper for creating LootPanel
 	private JPanel createLootPanel(Tab tab)
@@ -307,13 +328,7 @@ class BossLoggerPanel extends PluginPanel
 	{
 		this.removeAll();
 
-		createTabTitle(tab.getBossName());
-
-		bossLoggerPlugin.loadTabData(tab);
-		display = createLootPanel(tab);
-
-		this.add(title);
-		this.add(display);
+		this.add(createTabPanel(tab));
 
 		this.revalidate();
 		this.repaint();
@@ -323,12 +338,8 @@ class BossLoggerPanel extends PluginPanel
 	{
 		this.removeAll();
 
-		// Ensure `title` element contains the correct labels
-		createLandingTitle();
-
 		// Add info back from stored variables
-		this.add(title, BorderLayout.NORTH);
-		this.add(tabGroup, BorderLayout.CENTER);
+		this.add(createLandingPanel());
 
 		this.revalidate();
 		this.repaint();
