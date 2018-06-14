@@ -25,24 +25,39 @@
 package net.runelite.client.plugins.bosslogger;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.GridLayout;
 import java.awt.Image;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import javax.inject.Inject;
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTabbedPane;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.game.AsyncBufferedImage;
 import net.runelite.client.game.ItemManager;
+import net.runelite.client.ui.ColorScheme;
+import net.runelite.client.ui.FontManager;
 import net.runelite.client.ui.PluginPanel;
+import net.runelite.client.ui.components.materialtabs.MaterialTab;
+import net.runelite.client.ui.components.materialtabs.MaterialTabGroup;
 
 
 @Slf4j
@@ -51,102 +66,204 @@ class BossLoggerPanel extends PluginPanel
 	private final ItemManager itemManager;
 	private final BossLoggerPlugin bossLoggerPlugin;
 
-	private JTabbedPane tabsPanel = new JTabbedPane();
+	private JPanel title;
+	// Displays the specified tabs content
+	private JPanel display;
+	// Holds all possible tabs
+	private final MaterialTabGroup tabGroup;
 
-	private Map<String, JPanel> tabsMap = new HashMap<>();
-	private Map<String, Integer> tabPositions = new HashMap<>();
-	private Map<String, LootPanel> lootMap = new HashMap<>();
+	private JPanel landingPanel;
+	private JPanel bossPanel;
 
 	@Inject
 	BossLoggerPanel(ItemManager itemManager, BossLoggerPlugin bossLoggerPlugin)
 	{
 		super(false);
+
 		this.itemManager = itemManager;
 		this.bossLoggerPlugin = bossLoggerPlugin;
+		this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 
-		BoxLayout layout = new BoxLayout(this, BoxLayout.Y_AXIS);
-		this.setLayout(layout);
+		tabGroup = new MaterialTabGroup();
+		display = null;
 
-		createPanel(this);
-		tabsPanel.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
+		this.add(createLandingPanel());
 	}
 
-	// Creates the side panel for this plugin, including the different tabs inside it
-	private void createPanel(BossLoggerPanel panel)
+	// Landing page (Boss Selection Screen)
+	private JPanel createLandingPanel()
 	{
-		// Create each Tab of the Panel
-		for (Tab tab : Tab.values())
+		JPanel panel = new JPanel();
+		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+
+		tabGroup.setBorder(new EmptyBorder(5, 8, 0, 0));
+		tabGroup.setLayout(new GridBagLayout());
+
+		createLandingTitle();
+
+		GridBagConstraints c = new GridBagConstraints();
+		c.fill = GridBagConstraints.HORIZONTAL;
+		c.anchor = GridBagConstraints.NORTHWEST;
+		c.weightx = 1;
+		c.weighty = 0;
+		c.gridx = 0;
+		c.gridy = 0;
+
+		// Add the bosses tabs, by category, to tabGroup
+		Set<String> categories = Tab.categories;
+		for (String categoryName : categories)
+		{
+			createTabCategory(categoryName, c);
+		}
+
+		// Add everything to the panel
+		panel.add(title);
+		panel.add(tabGroup);
+
+		return panel;
+	}
+
+	// Creates the title panel for the landing page
+	private void createLandingTitle()
+	{
+		title = new JPanel();
+		title.setBorder(new EmptyBorder(5, 5, 0, 0));
+		title.setLayout(new GridBagLayout());
+
+		GridBagConstraints c = new GridBagConstraints();
+		c.fill = GridBagConstraints.HORIZONTAL;
+		c.weightx = 1;
+		c.gridy = 0;
+
+		// Plugin Name
+		JLabel plugin = new JLabel("Boss Logger Plugin", SwingConstants.CENTER);
+		plugin.setForeground(Color.WHITE);
+
+		// Selection Text
+		JLabel text = new JLabel("Select boss icon to view recorded loot", SwingConstants.CENTER);
+		text.setFont(FontManager.getRunescapeSmallFont());
+		text.setBorder(new EmptyBorder(15, 0, 5, 0));
+		text.setForeground(Color.WHITE);
+
+		title.add(plugin, c);
+		c.gridy++;
+		title.add(text, c);
+	}
+
+	// Creates the title panel for the recorded loot tab
+	private void createTabTitle(String name)
+	{
+		title = new JPanel();
+		title.setBorder(new EmptyBorder(5, 5, 0, 0));
+		title.setLayout(new GridBagLayout());
+
+		GridBagConstraints c = new GridBagConstraints();
+		c.fill = GridBagConstraints.HORIZONTAL;
+		c.weightx = 1;
+		c.gridy = 0;
+
+		// Back Button
+		JButton button = new JButton("Return to selection screen");
+		button.addActionListener(e -> this.showLandingPage());
+
+		// Plugin Name
+		JLabel text = new JLabel(name, SwingConstants.CENTER);
+		text.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 16));
+		text.setForeground(Color.WHITE);
+		text.setBorder(new EmptyBorder(15, 0, 0, 0));
+
+		title.add(button, c);
+		c.gridy++;
+		title.add(text, c);
+	}
+
+	// Creates all tabs for a specific category
+	private void createTabCategory(String categoryName, GridBagConstraints c)
+	{
+		MaterialTabGroup thisTabGroup = new MaterialTabGroup();
+		thisTabGroup.setLayout(new GridLayout(0, 4, 7, 7));
+		thisTabGroup.setBorder(new EmptyBorder(4, 0, 0, 0));
+
+		JLabel name = new JLabel(categoryName);
+		name.setBorder(new EmptyBorder(8, 0, 0, 0));
+		name.setForeground(Color.WHITE);
+		name.setVerticalAlignment(SwingConstants.CENTER);
+
+		int enabledCount = 0;
+		ArrayList<Tab> categoryTabs = Tab.getByCategoryName(categoryName);
+		for (Tab tab : categoryTabs)
 		{
 			// Only create tabs for enabled recording options
 			if (bossLoggerPlugin.isBeingRecorded(tab.getName()))
 			{
-				createTab(tab);
+				enabledCount++;
+
+				// Create tab (with hover effects/text)
+				MaterialTab materialTab = new MaterialTab("", thisTabGroup, null);
+				materialTab.setName(tab.getName());
+				materialTab.setToolTipText(tab.getBossName());
+				materialTab.addMouseListener(new MouseAdapter()
+				{
+					@Override
+					public void mouseEntered(MouseEvent e)
+					{
+						materialTab.setBackground(ColorScheme.DARKER_GRAY_HOVER_COLOR);
+					}
+
+					@Override
+					public void mouseExited(MouseEvent e)
+					{
+						materialTab.setBackground(ColorScheme.DARKER_GRAY_COLOR);
+					}
+				});
+
+				// Attach Icon to the Tab
+				AsyncBufferedImage image = itemManager.getImage(tab.getItemID());
+				Runnable resize = () ->
+				{
+					materialTab.setIcon(new ImageIcon(image.getScaledInstance(35, 35, Image.SCALE_SMOOTH)));
+					materialTab.setOpaque(true);
+					materialTab.setBackground(ColorScheme.DARKER_GRAY_COLOR);
+					materialTab.setHorizontalAlignment(SwingConstants.CENTER);
+					materialTab.setVerticalAlignment(SwingConstants.CENTER);
+					materialTab.setPreferredSize(new Dimension(35, 35));
+				};
+				image.onChanged(resize);
+				resize.run();
+
+				materialTab.setOnSelectEvent(() ->
+				{
+					this.showTabDisplay(tab);
+					materialTab.unselect();
+					materialTab.setBackground(ColorScheme.DARKER_GRAY_COLOR);
+				});
+
+				thisTabGroup.addTab(materialTab);
 			}
 		}
 
-		// Refresh Panel Button
-		JButton refresh = new JButton("Refresh All Panels");
-		refresh.addActionListener(e ->
-				refreshPanel(panel));
-
-		// Add to Panel
-		panel.add(tabsPanel);
-		panel.add(refresh);
+		if (enabledCount > 0)
+		{
+			tabGroup.add(name, c);
+			c.gridy++;
+			tabGroup.add(thisTabGroup, c);
+			c.gridy++;
+		}
 	}
 
+
 	// Wrapper for creating LootPanel
-	private LootPanel createLootPanel(Tab tab)
+	private JPanel createLootPanel(Tab tab)
 	{
 		// Grab Tab Data
 		ArrayList<LootEntry> data = bossLoggerPlugin.getData(tab.getName());
+
 		// Unique Items Info
 		ArrayList<UniqueItem> list = UniqueItem.getByActivityName(tab.getName());
 		Map<Integer, ArrayList<UniqueItem>> sets = UniqueItem.createPositionSetMap(list);
+
 		// Create & Return Loot Panel
-		return new LootPanel(data, sets, itemManager);
-	}
-
-	// Refresh the entire Tab Panel
-	private void refreshPanel(BossLoggerPanel panel)
-	{
-		// Refresh Log Data
-		bossLoggerPlugin.loadAllData();
-		// Remove All Panel Components
-		panel.removeAll();
-		tabsPanel.removeAll();
-		// Recreate Panel Components
-		createPanel(panel);
-		// Ensure panel updates are applied
-		panel.revalidate();
-		panel.repaint();
-	}
-
-	// Refresh the Loot Panel with updated data (requests the data from file)
-	private void refreshLootPanel(LootPanel lootPanel, Tab tab)
-	{
-		// Refresh data for necessary tab
-		bossLoggerPlugin.loadTabData(tab);
-		// Recreate the loot panel
-		lootPanel.updateRecords(bossLoggerPlugin.getData(tab.getName()));
-		// Ensure changes are applied
-		this.revalidate();
-		this.repaint();
-	}
-
-	private void createTab(Tab tab)
-	{
-		// Container Panel for this tab
-		JPanel tabPanel = new JPanel();
-		tabPanel.setLayout(new BoxLayout(tabPanel, BoxLayout.Y_AXIS));
-		tabPanel.setBorder(new EmptyBorder(2, 2, 2, 2));
-
-		// Button Container
-		JPanel buttons = new JPanel();
-		buttons.setLayout(new BoxLayout(buttons, BoxLayout.X_AXIS));
-		buttons.setBorder(new EmptyBorder(0, 0, 4, 0));
-
-		// Loot Panel
-		LootPanel lootPanel = createLootPanel(tab);
+		LootPanel lootPanel = new LootPanel(data, sets, itemManager);
 
 		// Scrolling Ability for lootPanel
 		JPanel wrapped = new JPanel(new BorderLayout());
@@ -155,90 +272,68 @@ class BossLoggerPanel extends PluginPanel
 		scroller.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 		scroller.getVerticalScrollBar().setUnitIncrement(16);
 
+		// Button Container
+		JPanel buttons = new JPanel();
+		buttons.setLayout(new BoxLayout(buttons, BoxLayout.X_AXIS));
+		buttons.setBorder(new EmptyBorder(0, 0, 4, 0));
+
 		// Refresh Button
 		JButton refresh = new JButton("Refresh Data");
 		refresh.addActionListener(e ->
 				refreshLootPanel(lootPanel, tab));
-		buttons.add(refresh);
 
-		// Add components to Tab Panel
+		// Refresh Button
+		JButton clear = new JButton("Clear Data");
+		clear.addActionListener(e ->
+			log.info("Clearing data for: " + tab.getName())
+		);
+				//clearTabData(tab));
+
+		buttons.add(refresh);
+		buttons.add(Box.createHorizontalGlue());
+		buttons.add(clear);
+
+		JPanel tabPanel = new JPanel();
+		tabPanel.setLayout(new BoxLayout(tabPanel, BoxLayout.Y_AXIS));
+		tabPanel.setBorder(new EmptyBorder(2, 2, 2, 2));
+
 		tabPanel.add(buttons);
 		tabPanel.add(scroller);
 
-		// Add new tab to panel
-		int tabIndex = adjustTabIndex(tab.getIndex());
-		tabsPanel.insertTab(null, null, tabPanel, tab.getBossName(), tabIndex);
-
-		// Add Tab Icon
-		AsyncBufferedImage icon = itemManager.getImage(tab.getItemID());
-		Runnable resize = () ->
-				tabsPanel.setIconAt(tabIndex, new ImageIcon(icon.getScaledInstance(24, 21, Image.SCALE_SMOOTH)));
-		icon.onChanged(resize);
-		resize.run();
-
-		tabsMap.put(tab.getName().toUpperCase(), tabPanel);
-		tabPositions.put(tab.getName().toUpperCase(), tabIndex);
-		lootMap.put(tab.getName().toUpperCase(), lootPanel);
+		return tabPanel;
 	}
 
-	// Helps with dynamically adding/removing panel tabs in the correct positions.
-	private int adjustTabIndex(int wantedIndex)
+	private void showTabDisplay(Tab tab)
 	{
-		int insertTabAt = tabsPanel.getTabCount();
-		for (Map.Entry<String, Integer> entry : tabPositions.entrySet())
-		{
-			Tab thisTab = Tab.getByName(entry.getKey());
-			int currentIndex = entry.getValue();
-			int targetIndex = thisTab.getIndex();
+		this.removeAll();
 
-			// This tab is not in final position
-			if ( currentIndex < targetIndex )
-			{
-				// This tab should be behind this one
-				if (targetIndex > wantedIndex)
-				{
-					// Update tab position
-					tabPositions.put(entry.getKey(), currentIndex + 1);
+		createTabTitle(tab.getBossName());
 
-					// Update insert index if current index is lower (add before this tab)
-					if (insertTabAt > currentIndex)
-					{
-						insertTabAt = currentIndex;
-					}
-				}
-			}
-		}
+		bossLoggerPlugin.loadTabData(tab);
+		display = createLootPanel(tab);
 
-		return insertTabAt;
+		this.add(title);
+		this.add(display);
+
+		this.revalidate();
+		this.repaint();
 	}
 
-	// Removes tab by name using its current position
-	private void removeTabPosition(String tabName)
+	private void showLandingPage()
 	{
-		int index = tabPositions.get(tabName);
-		// Adjust index for every tab behind this one
-		for (Map.Entry<String, Integer> entry : tabPositions.entrySet())
-		{
-			if (entry.getValue() > index)
-			{
-				tabPositions.put(entry.getKey(), entry.getValue() - 1);
-			}
-		}
+		this.removeAll();
 
-		tabPositions.remove(tabName);
+		// Ensure `title` element contains the correct labels
+		createLandingTitle();
+
+		// Add info back from stored variables
+		this.add(title, BorderLayout.NORTH);
+		this.add(tabGroup, BorderLayout.CENTER);
+
+		this.revalidate();
+		this.repaint();
 	}
 
-	// Removes the panel for this Tab
-	private void removeTab(Tab tab)
-	{
-		String tabName = tab.getName().toUpperCase();
-		JPanel panel = tabsMap.get(tabName);
-		// Remove from panel
-		panel.getParent().remove(panel);
-		// Remove from/update mapping variables
-		tabsMap.remove(tabName);
-		removeTabPosition(tabName);
-	}
 
 	// Updates panel for this tab name
 	void updateTab(String tabName)
@@ -247,22 +342,27 @@ class BossLoggerPanel extends PluginPanel
 		// Reload data from file to ensure data and UI match
 		bossLoggerPlugin.loadTabData(tab);
 		// Grab LootPanel that needs to be updated
-		LootPanel lootPanel = lootMap.get(tab.getName().toUpperCase());
+		//LootPanel lootPanel = lootMap.get(tab.getName().toUpperCase());
 		// Invoke Later to ensure EDT thread
-		SwingUtilities.invokeLater(() -> lootPanel.updateRecords(bossLoggerPlugin.getData(tabName)));
+		//SwingUtilities.invokeLater(() -> lootPanel.updateRecords(bossLoggerPlugin.getData(tabName)));
 	}
 
-	// Toggles Tab panel visibility
-	void toggleTab(String tabName, boolean status)
+	public void toggleTab(String tab, boolean flag)
 	{
-		Tab tab = Tab.getByName(tabName);
-		if (status)
-		{
-			createTab(tab);
-		}
-		else
-		{
-			removeTab(tab);
-		}
+		JPanel panel = createLandingPanel();
+	}
+
+	// Refresh the Loot Panel with updated data (requests the data from file)
+	private void refreshLootPanel(LootPanel lootPanel, Tab tab)
+	{
+		// Refresh data for necessary tab
+		bossLoggerPlugin.loadTabData(tab);
+
+		// Recreate the loot panel
+		lootPanel.updateRecords(bossLoggerPlugin.getData(tab.getName()));
+
+		// Ensure changes are applied
+		this.revalidate();
+		this.repaint();
 	}
 }
