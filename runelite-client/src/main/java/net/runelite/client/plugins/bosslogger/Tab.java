@@ -39,6 +39,7 @@ public enum Tab
 	// Chest Rewards
 	BARROWS("Barrows", "Barrows", ItemID.BARROWS_TELEPORT, "Other"),
 	RAIDS("Raids", "Raids", ItemID.OLMLET, "Other"),
+	RAIDS_2("Raids 2", "Raids 2", 22473, "Other"),
 
 	// Special Drops  (How loot is dropped)
 	ZULRAH("Zulrah", "Zulrah", ItemID.PET_SNAKELING, "Other"),
@@ -80,9 +81,7 @@ public enum Tab
 	// Dagannoth Kings
 	DAGANNOTH_REX("Dagannoth Rex", ItemID.PET_DAGANNOTH_REX, "Dagannoth Kings"),
 	DAGANNOTH_PRIME("Dagannoth Prime", ItemID.PET_DAGANNOTH_PRIME, "Dagannoth Kings"),
-	DAGANNOTH_SUPREME("Dagannoth Supreme", ItemID.PET_DAGANNOTH_SUPREME, "Dagannoth Kings"),
-
-	RAIDS_2("Raids 2", "Raids 2", 22473, "Other");
+	DAGANNOTH_SUPREME("Dagannoth Supreme", ItemID.PET_DAGANNOTH_SUPREME, "Dagannoth Kings");
 
 	Tab(String name, String bossName, int itemID, String category)
 	{

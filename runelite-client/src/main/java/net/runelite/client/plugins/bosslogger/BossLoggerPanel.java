@@ -47,7 +47,6 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
-import javax.swing.border.MatteBorder;
 
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.game.AsyncBufferedImage;
