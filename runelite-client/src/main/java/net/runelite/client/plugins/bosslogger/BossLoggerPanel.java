@@ -365,10 +365,14 @@ class BossLoggerPanel extends PluginPanel
 	// Updates panel for this tab name
 	void updateTab(String tabName)
 	{
+		// Change to tab of recently killed boss if on landing page
 		if (currentTab == null)
+		{
+			showTabDisplay(Tab.getByName(tabName));
 			return;
+		}
 
-		// only update the tab if they are currently looking at it
+		// only update the tab if they are currently looking at current boss tab
 		if (tabName.equals(currentTab.getName()))
 		{
 			// Reload data from file to ensure data and UI match
