@@ -404,7 +404,13 @@ class BossLoggerPanel extends PluginPanel
 
 	private void clearData(Tab tab)
 	{
-		int delete = JOptionPane.showConfirmDialog(this.getRootPane(), "<html>Are you sure you want to clear all data for this tab?</br>There is no way to undo this action.</html>", "Warning", JOptionPane.YES_NO_OPTION);
+		if (lootPanel.getRecords().size() == 0)
+		{
+			JOptionPane.showMessageDialog(this.getRootPane(), "No data to remove!");
+			return;
+		}
+
+		int delete = JOptionPane.showConfirmDialog(this.getRootPane(), "<html>Are you sure you want to clear all data for this tab?<br/>There is no way to undo this action.</html>", "Warning", JOptionPane.YES_NO_OPTION);
 		if (delete == JOptionPane.YES_OPTION)
 		{
 			bossLoggerPlugin.clearData(tab);
