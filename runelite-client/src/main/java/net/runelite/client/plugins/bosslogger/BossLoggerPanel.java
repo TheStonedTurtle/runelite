@@ -43,6 +43,7 @@ import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.SwingConstants;
@@ -311,9 +312,7 @@ class BossLoggerPanel extends PluginPanel
 		// Refresh Button
 		JButton clear = new JButton("Clear Data");
 		clear.addActionListener(e ->
-			log.info("Clearing data for: " + tab.getName())
-		);
-				//clearTabData(tab));
+				clearData(tab));
 
 		buttons.add(refresh);
 		buttons.add(Box.createHorizontalGlue());
@@ -401,5 +400,16 @@ class BossLoggerPanel extends PluginPanel
 		// Ensure changes are applied
 		this.revalidate();
 		this.repaint();
+	}
+
+	private void clearData(Tab tab)
+	{
+		int delete = JOptionPane.showConfirmDialog(this.getRootPane(), "<html>Are you sure you want to clear all data for this tab?</br>There is no way to undo this action.</html>", "Warning", JOptionPane.YES_NO_OPTION);
+		if (delete == JOptionPane.YES_OPTION)
+		{
+			bossLoggerPlugin.clearData(tab);
+			// Refresh current panel
+			refreshLootPanel(lootPanel, tab);
+		}
 	}
 }

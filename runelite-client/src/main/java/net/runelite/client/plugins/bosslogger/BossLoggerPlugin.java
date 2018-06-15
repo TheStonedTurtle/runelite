@@ -710,6 +710,22 @@ public class BossLoggerPlugin extends Plugin
 		}
 	}
 
+	private synchronized void clearLootFile(Tab tab)
+	{
+		String fileName = filenameMap.get(tab.getBossName().toUpperCase());
+		File lootFile = new File(playerFolder, fileName);
+
+		try
+		{
+			BufferedWriter file = new BufferedWriter(new FileWriter(String.valueOf(lootFile), false));
+			file.close();
+		}
+		catch (IOException e)
+		{
+			log.warn("Error clearing loot data in file.", e);
+		}
+	}
+
 	// Receive Loot from the necessary file
 	private synchronized void loadLootEntries(Tab tab)
 	{
@@ -1085,7 +1101,7 @@ public class BossLoggerPlugin extends Plugin
 			int petID = getPetIdByNpcName(npc.getName());
 			drops.add(new DropEntry(petID, 1));
 			gotPet = false;
-			BossLoggedAlert("Oh lookie a pet!");
+			BossLoggedAlert("Oh lookie a pet! Don't forget to insure it!");
 		}
 
 		return drops;
@@ -1095,6 +1111,12 @@ public class BossLoggerPlugin extends Plugin
 	//
 	// Other Helper Functions
 	//
+
+	void clearData(Tab tab)
+	{
+		log.info("Clearing data for tab: " + tab.getName());
+		clearLootFile(tab);
+	}
 
 	private int getPetIdByNpcName(String name)
 	{
