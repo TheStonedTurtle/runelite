@@ -46,6 +46,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 
 import lombok.extern.slf4j.Slf4j;
@@ -66,6 +67,9 @@ class BossLoggerPanel extends PluginPanel
 
 	private JPanel title;
 	private JPanel tabGroup;
+	private LootPanel lootPanel;
+
+	private Tab currentTab = null;
 
 	private final static Dimension TITLE_DIMENSION = new Dimension(250, 75);
 
@@ -97,6 +101,7 @@ class BossLoggerPanel extends PluginPanel
 	// Landing page (Boss Selection Screen)
 	private void createLandingPanel()
 	{
+		currentTab = null;
 		this.removeAll();
 
 		createLandingTitle();
@@ -236,6 +241,7 @@ class BossLoggerPanel extends PluginPanel
 	// Landing page (Boss Selection Screen)
 	private void createTabPanel(Tab tab)
 	{
+		currentTab = tab;
 		this.removeAll();
 
 		createTabTitle(tab.getBossName());
@@ -290,7 +296,7 @@ class BossLoggerPanel extends PluginPanel
 		Map<Integer, ArrayList<UniqueItem>> sets = UniqueItem.createPositionSetMap(list);
 
 		// Create & Return Loot Panel
-		LootPanel lootPanel = new LootPanel(data, sets, itemManager);
+		lootPanel = new LootPanel(data, sets, itemManager);
 
 		// Button Container
 		JPanel buttons = new JPanel();
@@ -359,19 +365,24 @@ class BossLoggerPanel extends PluginPanel
 	// Updates panel for this tab name
 	void updateTab(String tabName)
 	{
-		Tab tab = Tab.getByName(tabName);
-		// Reload data from file to ensure data and UI match
-		bossLoggerPlugin.loadTabData(tab);
-		// Grab LootPanel that needs to be updated
-		//LootPanel lootPanel = lootMap.get(tab.getName().toUpperCase());
-		// Invoke Later to ensure EDT thread
-		//SwingUtilities.invokeLater(() -> lootPanel.updateRecords(bossLoggerPlugin.getData(tabName)));
+		if (currentTab == null)
+			return;
+
+		// only update the tab if they are currently looking at it
+		if (tabName.equals(currentTab.getName()))
+		{
+			// Reload data from file to ensure data and UI match
+			bossLoggerPlugin.loadTabData(currentTab);
+			// Grab LootPanel that needs to be updated
+			SwingUtilities.invokeLater(() -> lootPanel.updateRecords(bossLoggerPlugin.getData(tabName)));
+		}
 	}
 
-	public void toggleTab(String tab, boolean flag)
+	void toggleTab(String tab, boolean flag)
 	{
-		log.info(tab + " " + flag);
-		createLandingPanel();
+		// Only toggle tab if on landing page since the tabs are recreated each time
+		if (currentTab == null)
+			createLandingPanel();
 	}
 
 	// Refresh the Loot Panel with updated data (requests the data from file)
