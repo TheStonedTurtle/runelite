@@ -53,7 +53,6 @@ import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.game.AsyncBufferedImage;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.ui.ColorScheme;
-import net.runelite.client.ui.DynamicGridLayout;
 import net.runelite.client.ui.FontManager;
 import net.runelite.client.ui.PluginPanel;
 import net.runelite.client.ui.components.materialtabs.MaterialTab;
@@ -67,13 +66,9 @@ class BossLoggerPanel extends PluginPanel
 	private final BossLoggerPlugin bossLoggerPlugin;
 
 	private JPanel title;
-	// Displays the specified tabs content
-	private JPanel display;
-	// Holds all possible tabs
-	private final MaterialTabGroup tabGroup;
+	private JPanel tabGroup;
 
-	private JPanel landingPanel;
-	private JPanel bossPanel;
+	private final static Dimension TITLE_DIMENSION = new Dimension(250, 75);
 
 	@Inject
 	BossLoggerPanel(ItemManager itemManager, BossLoggerPlugin bossLoggerPlugin)
@@ -82,37 +77,42 @@ class BossLoggerPanel extends PluginPanel
 
 		this.itemManager = itemManager;
 		this.bossLoggerPlugin = bossLoggerPlugin;
+
 		this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 
-		tabGroup = new MaterialTabGroup();
-		tabGroup.setBorder(new MatteBorder(1,1,1,1, Color.RED));
+		tabGroup = new JPanel();
+		tabGroup.setBorder(new EmptyBorder(0, 8, 0, 0));
+		//tabGroup.setBorder(new MatteBorder(1, 1, 1, 1, Color.RED));
 		tabGroup.setLayout(new GridBagLayout());
 
 		title = new JPanel();
-		//title.setBorder(new EmptyBorder(5, 5, 0, 0));
-		title.setBorder(new MatteBorder(1, 1, 1, 1, Color.PINK));
+		title.setBorder(new EmptyBorder(5, 0, 0, 0));
+		//title.setBorder(new MatteBorder(1, 1, 1, 1, Color.PINK));
 		title.setLayout(new GridBagLayout());
+		title.setMaximumSize(TITLE_DIMENSION);
+		title.setPreferredSize(TITLE_DIMENSION);
 
-		display = null;
-
-		this.add(createLandingPanel());
+		createLandingPanel();
 	}
 
 	// Landing page (Boss Selection Screen)
-	private JPanel createLandingPanel()
+	private void createLandingPanel()
 	{
-		JPanel panel = new JPanel();
-		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+		this.removeAll();
 
 		createLandingTitle();
 
 		createTabGroup();
 
-		// Add everything to the panel
-		panel.add(title);
-		panel.add(tabGroup);
+		GridBagConstraints c = new GridBagConstraints();
+		c.fill = GridBagConstraints.HORIZONTAL;
+		c.anchor = GridBagConstraints.NORTHWEST;
+		c.weightx = 1;
+		c.gridy = 0;
 
-		return panel;
+		this.add(title, c);
+		c.gridy++;
+		this.add(wrapContainer(tabGroup), c);
 	}
 
 	private void createTabGroup()
@@ -235,21 +235,24 @@ class BossLoggerPanel extends PluginPanel
 	}
 
 	// Landing page (Boss Selection Screen)
-	private JPanel createTabPanel(Tab tab)
+	private void createTabPanel(Tab tab)
 	{
-		JPanel panel = new JPanel();
-		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+		this.removeAll();
 
 		createTabTitle(tab.getBossName());
 
 		bossLoggerPlugin.loadTabData(tab);
-		display = createLootPanel(tab);
-		display.setBorder(new MatteBorder(1, 1, 1, 1, Color.GREEN));
 
-		panel.add(title);
-		panel.add(display);
+		GridBagConstraints c = new GridBagConstraints();
+		c.fill = GridBagConstraints.HORIZONTAL;
+		c.anchor = GridBagConstraints.NORTHWEST;
+		c.weightx = 1;
+		c.gridy = 0;
 
-		return panel;
+		this.add(title, c);
+		c.gridy++;
+		c.fill = GridBagConstraints.BOTH;
+		this.add(wrapContainer(createLootPanel(tab)), c);
 	}
 
 	// Creates the title panel for the recorded loot tab
@@ -290,13 +293,6 @@ class BossLoggerPanel extends PluginPanel
 		// Create & Return Loot Panel
 		LootPanel lootPanel = new LootPanel(data, sets, itemManager);
 
-		// Scrolling Ability for lootPanel
-		JPanel wrapped = new JPanel(new BorderLayout());
-		wrapped.add(lootPanel, BorderLayout.NORTH);
-		JScrollPane scroller = new JScrollPane(wrapped);
-		scroller.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-		scroller.getVerticalScrollBar().setUnitIncrement(16);
-
 		// Button Container
 		JPanel buttons = new JPanel();
 		buttons.setLayout(new BoxLayout(buttons, BoxLayout.X_AXIS));
@@ -323,16 +319,14 @@ class BossLoggerPanel extends PluginPanel
 		tabPanel.setBorder(new EmptyBorder(2, 2, 2, 2));
 
 		tabPanel.add(buttons);
-		tabPanel.add(scroller);
+		tabPanel.add(lootPanel);
 
 		return tabPanel;
 	}
 
 	private void showTabDisplay(Tab tab)
 	{
-		this.removeAll();
-
-		this.add(createTabPanel(tab));
+		createTabPanel(tab);
 
 		this.revalidate();
 		this.repaint();
@@ -340,15 +334,28 @@ class BossLoggerPanel extends PluginPanel
 
 	private void showLandingPage()
 	{
-		this.removeAll();
-
 		// Add info back from stored variables
-		this.add(createLandingPanel());
+		createLandingPanel();
 
 		this.revalidate();
 		this.repaint();
 	}
 
+	// Wrap the panel inside a scroll pane
+	private JScrollPane wrapContainer(JPanel container)
+	{
+		JPanel wrapped = new JPanel(new BorderLayout());
+		wrapped.add(container, BorderLayout.NORTH);
+		wrapped.setBackground(ColorScheme.DARK_GRAY_COLOR);
+
+		JScrollPane scroller = new JScrollPane(wrapped);
+		scroller.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+		scroller.getVerticalScrollBar().setPreferredSize(new Dimension(16, 0));
+		scroller.getVerticalScrollBar().setBorder(new EmptyBorder(0, 9, 0, 0));
+		scroller.setBackground(ColorScheme.DARK_GRAY_COLOR);
+
+		return scroller;
+	}
 
 	// Updates panel for this tab name
 	void updateTab(String tabName)
@@ -364,7 +371,8 @@ class BossLoggerPanel extends PluginPanel
 
 	public void toggleTab(String tab, boolean flag)
 	{
-		JPanel panel = createLandingPanel();
+		log.info(tab + " " + flag);
+		createLandingPanel();
 	}
 
 	// Refresh the Loot Panel with updated data (requests the data from file)
