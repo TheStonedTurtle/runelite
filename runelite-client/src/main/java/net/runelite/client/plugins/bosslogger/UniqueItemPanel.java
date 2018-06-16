@@ -28,7 +28,8 @@ import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
-import javax.swing.border.MatteBorder;
+import javax.swing.border.Border;
+import javax.swing.border.EmptyBorder;
 
 import lombok.Getter;
 import net.runelite.api.ItemComposition;
@@ -37,6 +38,7 @@ import net.runelite.client.game.ItemManager;
 import net.runelite.client.ui.ColorScheme;
 
 import java.awt.AlphaComposite;
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
@@ -52,8 +54,11 @@ class UniqueItemPanel extends JPanel
 	private ArrayList<UniqueItem> items;
 	private Map<String, LootRecord> loots;
 
-	private final float alphaMissing = 0.25f;
+	private final float alphaMissing = 0.35f;
 	private final float alphaHas = 1.0f;
+
+	private static final Border panelBorder = new EmptyBorder(3, 0, 3, 0);
+	private static final Color panelBackgroundColor = ColorScheme.DARK_GRAY_COLOR;
 
 	UniqueItemPanel(ArrayList<UniqueItem> items, Map<String, LootRecord> loots, ItemManager itemManager)
 	{
@@ -61,9 +66,15 @@ class UniqueItemPanel extends JPanel
 		this.loots = loots;
 		this.itemManager = itemManager;
 
-		GridBagLayout layout = new GridBagLayout();
-		this.setLayout(layout);
-		this.setBackground(ColorScheme.DARK_GRAY_COLOR);
+
+		JPanel panel = new JPanel();
+		panel.setLayout(new GridBagLayout());
+		panel.setBackground(ColorScheme.DARKER_GRAY_COLOR);
+		panel.setBorder(new EmptyBorder(3, 0, 3, 0));
+
+		this.setLayout(new BorderLayout());
+		this.setBorder(panelBorder);
+		this.setBackground(panelBackgroundColor);
 
 		GridBagConstraints c = new GridBagConstraints();
 		c.fill = GridBagConstraints.BOTH;
@@ -99,11 +110,13 @@ class UniqueItemPanel extends JPanel
 			int finalQuantity = quantity;
 			AsyncBufferedImage image = itemManager.getImage(imageID, finalQuantity, shouldStack);
 			BufferedImage opaque = createOpaqueImage(image, finalAlpha);
+
 			// Attach Image to Label and append label to Panel
 			ImageIcon o = new ImageIcon(opaque);
 			JLabel icon = new JLabel(o);
-			this.add(icon, c);
+			panel.add(icon, c);
 			c.gridx++;
+
 			// in case the image is blank we will refresh it upon load
 			// Should only trigger if image hasn't been added
 			Runnable task = () ->
@@ -114,6 +127,9 @@ class UniqueItemPanel extends JPanel
 
 			icon.setToolTipText(item.getName());
 		}
+
+
+		this.add(panel, BorderLayout.NORTH);
 	}
 
 	// Used to refresh the item icon if the image was still loading when attempting to create it earlier
