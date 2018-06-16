@@ -34,6 +34,7 @@ import lombok.Getter;
 import net.runelite.api.ItemComposition;
 import net.runelite.client.game.AsyncBufferedImage;
 import net.runelite.client.game.ItemManager;
+import net.runelite.client.ui.ColorScheme;
 
 import java.awt.AlphaComposite;
 import java.awt.Color;
@@ -51,7 +52,7 @@ class UniqueItemPanel extends JPanel
 	private ArrayList<UniqueItem> items;
 	private Map<String, LootRecord> loots;
 
-	private final float alphaMissing = 0.3f;
+	private final float alphaMissing = 0.25f;
 	private final float alphaHas = 1.0f;
 
 	UniqueItemPanel(ArrayList<UniqueItem> items, Map<String, LootRecord> loots, ItemManager itemManager)
@@ -62,7 +63,7 @@ class UniqueItemPanel extends JPanel
 
 		GridBagLayout layout = new GridBagLayout();
 		this.setLayout(layout);
-		this.setBorder(new MatteBorder( 0, 0, 1, 0, Color.GRAY));
+		this.setBackground(ColorScheme.DARK_GRAY_COLOR);
 
 		GridBagConstraints c = new GridBagConstraints();
 		c.fill = GridBagConstraints.BOTH;
@@ -110,6 +111,8 @@ class UniqueItemPanel extends JPanel
 				refreshImage(icon, image, finalAlpha);
 			};
 			image.onChanged(() -> SwingUtilities.invokeLater(task));
+
+			icon.setToolTipText(item.getName());
 		}
 	}
 

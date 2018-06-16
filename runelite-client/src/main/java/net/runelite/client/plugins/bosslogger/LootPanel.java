@@ -40,6 +40,7 @@ import net.runelite.api.ItemComposition;
 import net.runelite.api.ItemID;
 import net.runelite.client.game.AsyncBufferedImage;
 import net.runelite.client.game.ItemManager;
+import net.runelite.client.ui.ColorScheme;
 import net.runelite.http.api.item.ItemPrice;
 
 @Getter
@@ -58,7 +59,8 @@ class LootPanel extends JPanel
 		this.itemManager = itemManager;
 
 		setLayout(new GridBagLayout());
-		setBorder(new EmptyBorder(0, 2, 0, 2));
+		setBorder(new EmptyBorder(0, 10, 0, 10));
+		setBackground(ColorScheme.DARK_GRAY_COLOR);
 
 		createConsolidatedArray();
 		sortUniqueMap();

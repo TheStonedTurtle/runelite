@@ -27,9 +27,13 @@ package net.runelite.client.plugins.bosslogger;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
+import javax.swing.border.Border;
+import javax.swing.border.CompoundBorder;
+import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
 
 import lombok.Getter;
+import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.util.StackFormatter;
 
 import java.awt.Color;
@@ -40,14 +44,19 @@ import java.awt.GridBagLayout;
 class LootRecordPanel extends JPanel
 {
 	private LootRecord record;
+	private static final GridBagLayout layout = new GridBagLayout();
+	private static final Border panelBorder = new CompoundBorder(
+			new MatteBorder( 1, 0, 0, 0, Color.GRAY),
+			new EmptyBorder( 0, 10, 0, 10)
+			);
+	private static final Color backgroundColor = ColorScheme.DARK_GRAY_COLOR;
 
 	LootRecordPanel(LootRecord record)
 	{
 		this.record = record;
-
-		GridBagLayout layout = new GridBagLayout();
 		this.setLayout(layout);
-		this.setBorder(new MatteBorder( 0, 0, 1, 0, Color.GRAY));
+		this.setBorder(panelBorder);
+		this.setBackground(backgroundColor);
 
 		// Item Image Icon
 		JLabel icon = new JLabel();
@@ -77,9 +86,9 @@ class LootRecordPanel extends JPanel
 	// Used specifically for the Total Value element inside the tab
 	LootRecordPanel(long totalValue)
 	{
-		GridBagLayout layout = new GridBagLayout();
 		this.setLayout(layout);
-		this.setBorder(new MatteBorder( 0, 0, 1, 0, Color.GRAY));
+		this.setBorder(panelBorder);
+		this.setBackground(backgroundColor);
 
 		GridBagConstraints c = new GridBagConstraints();
 		c.fill = GridBagConstraints.BOTH;
@@ -104,9 +113,9 @@ class LootRecordPanel extends JPanel
 	// Used specifically for the Killcount entry
 	LootRecordPanel(int size, int last)
 	{
-		GridBagLayout layout = new GridBagLayout();
 		this.setLayout(layout);
-		this.setBorder(new MatteBorder( 0, 0, 1, 0, Color.GRAY));
+		this.setBorder(panelBorder);
+		this.setBackground(backgroundColor);
 
 		GridBagConstraints c = new GridBagConstraints();
 		c.fill = GridBagConstraints.BOTH;

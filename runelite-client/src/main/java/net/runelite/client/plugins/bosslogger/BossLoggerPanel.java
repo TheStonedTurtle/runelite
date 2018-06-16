@@ -27,35 +27,36 @@ package net.runelite.client.plugins.bosslogger;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.Set;
+import javax.imageio.ImageIO;
 import javax.inject.Inject;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
-import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
+import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
+import javax.swing.border.MatteBorder;
 
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.game.AsyncBufferedImage;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.ui.ColorScheme;
-import net.runelite.client.ui.FontManager;
 import net.runelite.client.ui.PluginPanel;
+import net.runelite.client.ui.components.PluginErrorPanel;
 import net.runelite.client.ui.components.materialtabs.MaterialTab;
 import net.runelite.client.ui.components.materialtabs.MaterialTabGroup;
 
@@ -66,13 +67,19 @@ class BossLoggerPanel extends PluginPanel
 	private final ItemManager itemManager;
 	private final BossLoggerPlugin bossLoggerPlugin;
 
+	// Displayed on Recorded Loot Page (updated for each tab)
 	private JPanel title;
-	private JPanel tabGroup;
 	private LootPanel lootPanel;
-
 	private Tab currentTab = null;
 
-	private final static Dimension TITLE_DIMENSION = new Dimension(250, 75);
+	// Displayed on Landing/Selection Page
+	private PluginErrorPanel errorPanel;
+	private JPanel tabGroup;
+
+	// Panel Colors
+	private final static Color BACKGROUND_COLOR = ColorScheme.DARK_GRAY_COLOR;
+	private final static Color BUTTON_COLOR = ColorScheme.DARKER_GRAY_COLOR;
+	private final static Color BUTTON_HOVER_COLOR = ColorScheme.DARKER_GRAY_HOVER_COLOR;
 
 	@Inject
 	BossLoggerPanel(ItemManager itemManager, BossLoggerPlugin bossLoggerPlugin)
@@ -82,19 +89,26 @@ class BossLoggerPanel extends PluginPanel
 		this.itemManager = itemManager;
 		this.bossLoggerPlugin = bossLoggerPlugin;
 
-		this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+		this.setLayout(new BorderLayout());
+		this.setBackground(BACKGROUND_COLOR);
 
 		tabGroup = new JPanel();
 		tabGroup.setBorder(new EmptyBorder(0, 8, 0, 0));
 		//tabGroup.setBorder(new MatteBorder(1, 1, 1, 1, Color.RED));
 		tabGroup.setLayout(new GridBagLayout());
+		tabGroup.setBackground(BACKGROUND_COLOR);
 
 		title = new JPanel();
-		title.setBorder(new EmptyBorder(5, 0, 0, 0));
+		title.setBorder(new CompoundBorder(
+				new EmptyBorder(10, 8, 8, 8),
+				new MatteBorder(0, 0, 1, 0, Color.GRAY)
+		));
 		//title.setBorder(new MatteBorder(1, 1, 1, 1, Color.PINK));
-		title.setLayout(new GridBagLayout());
-		title.setMaximumSize(TITLE_DIMENSION);
-		title.setPreferredSize(TITLE_DIMENSION);
+		title.setLayout(new BorderLayout());
+		title.setBackground(BACKGROUND_COLOR);
+
+		errorPanel = new PluginErrorPanel();
+		errorPanel.setBorder(new EmptyBorder(10, 25, 10, 25));
 
 		createLandingPanel();
 	}
@@ -105,19 +119,12 @@ class BossLoggerPanel extends PluginPanel
 		currentTab = null;
 		this.removeAll();
 
-		createLandingTitle();
+		errorPanel.setContent("Boss Logger Plugin", "Select a boss icon to view the recorded loot for it");
 
 		createTabGroup();
 
-		GridBagConstraints c = new GridBagConstraints();
-		c.fill = GridBagConstraints.HORIZONTAL;
-		c.anchor = GridBagConstraints.NORTHWEST;
-		c.weightx = 1;
-		c.gridy = 0;
-
-		this.add(title, c);
-		c.gridy++;
-		this.add(wrapContainer(tabGroup), c);
+		this.add(errorPanel, BorderLayout.NORTH);
+		this.add(wrapContainer(tabGroup), BorderLayout.CENTER);
 	}
 
 	private void createTabGroup()
@@ -138,31 +145,6 @@ class BossLoggerPanel extends PluginPanel
 		{
 			createTabCategory(categoryName, c);
 		}
-	}
-
-	// Creates the title panel for the landing page
-	private void createLandingTitle()
-	{
-		title.removeAll();
-
-		GridBagConstraints c = new GridBagConstraints();
-		c.fill = GridBagConstraints.HORIZONTAL;
-		c.weightx = 1;
-		c.gridy = 0;
-
-		// Plugin Name
-		JLabel plugin = new JLabel("Boss Logger Plugin", SwingConstants.CENTER);
-		plugin.setForeground(Color.WHITE);
-
-		// Selection Text
-		JLabel text = new JLabel("Select boss icon to view recorded loot", SwingConstants.CENTER);
-		text.setFont(FontManager.getRunescapeSmallFont());
-		text.setBorder(new EmptyBorder(15, 0, 5, 0));
-		text.setForeground(Color.WHITE);
-
-		title.add(plugin, c);
-		c.gridy++;
-		title.add(text, c);
 	}
 
 	// Creates all tabs for a specific category
@@ -195,13 +177,13 @@ class BossLoggerPanel extends PluginPanel
 					@Override
 					public void mouseEntered(MouseEvent e)
 					{
-						materialTab.setBackground(ColorScheme.DARKER_GRAY_HOVER_COLOR);
+						materialTab.setBackground(BUTTON_HOVER_COLOR);
 					}
 
 					@Override
 					public void mouseExited(MouseEvent e)
 					{
-						materialTab.setBackground(ColorScheme.DARKER_GRAY_COLOR);
+						materialTab.setBackground(BUTTON_COLOR);
 					}
 				});
 
@@ -211,7 +193,7 @@ class BossLoggerPanel extends PluginPanel
 				{
 					materialTab.setIcon(new ImageIcon(image.getScaledInstance(35, 35, Image.SCALE_SMOOTH)));
 					materialTab.setOpaque(true);
-					materialTab.setBackground(ColorScheme.DARKER_GRAY_COLOR);
+					materialTab.setBackground(BUTTON_COLOR);
 					materialTab.setHorizontalAlignment(SwingConstants.CENTER);
 					materialTab.setVerticalAlignment(SwingConstants.CENTER);
 					materialTab.setPreferredSize(new Dimension(35, 35));
@@ -223,7 +205,7 @@ class BossLoggerPanel extends PluginPanel
 				{
 					this.showTabDisplay(tab);
 					materialTab.unselect();
-					materialTab.setBackground(ColorScheme.DARKER_GRAY_COLOR);
+					materialTab.setBackground(BACKGROUND_COLOR);
 				});
 
 				thisTabGroup.addTab(materialTab);
@@ -249,16 +231,49 @@ class BossLoggerPanel extends PluginPanel
 
 		bossLoggerPlugin.loadTabData(tab);
 
-		GridBagConstraints c = new GridBagConstraints();
-		c.fill = GridBagConstraints.HORIZONTAL;
-		c.anchor = GridBagConstraints.NORTHWEST;
-		c.weightx = 1;
-		c.gridy = 0;
+		this.add(title, BorderLayout.NORTH);
+		this.add(wrapContainer(createLootPanel(tab)), BorderLayout.CENTER);
+	}
 
-		this.add(title, c);
-		c.gridy++;
-		c.fill = GridBagConstraints.BOTH;
-		this.add(wrapContainer(createLootPanel(tab)), c);
+	private JLabel createIconLabel(String iconName)
+	{
+		JLabel label = new JLabel();
+		BufferedImage icon = null;
+		synchronized (ImageIO.class)
+		{
+			try
+			{
+				icon = ImageIO.read(getClass().getResourceAsStream(iconName));
+			}
+			catch (IOException e)
+			{
+				log.warn("Error getting resource icon: " + iconName, e);
+			}
+		}
+
+		if (icon == null)
+			return label;
+
+		label.setIcon(new ImageIcon(icon));
+		label.setOpaque(true);
+		label.setBackground(BACKGROUND_COLOR);
+
+		label.addMouseListener(new MouseAdapter()
+		{
+			@Override
+			public void mouseEntered(MouseEvent e)
+			{
+				label.setBackground(BUTTON_HOVER_COLOR);
+			}
+
+			@Override
+			public void mouseExited(MouseEvent e)
+			{
+				label.setBackground(BACKGROUND_COLOR);
+			}
+		});
+
+		return label;
 	}
 
 	// Creates the title panel for the recorded loot tab
@@ -266,24 +281,57 @@ class BossLoggerPanel extends PluginPanel
 	{
 		title.removeAll();
 
-		GridBagConstraints c = new GridBagConstraints();
-		c.fill = GridBagConstraints.HORIZONTAL;
-		c.weightx = 1;
-		c.gridy = 0;
+		JPanel first = new JPanel();
+		first.setBackground(BACKGROUND_COLOR);
 
 		// Back Button
-		JButton button = new JButton("Return to selection screen");
-		button.addActionListener(e -> this.showLandingPage());
+		JLabel back = createIconLabel("back-arrow-white.png");
+		back.addMouseListener(new MouseAdapter()
+		{
+			@Override
+			public void mouseClicked(MouseEvent e)
+			{
+				showLandingPage();
+			}
+		});
 
 		// Plugin Name
-		JLabel text = new JLabel(name, SwingConstants.CENTER);
-		text.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 16));
+		JLabel text = new JLabel(name);
 		text.setForeground(Color.WHITE);
-		text.setBorder(new EmptyBorder(15, 0, 0, 0));
 
-		title.add(button, c);
-		c.gridy++;
-		title.add(text, c);
+		first.add(back);
+		first.add(text);
+
+		JPanel second = new JPanel();
+		second.setBackground(BACKGROUND_COLOR);
+
+		// Refresh Data button
+		JLabel refresh = createIconLabel("refresh-white.png");
+		refresh.addMouseListener(new MouseAdapter()
+		{
+			@Override
+			public void mouseClicked(MouseEvent e)
+			{
+				refreshLootPanel(lootPanel, currentTab);
+			}
+		});
+
+		// Clear data button
+		JLabel clear = createIconLabel("delete-white.png");
+		clear.addMouseListener(new MouseAdapter()
+		{
+			@Override
+			public void mouseClicked(MouseEvent e)
+			{
+				clearData(currentTab);
+			}
+		});
+
+		second.add(refresh);
+		second.add(clear);
+
+		title.add(first, BorderLayout.WEST);
+		title.add(second, BorderLayout.EAST);
 	}
 
 	// Wrapper for creating LootPanel
@@ -299,33 +347,7 @@ class BossLoggerPanel extends PluginPanel
 		// Create & Return Loot Panel
 		lootPanel = new LootPanel(data, sets, itemManager);
 
-		// Button Container
-		JPanel buttons = new JPanel();
-		buttons.setLayout(new BoxLayout(buttons, BoxLayout.X_AXIS));
-		buttons.setBorder(new EmptyBorder(0, 0, 4, 0));
-
-		// Refresh Button
-		JButton refresh = new JButton("Refresh Data");
-		refresh.addActionListener(e ->
-				refreshLootPanel(lootPanel, tab));
-
-		// Refresh Button
-		JButton clear = new JButton("Clear Data");
-		clear.addActionListener(e ->
-				clearData(tab));
-
-		buttons.add(refresh);
-		buttons.add(Box.createHorizontalGlue());
-		buttons.add(clear);
-
-		JPanel tabPanel = new JPanel();
-		tabPanel.setLayout(new BoxLayout(tabPanel, BoxLayout.Y_AXIS));
-		tabPanel.setBorder(new EmptyBorder(2, 2, 2, 2));
-
-		tabPanel.add(buttons);
-		tabPanel.add(lootPanel);
-
-		return tabPanel;
+		return lootPanel;
 	}
 
 	private void showTabDisplay(Tab tab)
@@ -350,13 +372,13 @@ class BossLoggerPanel extends PluginPanel
 	{
 		JPanel wrapped = new JPanel(new BorderLayout());
 		wrapped.add(container, BorderLayout.NORTH);
-		wrapped.setBackground(ColorScheme.DARK_GRAY_COLOR);
+		wrapped.setBackground(BACKGROUND_COLOR);
 
 		JScrollPane scroller = new JScrollPane(wrapped);
 		scroller.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 		scroller.getVerticalScrollBar().setPreferredSize(new Dimension(16, 0));
 		scroller.getVerticalScrollBar().setBorder(new EmptyBorder(0, 9, 0, 0));
-		scroller.setBackground(ColorScheme.DARK_GRAY_COLOR);
+		scroller.setBackground(BACKGROUND_COLOR);
 
 		return scroller;
 	}

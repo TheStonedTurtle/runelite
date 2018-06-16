@@ -1114,7 +1114,7 @@ public class BossLoggerPlugin extends Plugin
 
 	void clearData(Tab tab)
 	{
-		log.info("Clearing data for tab: " + tab.getName());
+		log.debug("Clearing data for tab: " + tab.getName());
 		clearLootFile(tab);
 	}
 
@@ -1134,6 +1134,10 @@ public class BossLoggerPlugin extends Plugin
 		Color c = bossLoggerConfig.chatMessageColor();
 		messageColor = String.format("%02x%02x%02x", c.getRed(), c.getGreen(), c.getBlue());
 	}
+
+	//
+	// Config Helper Switch Statements
+	//
 
 	// Handles if panel should be shown by Tab Name
 	boolean isBeingRecorded(String tabName)
