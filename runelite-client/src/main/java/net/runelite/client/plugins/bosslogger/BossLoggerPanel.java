@@ -371,8 +371,7 @@ class BossLoggerPanel extends PluginPanel
 
 		JScrollPane scroller = new JScrollPane(wrapped);
 		scroller.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-		scroller.getVerticalScrollBar().setPreferredSize(new Dimension(16, 0));
-		scroller.getVerticalScrollBar().setBorder(new EmptyBorder(0, 9, 0, 0));
+		scroller.getVerticalScrollBar().setPreferredSize(new Dimension(8, 0));
 		scroller.setBackground(BACKGROUND_COLOR);
 
 		return scroller;
@@ -384,7 +383,7 @@ class BossLoggerPanel extends PluginPanel
 		// Change to tab of recently killed boss if on landing page
 		if (currentTab == null)
 		{
-			showTabDisplay(Tab.getByName(tabName));
+			SwingUtilities.invokeLater(() -> showTabDisplay(Tab.getByName(tabName)));
 			return;
 		}
 

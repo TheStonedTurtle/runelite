@@ -59,7 +59,7 @@ class LootPanel extends JPanel
 		this.itemManager = itemManager;
 
 		setLayout(new GridBagLayout());
-		setBorder(new EmptyBorder(0, 10, 0, 0));
+		setBorder(new EmptyBorder(0, 10, 0, 10));
 		setBackground(ColorScheme.DARK_GRAY_COLOR);
 
 		createConsolidatedArray();
