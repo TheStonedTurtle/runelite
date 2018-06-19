@@ -48,7 +48,11 @@ public enum InventoryID
 	/**
 	 * Barrows reward chest inventory.
 	 */
-	BARROWS_REWARD(141);
+	BARROWS_REWARD(141),
+	/**
+	 * Chambers of Xeric chest inventory.
+	 */
+	CHAMBERS_OF_XERIC_CHEST(581);
 
 	private final int id;
 
