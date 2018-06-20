@@ -33,8 +33,11 @@ import java.util.Map;
  * An event where you killed an {@link Actor} and received loot
  */
 @Data
-public class LootReceived implements ActorDespawned
+public class LootReceived
 {
+	@Getter
+	private final String type;
+
 	@Getter
 	private final String name;
 

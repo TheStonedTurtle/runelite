@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2018, Woox <https://github.com/wooxsolo>
+ * Copyright (c) 2018, TheStonedTurtle <https://github.com/TheStonedTurtle>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -222,13 +223,13 @@ public class LootLogger
 	// Loot Received from killing an NPC
 	private void onNewNpcLogCreated(String name, Actor deadActor, Map<Integer, Integer> drops)
 	{
-		eventBus.post(new LootReceived(name, deadActor, drops));
+		eventBus.post(new LootReceived(LootTypes.NPC, name, deadActor, drops));
 	}
 
 	// Loot Received from killing an NPC
 	private void onNewPlayerLogCreated(String name, Actor deadActor, Map<Integer, Integer> drops)
 	{
-		eventBus.post(new LootReceived(name, deadActor, drops));
+		eventBus.post(new LootReceived(LootTypes.PLAYER, name, deadActor, drops));
 	}
 
 	// Loot Received from events (Barrows, Raids, Clue Scrolls, etc)
