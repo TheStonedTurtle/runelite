@@ -77,7 +77,6 @@ import net.runelite.api.events.ProjectileMoved;
 import net.runelite.api.events.VarbitChanged;
 import net.runelite.api.events.WidgetLoaded;
 import net.runelite.api.widgets.WidgetID;
-import net.runelite.client.game.loot.data.SessionLogTypes;
 import net.runelite.client.game.loot.data.GroundItem;
 import net.runelite.client.game.loot.data.ItemStack;
 import net.runelite.client.game.loot.data.MemorizedActor;
@@ -584,7 +583,7 @@ public class LootLogger
 				Map<Integer, Integer> barrowsReward = Arrays.stream(thisTickRewardItems)
 						.collect(Collectors.toMap(Item::getId, Item::getQuantity));
 				SessionEventLog eventLog = new SessionEventLog(barrowsReward, "Barrows");
-				onNewEventLogCreated(SessionLogTypes.BARROWS, barrowsReward);
+				onNewEventLogCreated(LootTypes.BARROWS, barrowsReward);
 				pendingItems.addAll(Arrays.stream(thisTickRewardItems)
 						.map(x -> new PendingItem(x.getId(), x.getQuantity(), eventLog))
 						.collect(Collectors.toList()));
@@ -597,7 +596,7 @@ public class LootLogger
 				Map<Integer, Integer> itemDiff = getItemDifferences(
 						Arrays.asList(prevTickInventoryItems),
 						Arrays.asList(thisTickInventoryItems));
-				String clueScrollType = SessionLogTypes.UNKNOWN_EVENT;
+				String clueScrollType = LootTypes.UNKNOWN_EVENT;
 				for (Map.Entry<Integer, Integer> entry : itemDiff.entrySet())
 				{
 					if (entry.getValue() >= 0)
@@ -607,19 +606,19 @@ public class LootLogger
 					switch (entry.getKey())
 					{
 						case ItemID.REWARD_CASKET_EASY:
-							clueScrollType = SessionLogTypes.CLUE_SCROLL_EASY;
+							clueScrollType = LootTypes.CLUE_SCROLL_EASY;
 							break;
 						case ItemID.REWARD_CASKET_MEDIUM:
-							clueScrollType = SessionLogTypes.CLUE_SCROLL_MEDIUM;
+							clueScrollType = LootTypes.CLUE_SCROLL_MEDIUM;
 							break;
 						case ItemID.REWARD_CASKET_HARD:
-							clueScrollType = SessionLogTypes.CLUE_SCROLL_HARD;
+							clueScrollType = LootTypes.CLUE_SCROLL_HARD;
 							break;
 						case ItemID.REWARD_CASKET_ELITE:
-							clueScrollType = SessionLogTypes.CLUE_SCROLL_ELITE;
+							clueScrollType = LootTypes.CLUE_SCROLL_ELITE;
 							break;
 						case ItemID.REWARD_CASKET_MASTER:
-							clueScrollType = SessionLogTypes.CLUE_SCROLL_MASTER;
+							clueScrollType = LootTypes.CLUE_SCROLL_MASTER;
 							break;
 						default:
 							continue;
@@ -638,8 +637,8 @@ public class LootLogger
 		{
 			Map<Integer, Integer> reward = Arrays.stream(chambersOfXericItems)
 					.collect(Collectors.toMap(Item::getId, Item::getQuantity));
-			SessionEventLog eventLog = new SessionEventLog(reward, SessionLogTypes.RAIDS);
-			onNewEventLogCreated(SessionLogTypes.RAIDS, reward);
+			SessionEventLog eventLog = new SessionEventLog(reward, LootTypes.RAIDS);
+			onNewEventLogCreated(LootTypes.RAIDS, reward);
 			pendingItems.addAll(Arrays.stream(chambersOfXericItems)
 					.map(x -> new PendingItem(x.getId(), x.getQuantity(), eventLog))
 					.collect(Collectors.toList()));

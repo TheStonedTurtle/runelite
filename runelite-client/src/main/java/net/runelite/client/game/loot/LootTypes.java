@@ -1,6 +1,6 @@
-package net.runelite.client.game.loot.data;
+package net.runelite.client.game.loot;
 
-public class SessionLogTypes
+public class LootTypes
 {
 	public static final String NPC = "NPC";
 	public static final String PLAYER = "PLAYER";
