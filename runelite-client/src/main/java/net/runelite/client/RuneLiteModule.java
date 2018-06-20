@@ -39,6 +39,7 @@ import net.runelite.client.config.ChatColorConfig;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.config.RuneLiteConfig;
 import net.runelite.client.game.ItemManager;
+import net.runelite.client.game.loot.LootLogger;
 import net.runelite.client.menus.MenuManager;
 import net.runelite.client.plugins.PluginManager;
 import net.runelite.client.task.Scheduler;
@@ -59,6 +60,7 @@ public class RuneLiteModule extends AbstractModule
 		bind(PluginManager.class);
 		bind(RuneLiteProperties.class);
 		bind(SessionManager.class);
+		bind(LootLogger.class);
 	}
 
 	@Provides
