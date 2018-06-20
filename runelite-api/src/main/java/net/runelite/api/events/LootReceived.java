@@ -36,6 +36,9 @@ import java.util.Map;
 public class LootReceived implements ActorDespawned
 {
 	@Getter
+	private final String name;
+
+	@Getter
 	private final Actor actor;
 
 	@Getter

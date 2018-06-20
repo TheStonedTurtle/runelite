@@ -221,15 +221,15 @@ public class LootLogger
 	 */
 
 	// Loot Received from killing an NPC
-	private void onNewNpcLogCreated(Actor deadActor, Map<Integer, Integer> drops)
+	private void onNewNpcLogCreated(String name, Actor deadActor, Map<Integer, Integer> drops)
 	{
-		eventBus.post(new LootReceived(deadActor, drops));
+		eventBus.post(new LootReceived(name, deadActor, drops));
 	}
 
 	// Loot Received from killing an NPC
-	private void onNewPlayerLogCreated(Actor deadActor, Map<Integer, Integer> drops)
+	private void onNewPlayerLogCreated(String name, Actor deadActor, Map<Integer, Integer> drops)
 	{
-		eventBus.post(new LootReceived(deadActor, drops));
+		eventBus.post(new LootReceived(name, deadActor, drops));
 	}
 
 	// Loot Received from events (Barrows, Raids, Clue Scrolls, etc)
@@ -1048,13 +1048,13 @@ public class LootLogger
 			if (pad instanceof MemorizedNpc)
 			{
 				detailedLog = new SessionNpcLog(drops, ((MemorizedNpc) pad).getNpcComposition());
-				onNewNpcLogCreated(actor, drops);
+				onNewNpcLogCreated(pad.getName(), actor, drops);
 			}
 			else if (pad instanceof MemorizedPlayer)
 			{
 						detailedLog = new SessionPlayerLog(drops, ((MemorizedPlayer) pad).getName(),
 						actor.getCombatLevel());
-				onNewPlayerLogCreated(actor, drops);
+				onNewPlayerLogCreated(pad.getName(), actor, drops);
 			}
 			else
 			{

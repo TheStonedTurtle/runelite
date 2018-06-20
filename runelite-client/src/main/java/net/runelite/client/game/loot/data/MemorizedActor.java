@@ -31,9 +31,12 @@ public abstract class MemorizedActor
 {
 	@Getter
 	private Actor actor;
+	@Getter
+	private String name;
 
 	MemorizedActor(Actor actor)
 	{
 		this.actor = actor;
+		this.name = actor.getName();
 	}
 }
