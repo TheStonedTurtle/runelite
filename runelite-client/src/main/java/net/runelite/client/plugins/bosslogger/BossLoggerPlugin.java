@@ -116,10 +116,10 @@ public class BossLoggerPlugin extends Plugin
 	private NavigationButton navButton;
 
 	// Mapping Variables
-	private Map<String, Boolean> recordingMap = new HashMap<>(); 			// Store config recording value by tab boss name
-	private Map<String, ArrayList<LootEntry>> lootMap = new HashMap<>();	// Store loot entries by boss name
-	private Map<String, Integer> killcountMap = new HashMap<>(); 			// Store boss kill count by name
-	private Map<String, String> filenameMap = new HashMap<>(); 				// Stores filename for each boss name
+	private Map<Tab, Boolean> recordingMap = new HashMap<>(); 				// Store config recording value for each Tab
+	private Map<Tab, ArrayList<LootEntry>> lootMap = new HashMap<>();		// Store loot entries for each Tab
+	private Map<Tab, String> filenameMap = new HashMap<>(); 				// Stores filename for each Tab
+	private Map<String, Integer> killcountMap = new HashMap<>(); 			// Store boss kill count by boss name
 
 	private boolean gotPet = false;			// Got the pet chat message?
 
@@ -196,19 +196,26 @@ public class BossLoggerPlugin extends Plugin
 	@Subscribe
 	protected void onNpcLootReceived(NpcLootReceived e)
 	{
-		String npcName = e.getComposition().getName().toUpperCase();
-		// Special Cases
-		if (npcName.equals("Dusk"))
-		{
-			npcName = "GROTESQUE GUARDIANS";
-		}
-		Boolean recordingFlag = recordingMap.get(npcName);
+		// Only care about certain NPCs
+		WatchNpcs watchList = WatchNpcs.getByNpcId(e.getNpcId());
+		if (watchList == null)
+			return;
 
+		// Find tab that cares about this NPC
+		Tab tab = Tab.getByBossName(watchList.getName());
+		if (tab == null)
+		{
+			log.warn("Couldn't find a tab for WatchNpcs: ", watchList);
+			return;
+		}
+
+		// User wants us to record this tab?
+		Boolean recordingFlag = recordingMap.get(tab);
 		if (recordingFlag == null || !recordingFlag)
 			return;
 
-		// We are recording this NPC, add the loot to the file
-		AddBossLootEntry(e.getComposition().getName(), e.getItems());
+		// Add the loot to the file
+		AddBossLootEntry(tab.getBossName(), e.getItems());
 	}
 
 	// Check for Unsired loot reclaiming
@@ -319,7 +326,7 @@ public class BossLoggerPlugin extends Plugin
 	{
 		for (Tab tab : Tab.values())
 		{
-			lootMap.put(tab.getBossName().toUpperCase(), new ArrayList<>());
+			lootMap.put(tab, new ArrayList<>());
 		}
 	}
 
@@ -344,24 +351,23 @@ public class BossLoggerPlugin extends Plugin
 	private void init()
 	{
 		// Create maps for easy management of certain features
-		Map<String, Boolean> mapRecording = new HashMap<>();
-		Map<String, ArrayList<LootEntry>> mapLoot = new HashMap<>();
+		Map<Tab, Boolean> mapRecording = new HashMap<>();
+		Map<Tab, ArrayList<LootEntry>> mapLoot = new HashMap<>();
+		Map<Tab, String> mapFilename = new HashMap<>();
 		Map<String, Integer> mapKillcount = new HashMap<>();
-		Map<String, String> mapFilename = new HashMap<>();
 		for (Tab tab : Tab.values())
 		{
-			String bossName = tab.getBossName().toUpperCase();
 			// Is Boss being recorded?
-			mapRecording.put(bossName, isBeingRecorded(tab.getName()));
+			mapRecording.put(tab, isBeingRecorded(tab.getName()));
 			// Loot Entries by Tab Name
 			ArrayList<LootEntry> array = new ArrayList<LootEntry>();
-			mapLoot.put(bossName, array);
-			// Kill Count
-			int killcount = 0;
-			mapKillcount.put(bossName, killcount);
+			mapLoot.put(tab, array);
 			// Filenames. Removes all spaces, periods, and apostrophes
 			String filename = tab.getName().replaceAll("( |'|\\.)", "").toLowerCase() + ".log";
-			mapFilename.put(bossName, filename);
+			mapFilename.put(tab, filename);
+			// Kill Count
+			int killcount = 0;
+			mapKillcount.put(tab.getBossName().toUpperCase(), killcount);
 		}
 		recordingMap = mapRecording;
 		lootMap = mapLoot;
@@ -411,11 +417,10 @@ public class BossLoggerPlugin extends Plugin
 
 
 	// Toggles visibility of tab in side panel
-	private void ToggleTab(String tabName, boolean status)
+	private void toggleTabRecordingStatus(Tab tab, boolean status)
 	{
 		// Update tab map
-		String bossName = Tab.getByName(tabName).getBossName().toUpperCase();
-		recordingMap.put(bossName, status);
+		recordingMap.put(tab, status);
 
 		// Remove panel tab if showing panel
 		if (bossLoggerConfig.showLootTotals())
@@ -502,8 +507,8 @@ public class BossLoggerPlugin extends Plugin
 	public ArrayList<LootEntry> getData(String type)
 	{
 		// Loot Entries are stored on lootMap by boss name (upper cased)
-		String name = Tab.getByName(type).getBossName().toUpperCase();
-		return lootMap.get(name);
+		Tab tab = Tab.getByName(type);
+		return lootMap.get(tab);
 	}
 
 	//
@@ -513,12 +518,8 @@ public class BossLoggerPlugin extends Plugin
 	// Adds the data to the correct boss log file
 	private void AddBossLootEntry(String bossName, List<ItemStack> drops)
 	{
-		if (bossName.toUpperCase().equals("DUSK"))
-			bossName = "Grotesque Guardians";
 		int KC = killcountMap.get(bossName.toUpperCase());
-
 		LootEntry newEntry = new LootEntry(KC, drops);
-
 		addLootEntry(bossName, newEntry);
 		BossLoggedAlert(bossName + " kill added to log.");
 	}
@@ -526,15 +527,25 @@ public class BossLoggerPlugin extends Plugin
 	// Add Loot Entry to the necessary file
 	private void addLootEntry(String bossName, LootEntry entry)
 	{
+		Tab tab = Tab.getByBossName(bossName);
+		if (tab == null)
+		{
+			log.debug("Cant find tab for boss: {0}", bossName);
+			return;
+		}
+
 		// Update data inside plugin
-		ArrayList<LootEntry> loots = lootMap.get(bossName.toUpperCase());
+		ArrayList<LootEntry> loots = lootMap.get(tab);
 		loots.add(entry);
-		lootMap.put(bossName.toUpperCase(), loots);
+		lootMap.put(tab, loots);
+
 		// Convert entry to JSON
 		String dataAsString = RuneLiteAPI.GSON.toJson(entry);
+
 		// Grab file by username or loots directory if not logged in
 		updatePlayerFolder();
-		String fileName = filenameMap.get(bossName.toUpperCase());
+		String fileName = filenameMap.get(tab);
+
 		// Open File and append data
 		File lootFile = new File(playerFolder, fileName);
 		try
@@ -550,7 +561,6 @@ public class BossLoggerPlugin extends Plugin
 		}
 
 		// Update tab if being displayed;
-		Tab tab = Tab.getByBossName(bossName);
 		if (isBeingRecorded(tab.getName()))
 		{
 			panel.updateTab(tab.getName());
@@ -559,7 +569,7 @@ public class BossLoggerPlugin extends Plugin
 
 	private synchronized void clearLootFile(Tab tab)
 	{
-		String fileName = filenameMap.get(tab.getBossName().toUpperCase());
+		String fileName = filenameMap.get(tab);
 		File lootFile = new File(playerFolder, fileName);
 
 		try
@@ -579,7 +589,7 @@ public class BossLoggerPlugin extends Plugin
 		ArrayList<LootEntry> data = new ArrayList<>();
 		// Grab target directory (username or loots directory if not logged in)
 		updatePlayerFolder();
-		String fileName = filenameMap.get(tab.getBossName().toUpperCase());
+		String fileName = filenameMap.get(tab);
 
 		// Open File and read line by line
 		File file = new File(playerFolder, fileName);
@@ -597,7 +607,7 @@ public class BossLoggerPlugin extends Plugin
 			}
 
 			// Update Loot Map with new data
-			lootMap.put(tab.getBossName().toUpperCase(), data);
+			lootMap.put(tab, data);
 			// Update Killcount map with latest value
 			if (data.size() > 0)
 			{
@@ -616,19 +626,19 @@ public class BossLoggerPlugin extends Plugin
 	}
 
 	// Add Loot Entry to the necessary file
-	private void addDropToLastLootEntry(String bossName, DropEntry newDrop)
+	private void addDropToLastLootEntry(Tab tab, DropEntry newDrop)
 	{
 		// Update data inside plugin
-		ArrayList<LootEntry> loots = lootMap.get(bossName.toUpperCase());
+		ArrayList<LootEntry> loots = lootMap.get(tab);
 		LootEntry entry = loots.get(loots.size() - 1);
 		entry.addDrop(newDrop);
 		// Ensure updates are applied, may not be necessary
 		loots.add(loots.size() - 1, entry);
-		lootMap.put(bossName.toUpperCase(), loots);
+		lootMap.put(tab, loots);
 
 		// Grab file by username or loots directory if not logged in
 		updatePlayerFolder();
-		String fileName = filenameMap.get(bossName.toUpperCase());
+		String fileName = filenameMap.get(tab);
 
 		// Rewrite the log file (to update the last loot entry)
 		File lootFile = new File(playerFolder, fileName);
@@ -649,7 +659,6 @@ public class BossLoggerPlugin extends Plugin
 			log.warn("Error witting loot data in file.", ioe);
 		}
 		// Update tab if being displayed;
-		Tab tab = Tab.getByBossName(bossName);
 		if (isBeingRecorded(tab.getName()))
 		{
 			panel.updateTab(tab.getName());
@@ -661,7 +670,7 @@ public class BossLoggerPlugin extends Plugin
 	{
 		DropEntry drop = new DropEntry(itemID, 1);
 		// Update the last drop
-		addDropToLastLootEntry("Abyssal Sire", drop);
+		addDropToLastLootEntry(Tab.ABYSSAL_SIRE, drop);
 	}
 
 	//
@@ -781,91 +790,91 @@ public class BossLoggerPlugin extends Plugin
 		switch (eventKey)
 		{
 			case "recordBarrowsChest":
-				ToggleTab("Barrows", bossLoggerConfig.recordBarrowsChest());
+				toggleTabRecordingStatus(Tab.BARROWS, bossLoggerConfig.recordBarrowsChest());
 				return;
 			case "recordRaidsChest":
-				ToggleTab("Raids", bossLoggerConfig.recordRaidsChest());
+				toggleTabRecordingStatus(Tab.RAIDS, bossLoggerConfig.recordRaidsChest());
 				return;
 			case "recordZulrahKills":
-				ToggleTab("Zulrah", bossLoggerConfig.recordZulrahKills());
+				toggleTabRecordingStatus(Tab.ZULRAH, bossLoggerConfig.recordZulrahKills());
 				return;
 			case "recordVorkathKills":
-				ToggleTab("Vorkath", bossLoggerConfig.recordVorkathKills());
+				toggleTabRecordingStatus(Tab.VORKATH, bossLoggerConfig.recordVorkathKills());
 				return;
 			case "recordArmadylKills":
-				ToggleTab("Armadyl", bossLoggerConfig.recordArmadylKills());
+				toggleTabRecordingStatus(Tab.ARMADYL, bossLoggerConfig.recordArmadylKills());
 				return;
 			case "recordBandosKills":
-				ToggleTab("Bandos", bossLoggerConfig.recordBandosKills());
+				toggleTabRecordingStatus(Tab.BANDOS, bossLoggerConfig.recordBandosKills());
 				return;
 			case "recordSaradominKills":
-				ToggleTab("Saradomin", bossLoggerConfig.recordSaradominKills());
+				toggleTabRecordingStatus(Tab.SARADOMIN, bossLoggerConfig.recordSaradominKills());
 				return;
 			case "recordZammyKills":
-				ToggleTab("Zammy", bossLoggerConfig.recordZammyKills());
+				toggleTabRecordingStatus(Tab.ZAMMY, bossLoggerConfig.recordZammyKills());
 				return;
 			case "recordVetionKills":
-				ToggleTab("Vet'ion", bossLoggerConfig.recordVetionKills());
+				toggleTabRecordingStatus(Tab.VETION, bossLoggerConfig.recordVetionKills());
 				return;
 			case "recordVenenatisKills":
-				ToggleTab("Venenatis", bossLoggerConfig.recordVenenatisKills());
+				toggleTabRecordingStatus(Tab.VENENATIS, bossLoggerConfig.recordVenenatisKills());
 				return;
 			case "recordCallistoKills":
-				ToggleTab("Callisto", bossLoggerConfig.recordCallistoKills());
+				toggleTabRecordingStatus(Tab.CALLISTO, bossLoggerConfig.recordCallistoKills());
 				return;
 			case "recordChaosElementalKills":
-				ToggleTab("Chaos Elemental", bossLoggerConfig.recordChaosElementalKills());
+				toggleTabRecordingStatus(Tab.CHAOS_ELEMENTAL, bossLoggerConfig.recordChaosElementalKills());
 				return;
 			case "recordChaosFanaticKills":
-				ToggleTab("Chaos Fanatic", bossLoggerConfig.recordChaosFanaticKills());
+				toggleTabRecordingStatus(Tab.CHAOS_FANATIC, bossLoggerConfig.recordChaosFanaticKills());
 				return;
 			case "recordCrazyArchaeologistKills":
-				ToggleTab("Crazy Archaeologist", bossLoggerConfig.recordCrazyArchaeologistKills());
+				toggleTabRecordingStatus(Tab.CRAZY_ARCHAEOLOGIST, bossLoggerConfig.recordCrazyArchaeologistKills());
 				return;
 			case "recordScorpiaKills":
-				ToggleTab("Scorpia", bossLoggerConfig.recordScorpiaKills());
+				toggleTabRecordingStatus(Tab.SCORPIA, bossLoggerConfig.recordScorpiaKills());
 				return;
 			case "recordKbdKills":
-				ToggleTab("King Black Dragon", bossLoggerConfig.recordKbdKills());
+				toggleTabRecordingStatus(Tab.KING_BLACK_DRAGON, bossLoggerConfig.recordKbdKills());
 				return;
 			case "recordSkotizoKills":
-				ToggleTab("Skotizo", bossLoggerConfig.recordSkotizoKills());
+				toggleTabRecordingStatus(Tab.SKOTIZO, bossLoggerConfig.recordSkotizoKills());
 				return;
 			case "recordGrotesqueGuardiansKills":
-				ToggleTab("Grotesque Guardians", bossLoggerConfig.recordGrotesqueGuardiansKills());
+				toggleTabRecordingStatus(Tab.GROTESQUE_GUARDIANS, bossLoggerConfig.recordGrotesqueGuardiansKills());
 				return;
 			case "recordAbyssalSireKills":
-				ToggleTab("Abyssal Sire", bossLoggerConfig.recordAbyssalSireKills());
+				toggleTabRecordingStatus(Tab.ABYSSAL_SIRE, bossLoggerConfig.recordAbyssalSireKills());
 				return;
 			case "recordKrakenKills":
-				ToggleTab("Kraken", bossLoggerConfig.recordKrakenKills());
+				toggleTabRecordingStatus(Tab.KRAKEN, bossLoggerConfig.recordKrakenKills());
 				return;
 			case "recordCerberusKills":
-				ToggleTab("Cerberus", bossLoggerConfig.recordCerberusKills());
+				toggleTabRecordingStatus(Tab.CERBERUS, bossLoggerConfig.recordCerberusKills());
 				return;
 			case "recordThermonuclearSmokeDevilKills":
-				ToggleTab("Thermonuclear Smoke Devil", bossLoggerConfig.recordThermonuclearSmokeDevilKills());
+				toggleTabRecordingStatus(Tab.THERMONUCLEAR_SMOKE_DEVIL, bossLoggerConfig.recordThermonuclearSmokeDevilKills());
 				return;
 			case "recordGiantMoleKills":
-				ToggleTab("Giant Mole", bossLoggerConfig.recordGiantMoleKills());
+				toggleTabRecordingStatus(Tab.GIANT_MOLE, bossLoggerConfig.recordGiantMoleKills());
 				return;
 			case "recordKalphiteQueenKills":
-				ToggleTab("Kalphite Queen", bossLoggerConfig.recordKalphiteQueenKills());
+				toggleTabRecordingStatus(Tab.KALPHITE_QUEEN, bossLoggerConfig.recordKalphiteQueenKills());
 				return;
 			case "recordCorporealBeastKills":
-				ToggleTab("Corporeal Beast", bossLoggerConfig.recordCorporealBeastKills());
+				toggleTabRecordingStatus(Tab.CORPOREAL_BEAST, bossLoggerConfig.recordCorporealBeastKills());
 				return;
 			case "recordDagannothRexKills":
-				ToggleTab("Dagannoth Rex", bossLoggerConfig.recordDagannothRexKills());
+				toggleTabRecordingStatus(Tab.DAGANNOTH_REX, bossLoggerConfig.recordDagannothRexKills());
 				return;
 			case "recordDagannothPrimeKills":
-				ToggleTab("Dagannoth Prime", bossLoggerConfig.recordDagannothPrimeKills());
+				toggleTabRecordingStatus(Tab.DAGANNOTH_PRIME, bossLoggerConfig.recordDagannothPrimeKills());
 				return;
 			case "recordDagannothSupremeKills":
-				ToggleTab("Dagannoth Supreme", bossLoggerConfig.recordDagannothSupremeKills());
+				toggleTabRecordingStatus(Tab.DAGANNOTH_SUPREME, bossLoggerConfig.recordDagannothSupremeKills());
 				return;
 			case "recordTobChest":
-				ToggleTab("Raids 2", bossLoggerConfig.recordTobChest());
+				toggleTabRecordingStatus(Tab.RAIDS_2, bossLoggerConfig.recordTobChest());
 				return;
 			case "showLootTotals":
 				loadAllData();
