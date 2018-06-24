@@ -27,6 +27,7 @@ package net.runelite.client.plugins.bosslogger;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -47,7 +48,7 @@ class LootPanel extends JPanel
 {
 	private ArrayList<LootEntry> records;
 	private Map<Integer, ArrayList<UniqueItem>> uniqueMap;
-	private Map<String, LootRecord> consolidated;
+	private Map<Integer, LootRecord> consolidated;
 	private ItemManager itemManager;
 
 	LootPanel(ArrayList<LootEntry> records, Map<Integer, ArrayList<UniqueItem>> uniqueMap, ItemManager itemManager)
@@ -78,8 +79,8 @@ class LootPanel extends JPanel
 			ArrayList<DropEntry> drops = rec.getDrops();
 			drops.forEach(de ->
 			{
-				ItemComposition item = itemManager.getItemComposition(de.getItemId());
-				LootRecord uniq = this.consolidated.get(item.getName());
+				ItemComposition item = itemManager.getUnnotedItemComposition(de.getItemId());
+				LootRecord uniq = this.consolidated.get(item.getId());
 				if (uniq == null)
 				{
 					// Create new entry
@@ -110,8 +111,8 @@ class LootPanel extends JPanel
 					}
 
 					// Create the new LootRecord
-					LootRecord entry = new LootRecord(item.getName(), item.getId(), de.getItemAmount(), price, icon, item);
-					this.consolidated.put(item.getName(), entry);
+					LootRecord entry = new LootRecord(item.getName(), de.getItemId(), de.getItemAmount(), price, icon, item);
+					this.consolidated.put(de.getItemId(), entry);
 				}
 				else
 				{
@@ -123,9 +124,15 @@ class LootPanel extends JPanel
 		});
 
 		// Sort consolidated entries by Name
-		this.consolidated = this.consolidated.entrySet()
-				.stream()
-				.sorted(Map.Entry.comparingByKey())
+		this.consolidated = this.consolidated.entrySet().stream()
+				.sorted(Map.Entry.comparingByValue(new Comparator<LootRecord>()
+				{
+					@Override
+					public int compare(LootRecord o1, LootRecord o2)
+					{
+						return o1.getItemName().compareTo(o2.getItemName());
+					}
+				}))
 				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
 	}
 
@@ -173,7 +180,7 @@ class LootPanel extends JPanel
 		int totalValueIndex = c.gridy;
 		c.gridy++;
 		// Loop over each unique item and create a LootRecordPanel
-		for ( Map.Entry<String, LootRecord> entry : this.consolidated.entrySet())
+		for ( Map.Entry<Integer, LootRecord> entry : this.consolidated.entrySet())
 		{
 			LootRecord item = entry.getValue();
 			LootRecordPanel p = new LootRecordPanel(item);

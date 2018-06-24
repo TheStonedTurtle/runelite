@@ -52,7 +52,7 @@ class UniqueItemPanel extends JPanel
 {
 	private ItemManager itemManager;
 	private ArrayList<UniqueItem> items;
-	private Map<String, LootRecord> loots;
+	private Map<Integer, LootRecord> loots;
 
 	private final float alphaMissing = 0.35f;
 	private final float alphaHas = 1.0f;
@@ -60,7 +60,7 @@ class UniqueItemPanel extends JPanel
 	private static final Border panelBorder = new EmptyBorder(3, 0, 3, 0);
 	private static final Color panelBackgroundColor = ColorScheme.DARK_GRAY_COLOR;
 
-	UniqueItemPanel(ArrayList<UniqueItem> items, Map<String, LootRecord> loots, ItemManager itemManager)
+	UniqueItemPanel(ArrayList<UniqueItem> items, Map<Integer, LootRecord> loots, ItemManager itemManager)
 	{
 		this.items = items;
 		this.loots = loots;
@@ -88,7 +88,7 @@ class UniqueItemPanel extends JPanel
 		{
 			int id = item.getItemID();
 			ItemComposition comp = itemManager.getItemComposition(id);
-			LootRecord it = loots.get(comp.getName());
+			LootRecord it = loots.get(id);
 			boolean shouldStack = comp.isStackable();
 			int quantity = 0;
 			int imageID = comp.getId();
