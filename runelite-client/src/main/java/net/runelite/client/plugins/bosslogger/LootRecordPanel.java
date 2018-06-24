@@ -46,21 +46,22 @@ import java.awt.GridLayout;
 @Getter
 class LootRecordPanel extends JPanel
 {
+	private static final GridBagLayout LAYOUT = new GridBagLayout();
+
+	private static final Border PANEL_BORDER = new EmptyBorder(3, 0, 3, 0);
+	private static final Color PANEL_BACKGROUND_COLOR = ColorScheme.DARK_GRAY_COLOR;
+
+	private static final Border CONTAINER_BORDER = new EmptyBorder(0, 15, 0, 15);
+	private static final Color CONTAINER_BACKGROUND_COLOR = ColorScheme.DARKER_GRAY_COLOR;
+
 	private LootRecord record;
-	private static final GridBagLayout layout = new GridBagLayout();
-	private static final Border panelBorder = new EmptyBorder(3, 0, 3, 0);
-	private static final Color panelBackgroundColor = ColorScheme.DARK_GRAY_COLOR;
-
-	private static final Border containerBorder = new EmptyBorder(0, 15, 0, 15);
-	private static final Color backgroundColor = ColorScheme.DARKER_GRAY_COLOR;
-
 
 	LootRecordPanel(LootRecord record)
 	{
 		this.record = record;
-		this.setLayout(layout);
-		this.setBorder(panelBorder);
-		this.setBackground(panelBackgroundColor);
+		this.setLayout(LAYOUT);
+		this.setBorder(PANEL_BORDER);
+		this.setBackground(PANEL_BACKGROUND_COLOR);
 
 		// Item Image Icon
 		JLabel icon = new JLabel();
@@ -70,7 +71,7 @@ class LootRecordPanel extends JPanel
 		// Container for Info
 		JPanel uiInfo = new JPanel(new GridLayout(2, 1));
 		uiInfo.setBorder(new EmptyBorder(0, 5, 0, 0));
-		uiInfo.setBackground(backgroundColor);
+		uiInfo.setBackground(CONTAINER_BACKGROUND_COLOR);
 
 		JShadowedLabel labelName = new JShadowedLabel(this.record.getItemName());
 		labelName.setForeground(Color.WHITE);
@@ -103,9 +104,9 @@ class LootRecordPanel extends JPanel
 	// Used specifically for the Total Value element inside the tab
 	LootRecordPanel(long totalValue)
 	{
-		this.setLayout(layout);
-		this.setBorder(panelBorder);
-		this.setBackground(panelBackgroundColor);
+		this.setLayout(LAYOUT);
+		this.setBorder(PANEL_BORDER);
+		this.setBackground(PANEL_BACKGROUND_COLOR);
 
 		JLabel totalText = new JLabel("Total Value:", SwingConstants.LEFT);
 		totalText.setForeground(Color.WHITE);
@@ -134,9 +135,9 @@ class LootRecordPanel extends JPanel
 	// Used specifically for the Killcount entry
 	LootRecordPanel(String text, int value)
 	{
-		this.setLayout(layout);
-		this.setBorder(panelBorder);
-		this.setBackground(panelBackgroundColor);
+		this.setLayout(LAYOUT);
+		this.setBorder(PANEL_BORDER);
+		this.setBackground(PANEL_BACKGROUND_COLOR);
 
 		JLabel textLabel = new JLabel(text, SwingConstants.LEFT);
 		textLabel.setForeground(Color.WHITE);
@@ -162,8 +163,8 @@ class LootRecordPanel extends JPanel
 	{
 		JPanel panel = new JPanel();
 		panel.setLayout(new BorderLayout());
-		panel.setBorder(containerBorder);
-		panel.setBackground(backgroundColor);
+		panel.setBorder(CONTAINER_BORDER);
+		panel.setBackground(CONTAINER_BACKGROUND_COLOR);
 
 		return panel;
 	}

@@ -286,7 +286,6 @@ public enum UniqueItem
 
 	}
 
-
 	private final String name;
 	private final int itemID;
 	private final String[] activities;

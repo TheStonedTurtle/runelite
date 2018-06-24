@@ -168,9 +168,4 @@ public enum Tab
 		}
 		return s;
 	}
-
-	public int getIndex()
-	{
-		return -1;
-	}
 }

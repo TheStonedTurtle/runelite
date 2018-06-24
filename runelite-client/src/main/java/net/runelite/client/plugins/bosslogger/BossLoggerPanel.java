@@ -243,7 +243,7 @@ class BossLoggerPanel extends PluginPanel
 			}
 			catch (IOException e)
 			{
-				log.warn("Error getting resource icon: " + iconName, e);
+				log.warn("Error getting resource icon: {0} | Message: {1}", iconName, e.getMessage());
 			}
 		}
 
@@ -383,7 +383,8 @@ class BossLoggerPanel extends PluginPanel
 		// Change to tab of recently killed boss if on landing page
 		if (currentTab == null)
 		{
-			SwingUtilities.invokeLater(() -> showTabDisplay(Tab.getByName(tabName)));
+			Tab tab = Tab.getByName(tabName);
+			SwingUtilities.invokeLater(() -> showTabDisplay(tab));
 			return;
 		}
 
@@ -397,7 +398,7 @@ class BossLoggerPanel extends PluginPanel
 		}
 	}
 
-	void toggleTab(String tab, boolean flag)
+	void toggleTab()
 	{
 		// Only toggle tab if on landing page since the tabs are recreated each time
 		if (currentTab == null)

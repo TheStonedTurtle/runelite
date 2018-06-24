@@ -91,7 +91,6 @@ class UniqueItemPanel extends JPanel
 			LootRecord it = loots.get(id);
 			boolean shouldStack = comp.isStackable();
 			int quantity = 0;
-			int imageID = comp.getId();
 			float alpha = alphaMissing;
 
 			// If we have a loot entry for this item then update the icon accordingly
@@ -107,8 +106,7 @@ class UniqueItemPanel extends JPanel
 
 			// Create Image
 			float finalAlpha = alpha;
-			int finalQuantity = quantity;
-			AsyncBufferedImage image = itemManager.getImage(imageID, finalQuantity, shouldStack);
+			AsyncBufferedImage image = itemManager.getImage(id, quantity, shouldStack);
 			BufferedImage opaque = createOpaqueImage(image, finalAlpha);
 
 			// Attach Image to Label and append label to Panel
@@ -127,7 +125,6 @@ class UniqueItemPanel extends JPanel
 
 			icon.setToolTipText(item.getName());
 		}
-
 
 		this.add(panel, BorderLayout.NORTH);
 	}

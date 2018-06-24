@@ -26,7 +26,7 @@ package net.runelite.client.plugins.bosslogger;
 
 import lombok.Getter;
 
-class DropEntry
+public class DropEntry
 {
 	@Getter
 	private final int itemId;
@@ -34,7 +34,7 @@ class DropEntry
 	@Getter
 	private final int itemAmount;
 
-	DropEntry(int itemId, int itemAmount)
+	public DropEntry(int itemId, int itemAmount)
 	{
 		this.itemId = itemId;
 		this.itemAmount = itemAmount;

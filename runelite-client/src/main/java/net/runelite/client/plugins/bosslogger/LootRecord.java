@@ -36,7 +36,7 @@ import net.runelite.client.game.ItemManager;
 	access = AccessLevel.PACKAGE
 )
 @Getter
-class LootRecord
+public class LootRecord
 {
 	@Setter(AccessLevel.PACKAGE)
 	private String itemName;
@@ -53,7 +53,7 @@ class LootRecord
 	@Setter(AccessLevel.PACKAGE)
 	private ItemComposition item;
 
-	LootRecord(String itemName, int itemId, int amount, int value, AsyncBufferedImage icon, ItemComposition item)
+	public LootRecord(String itemName, int itemId, int amount, int value, AsyncBufferedImage icon, ItemComposition item)
 	{
 		this.item = item;
 		this.itemId = itemId;
@@ -65,13 +65,13 @@ class LootRecord
 		this.total = ((long) value) * amount;
 	}
 
-	void incrementAmount(LootRecord l, int amount)
+	public void incrementAmount(LootRecord l, int amount)
 	{
 		l.amount = l.amount + amount;
 		l.total = this.value * this.amount;
 	}
 
-	void updateIconAmount(LootRecord l, ItemManager itemManager)
+	public void updateIconAmount(LootRecord l, ItemManager itemManager)
 	{
 		boolean stackable = l.item.isStackable() || l.amount > 1;
 		l.icon = itemManager.getImage(l.itemId, l.amount, stackable);

@@ -29,7 +29,7 @@ import java.util.List;
 import lombok.Getter;
 import net.runelite.client.game.loot.data.ItemStack;
 
-class LootEntry
+public class LootEntry
 {
 	@Getter
 	private final Integer killCount;
@@ -37,13 +37,7 @@ class LootEntry
 	@Getter
 	final ArrayList<DropEntry> drops;
 
-	LootEntry(int killCount, ArrayList<DropEntry> drops)
-	{
-		this.killCount = killCount;
-		this.drops = drops;
-	}
-
-	LootEntry(int killCount, List<ItemStack> d)
+	public LootEntry(int killCount, List<ItemStack> d)
 	{
 		ArrayList<DropEntry> drops = new ArrayList<>();
 		for (ItemStack i : d)

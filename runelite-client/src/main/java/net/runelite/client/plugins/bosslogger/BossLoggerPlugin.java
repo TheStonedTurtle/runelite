@@ -189,6 +189,25 @@ public class BossLoggerPlugin extends Plugin
 		BossLoggedAlert("Loot from " + e.getEvent().toLowerCase() + " added to log.");
 	}
 
+	// Only check for Boss NPCs
+	@Subscribe
+	protected void onNpcLootReceived(NpcLootReceived e)
+	{
+		String npcName = e.getComposition().getName().toUpperCase();
+		// Special Cases
+		if (npcName.equals("Dusk"))
+		{
+			npcName = "GROTESQUE GUARDIANS";
+		}
+		Boolean recordingFlag = recordingMap.get(npcName);
+
+		if (recordingFlag == null || !recordingFlag)
+			return;
+
+		// We are recording this NPC, add the loot to the file
+		AddBossLootEntry(e.getComposition().getName(), e.getItems());
+	}
+
 	// Check for Unsired loot reclaiming
 	@Subscribe
 	public void onWidgetLoaded(WidgetLoaded event)
@@ -215,26 +234,6 @@ public class BossLoggerPlugin extends Plugin
 			receivedUnsiredLoot(itemID);
 		}
 	}
-
-	// Only check for Boss NPCs
-	@Subscribe
-	protected void onNpcLootReceived(NpcLootReceived e)
-	{
-		String npcName = e.getComposition().getName().toUpperCase();
-		// Special Cases
-		if (npcName.equals("Dusk"))
-		{
-			npcName = "GROTESQUE GUARDIANS";
-		}
-		Boolean recordingFlag = recordingMap.get(npcName);
-
-		if (recordingFlag == null || !recordingFlag)
-			return;
-
-		// We are recording this NPC, add the loot to the file
-		AddBossLootEntry(e.getComposition().getName(), e.getItems());
-	}
-
 
 	@Subscribe
 	public void onConfigChanged(ConfigChanged event)
@@ -411,14 +410,15 @@ public class BossLoggerPlugin extends Plugin
 	// Toggles visibility of tab in side panel
 	private void ToggleTab(String tabName, boolean status)
 	{
-		// Remove panel tab if showing panel
-		if (bossLoggerConfig.showLootTotals())
-		{
-			panel.toggleTab(tabName, status);
-		}
 		// Update tab map
 		String bossName = Tab.getByName(tabName).getBossName().toUpperCase();
 		recordingMap.put(bossName, status);
+
+		// Remove panel tab if showing panel
+		if (bossLoggerConfig.showLootTotals())
+		{
+			panel.toggleTab();
+		}
 	}
 
 
