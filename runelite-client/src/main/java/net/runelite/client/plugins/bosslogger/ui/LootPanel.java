@@ -22,7 +22,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package net.runelite.client.plugins.bosslogger;
+package net.runelite.client.plugins.bosslogger.ui;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -40,6 +40,7 @@ import net.runelite.api.ItemComposition;
 import net.runelite.api.ItemID;
 import net.runelite.client.game.AsyncBufferedImage;
 import net.runelite.client.game.ItemManager;
+import net.runelite.client.plugins.bosslogger.UniqueItem;
 import net.runelite.client.plugins.bosslogger.data.DropEntry;
 import net.runelite.client.plugins.bosslogger.data.LootEntry;
 import net.runelite.client.plugins.bosslogger.data.LootRecord;
@@ -47,14 +48,14 @@ import net.runelite.client.ui.ColorScheme;
 import net.runelite.http.api.item.ItemPrice;
 
 @Getter
-class LootPanel extends JPanel
+public class LootPanel extends JPanel
 {
 	private ArrayList<LootEntry> records;
 	private Map<Integer, ArrayList<UniqueItem>> uniqueMap;
 	private Map<Integer, LootRecord> consolidated;
 	private ItemManager itemManager;
 
-	LootPanel(ArrayList<LootEntry> records, Map<Integer, ArrayList<UniqueItem>> uniqueMap, ItemManager itemManager)
+	public LootPanel(ArrayList<LootEntry> records, Map<Integer, ArrayList<UniqueItem>> uniqueMap, ItemManager itemManager)
 	{
 		this.records = records;
 		this.consolidated = new HashMap<>();

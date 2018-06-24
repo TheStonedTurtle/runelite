@@ -351,7 +351,7 @@ public enum UniqueItem
 	}
 
 	// Takes a list of UniqueItems and maps them by Position to ensure adding in predefined order
-	static Map<Integer, ArrayList<UniqueItem>> createPositionSetMap(ArrayList<UniqueItem> items)
+	public static Map<Integer, ArrayList<UniqueItem>> createPositionSetMap(ArrayList<UniqueItem> items)
 	{
 		Map<Integer, ArrayList<UniqueItem>> setNames = new HashMap<Integer, ArrayList<UniqueItem>>();
 		// If no unique items for this tab

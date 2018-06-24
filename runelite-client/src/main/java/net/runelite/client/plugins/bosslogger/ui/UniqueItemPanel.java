@@ -22,7 +22,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package net.runelite.client.plugins.bosslogger;
+package net.runelite.client.plugins.bosslogger.ui;
 
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
@@ -35,6 +35,7 @@ import lombok.Getter;
 import net.runelite.api.ItemComposition;
 import net.runelite.client.game.AsyncBufferedImage;
 import net.runelite.client.game.ItemManager;
+import net.runelite.client.plugins.bosslogger.UniqueItem;
 import net.runelite.client.plugins.bosslogger.data.LootRecord;
 import net.runelite.client.ui.ColorScheme;
 

@@ -22,7 +22,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package net.runelite.client.plugins.bosslogger;
+package net.runelite.client.plugins.bosslogger.ui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -54,6 +54,9 @@ import javax.swing.border.MatteBorder;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.game.AsyncBufferedImage;
 import net.runelite.client.game.ItemManager;
+import net.runelite.client.plugins.bosslogger.BossLoggerPlugin;
+import net.runelite.client.plugins.bosslogger.Tab;
+import net.runelite.client.plugins.bosslogger.UniqueItem;
 import net.runelite.client.plugins.bosslogger.data.LootEntry;
 import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.PluginPanel;
@@ -63,7 +66,7 @@ import net.runelite.client.ui.components.materialtabs.MaterialTabGroup;
 
 
 @Slf4j
-class BossLoggerPanel extends PluginPanel
+public class BossLoggerPanel extends PluginPanel
 {
 	private final ItemManager itemManager;
 	private final BossLoggerPlugin bossLoggerPlugin;
@@ -83,7 +86,7 @@ class BossLoggerPanel extends PluginPanel
 	private final static Color BUTTON_HOVER_COLOR = ColorScheme.DARKER_GRAY_HOVER_COLOR;
 
 	@Inject
-	BossLoggerPanel(ItemManager itemManager, BossLoggerPlugin bossLoggerPlugin)
+	public BossLoggerPanel(ItemManager itemManager, BossLoggerPlugin bossLoggerPlugin)
 	{
 		super(false);
 
@@ -379,7 +382,7 @@ class BossLoggerPanel extends PluginPanel
 	}
 
 	// Updates panel for this tab name
-	void updateTab(String tabName)
+	public void updateTab(String tabName)
 	{
 		// Change to tab of recently killed boss if on landing page
 		if (currentTab == null)
@@ -399,7 +402,7 @@ class BossLoggerPanel extends PluginPanel
 		}
 	}
 
-	void toggleTab()
+	public void toggleTab()
 	{
 		// Only toggle tab if on landing page since the tabs are recreated each time
 		if (currentTab == null)

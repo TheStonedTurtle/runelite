@@ -73,6 +73,7 @@ import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.plugins.bosslogger.data.DropEntry;
 import net.runelite.client.plugins.bosslogger.data.LootEntry;
+import net.runelite.client.plugins.bosslogger.ui.BossLoggerPanel;
 import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.ui.PluginToolbar;
 import net.runelite.client.util.Text;
@@ -480,7 +481,7 @@ public class BossLoggerPlugin extends Plugin
 		}
 	}
 
-	void loadTabData(Tab tab)
+	public void loadTabData(Tab tab)
 	{
 		loadLootEntries(tab);
 	}
@@ -498,7 +499,7 @@ public class BossLoggerPlugin extends Plugin
 	}
 
 	// Returns stored data by tab name
-	ArrayList<LootEntry> getData(String type)
+	public ArrayList<LootEntry> getData(String type)
 	{
 		// Loot Entries are stored on lootMap by boss name (upper cased)
 		String name = Tab.getByName(type).getBossName().toUpperCase();
@@ -685,7 +686,7 @@ public class BossLoggerPlugin extends Plugin
 		return -1;
 	}
 
-	void clearData(Tab tab)
+	public void clearData(Tab tab)
 	{
 		log.debug("Clearing data for tab: " + tab.getName());
 		clearLootFile(tab);
@@ -703,7 +704,7 @@ public class BossLoggerPlugin extends Plugin
 	//
 
 	// Handles if panel should be shown by Tab Name
-	boolean isBeingRecorded(String tabName)
+	public boolean isBeingRecorded(String tabName)
 	{
 		switch (tabName.toUpperCase())
 		{
