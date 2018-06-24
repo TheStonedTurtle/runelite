@@ -71,6 +71,8 @@ import net.runelite.client.game.loot.events.EventLootReceived;
 import net.runelite.client.game.loot.events.NpcLootReceived;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
+import net.runelite.client.plugins.bosslogger.data.DropEntry;
+import net.runelite.client.plugins.bosslogger.data.LootEntry;
 import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.ui.PluginToolbar;
 import net.runelite.client.util.Text;
@@ -183,7 +185,7 @@ public class BossLoggerPlugin extends Plugin
 		LootEntry entry = new LootEntry(kc, e.getItems());
 		// Got a pet?
 		if (gotPet)
-			entry.drops.add(handlePet(e.getEvent()));
+			entry.addDrop(handlePet(e.getEvent()));
 		addLootEntry(e.getEvent(), entry);
 
 		BossLoggedAlert("Loot from " + e.getEvent().toLowerCase() + " added to log.");
@@ -618,7 +620,7 @@ public class BossLoggerPlugin extends Plugin
 		// Update data inside plugin
 		ArrayList<LootEntry> loots = lootMap.get(bossName.toUpperCase());
 		LootEntry entry = loots.get(loots.size() - 1);
-		entry.drops.add(newDrop);
+		entry.addDrop(newDrop);
 		// Ensure updates are applied, may not be necessary
 		loots.add(loots.size() - 1, entry);
 		lootMap.put(bossName.toUpperCase(), loots);

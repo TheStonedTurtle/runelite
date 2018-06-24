@@ -22,58 +22,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package net.runelite.client.plugins.bosslogger;
+package net.runelite.client.plugins.bosslogger.data;
 
-import lombok.AccessLevel;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
-import net.runelite.api.ItemComposition;
-import net.runelite.client.game.AsyncBufferedImage;
-import net.runelite.client.game.ItemManager;
+import net.runelite.client.game.loot.data.ItemStack;
 
-@RequiredArgsConstructor(
-	access = AccessLevel.PACKAGE
-)
-@Getter
-public class LootRecord
+public class LootEntry
 {
-	@Setter(AccessLevel.PACKAGE)
-	private String itemName;
-	@Setter(AccessLevel.PACKAGE)
-	private int itemId;
-	@Setter(AccessLevel.PACKAGE)
-	private int amount;
-	@Setter(AccessLevel.PACKAGE)
-	private int value;
-	@Setter(AccessLevel.PACKAGE)
-	private long total;
-	@Setter(AccessLevel.PACKAGE)
-	private AsyncBufferedImage icon;
-	@Setter(AccessLevel.PACKAGE)
-	private ItemComposition item;
+	@Getter
+	private final Integer killCount;
 
-	public LootRecord(String itemName, int itemId, int amount, int value, AsyncBufferedImage icon, ItemComposition item)
+	@Getter
+	final ArrayList<DropEntry> drops;
+
+	public LootEntry(int killCount, List<ItemStack> d)
 	{
-		this.item = item;
-		this.itemId = itemId;
-		this.itemName = itemName;
-		this.amount = amount;
-		this.icon = icon;
-		this.value = value;
-
-		this.total = ((long) value) * amount;
+		ArrayList<DropEntry> drops = new ArrayList<>();
+		for (ItemStack i : d)
+		{
+			drops.add(new DropEntry(i.getId(), i.getQuantity()));
+		}
+		this.killCount = killCount;
+		this.drops = drops;
 	}
 
-	public void incrementAmount(LootRecord l, int amount)
+	public void addDrop(DropEntry drop)
 	{
-		l.amount = l.amount + amount;
-		l.total = this.value * this.amount;
-	}
-
-	public void updateIconAmount(LootRecord l, ItemManager itemManager)
-	{
-		boolean stackable = l.item.isStackable() || l.amount > 1;
-		l.icon = itemManager.getImage(l.itemId, l.amount, stackable);
+		drops.add(drop);
 	}
 }

@@ -40,6 +40,9 @@ import net.runelite.api.ItemComposition;
 import net.runelite.api.ItemID;
 import net.runelite.client.game.AsyncBufferedImage;
 import net.runelite.client.game.ItemManager;
+import net.runelite.client.plugins.bosslogger.data.DropEntry;
+import net.runelite.client.plugins.bosslogger.data.LootEntry;
+import net.runelite.client.plugins.bosslogger.data.LootRecord;
 import net.runelite.client.ui.ColorScheme;
 import net.runelite.http.api.item.ItemPrice;
 

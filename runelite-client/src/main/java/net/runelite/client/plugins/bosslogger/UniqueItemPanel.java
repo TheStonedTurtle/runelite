@@ -35,6 +35,7 @@ import lombok.Getter;
 import net.runelite.api.ItemComposition;
 import net.runelite.client.game.AsyncBufferedImage;
 import net.runelite.client.game.ItemManager;
+import net.runelite.client.plugins.bosslogger.data.LootRecord;
 import net.runelite.client.ui.ColorScheme;
 
 import java.awt.AlphaComposite;
