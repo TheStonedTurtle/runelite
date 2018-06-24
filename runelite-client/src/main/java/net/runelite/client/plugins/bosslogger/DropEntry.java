@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, TheStonedTurtle <https://github.com/TheStonedTurtle>
+ * Copyright (c) 2018, TheStonedTurtle <www.github.com/TheStonedTurtle>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -22,27 +22,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package net.runelite.client.game.loot.events;
+package net.runelite.client.plugins.bosslogger;
 
-import lombok.Data;
 import lombok.Getter;
-import net.runelite.api.Player;
-import net.runelite.api.coords.WorldPoint;
-import net.runelite.client.game.loot.data.ItemStack;
-import java.util.List;
 
-/**
- * An event where you killed a {@link Player} and received loot
- */
-@Data
-public class PlayerLootReceived
+class DropEntry
 {
 	@Getter
-	private final String name;
+	private final int itemId;
 
 	@Getter
-	private final WorldPoint location;
+	private final int itemAmount;
 
-	@Getter
-	private final List<ItemStack> items;
+	DropEntry(int itemId, int itemAmount)
+	{
+		this.itemId = itemId;
+		this.itemAmount = itemAmount;
+	}
 }
