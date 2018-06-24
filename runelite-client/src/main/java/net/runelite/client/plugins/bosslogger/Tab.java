@@ -37,72 +37,74 @@ import java.util.TreeSet;
 public enum Tab
 {
 	// Chest Rewards
-	BARROWS("Barrows", "Barrows", ItemID.BARROWS_TELEPORT, "Other"),
-	RAIDS("Raids", "Raids", ItemID.OLMLET, "Other"),
-	RAIDS_2("Raids 2", "Raids 2", ItemID.LIL_ZIK, "Other"),
+	BARROWS("Barrows", ItemID.BARROWS_TELEPORT, "Other"),
+	RAIDS("Raids", ItemID.OLMLET, "Other"),
+	RAIDS_2("Raids 2", ItemID.LIL_ZIK, "Other"),
 
+	// Loot received on NPC death
 	// Special Drops  (How loot is dropped)
-	ZULRAH("Zulrah", "Zulrah", ItemID.PET_SNAKELING, "Other"),
-	VORKATH("Vorkath", "Vorkath", ItemID.VORKI, "Other"),
+	ZULRAH("Zulrah", ItemID.PET_SNAKELING, "Other", WatchNpcs.ZULRAH),
+	VORKATH("Vorkath", ItemID.VORKI, "Other", WatchNpcs.VORKATH),
 
 	// Normal Drops (How loot is dropped)
 	// God wars dungeon
-	ARMADYL("Armadyl", "Kree'arra", ItemID.PET_KREEARRA , "God Wars Dungeon"),
-	BANDOS("Bandos", "General Graardor", ItemID.PET_GENERAL_GRAARDOR , "God Wars Dungeon"),
-	SARADOMIN("Saradomin", "Commander Zilyana", ItemID.PET_ZILYANA , "God Wars Dungeon"),
-	ZAMMY("Zammy", "K'ril Tsutsaroth", ItemID.PET_KRIL_TSUTSAROTH , "God Wars Dungeon"),
-
+	ARMADYL("Armadyl", ItemID.PET_KREEARRA , "God Wars Dungeon", WatchNpcs.ARMADYL),
+	BANDOS("Bandos", ItemID.PET_GENERAL_GRAARDOR , "God Wars Dungeon", WatchNpcs.BANDOS),
+	SARADOMIN("Saradomin", ItemID.PET_ZILYANA , "God Wars Dungeon", WatchNpcs.SARADOMIN),
+	ZAMMY("Zammy", ItemID.PET_KRIL_TSUTSAROTH , "God Wars Dungeon", WatchNpcs.ZAMMY),
 
 	// Wildy Bosses
-	VETION("Vet'ion", ItemID.VETION_JR , "Wilderness"),
-	VENENATIS("Venenatis", ItemID.VENENATIS_SPIDERLING , "Wilderness"),
-	CALLISTO("Callisto", ItemID.CALLISTO_CUB , "Wilderness"),
-	CHAOS_ELEMENTAL("Chaos Elemental", ItemID.PET_CHAOS_ELEMENTAL , "Wilderness"),
+	VETION("Vet'ion", ItemID.VETION_JR , "Wilderness", WatchNpcs.VETION),
+	VENENATIS("Venenatis", ItemID.VENENATIS_SPIDERLING , "Wilderness", WatchNpcs.VENENATIS),
+	CALLISTO("Callisto", ItemID.CALLISTO_CUB , "Wilderness", WatchNpcs.CALLISTO),
+	CHAOS_ELEMENTAL("Chaos Elemental", ItemID.PET_CHAOS_ELEMENTAL , "Wilderness", WatchNpcs.CHAOS_ELEMENTAL),
 	// Wildy Demi-Bosses
-	SCORPIA("Scorpia", ItemID.SCORPIAS_OFFSPRING, "Wilderness"),
-	CHAOS_FANATIC("Chaos Fanatic", ItemID.ANCIENT_STAFF , "Wilderness"),
-	CRAZY_ARCHAEOLOGIST("Crazy Archaeologist", ItemID.FEDORA , "Wilderness"),
+	SCORPIA("Scorpia", ItemID.SCORPIAS_OFFSPRING, "Wilderness", WatchNpcs.SCORPIA),
+	CHAOS_FANATIC("Chaos Fanatic", ItemID.ANCIENT_STAFF , "Wilderness", WatchNpcs.CHAOS_FANATIC),
+	CRAZY_ARCHAEOLOGIST("Crazy Archaeologist", ItemID.FEDORA , "Wilderness", WatchNpcs.CRAZY_ARCHAEOLOGIST),
 	// Wildy Other
-	KING_BLACK_DRAGON("King Black Dragon", ItemID.PRINCE_BLACK_DRAGON , "Wilderness"),
-
+	KING_BLACK_DRAGON("King Black Dragon", ItemID.PRINCE_BLACK_DRAGON , "Wilderness", WatchNpcs.KING_BLACK_DRAGON),
 
 	// Slayer Bosses
-	KALPHITE_QUEEN("Kalphite Queen", ItemID.KALPHITE_PRINCESS, "Other"),
-	SKOTIZO("Skotizo", ItemID.SKOTOS, "Slayer"),
-	GROTESQUE_GUARDIANS("Grotesque Guardians", ItemID.NOON, "Slayer"),		// Special Drop
-	ABYSSAL_SIRE("Abyssal Sire", ItemID.ABYSSAL_ORPHAN, "Slayer"),			// Special Drop
-	KRAKEN("Kraken", ItemID.PET_KRAKEN, "Slayer"),							// Special Drop
-	CERBERUS("Cerberus", ItemID.HELLPUPPY, "Slayer"),
-	THERMONUCLEAR_SMOKE_DEVIL("Thermonuclear Smoke Devil", ItemID.PET_SMOKE_DEVIL, "Slayer"),
+	KALPHITE_QUEEN("Kalphite Queen", ItemID.KALPHITE_PRINCESS, "Other", WatchNpcs.KALPHITE_QUEEN),
+	SKOTIZO("Skotizo", ItemID.SKOTOS, "Slayer", WatchNpcs.SKOTIZO),
+	GROTESQUE_GUARDIANS("Grotesque Guardians", ItemID.NOON, "Slayer", WatchNpcs.GROTESQUE_GUARDIANS),
+	ABYSSAL_SIRE("Abyssal Sire", ItemID.ABYSSAL_ORPHAN, "Slayer", WatchNpcs.ABYSSAL_SIRE),
+	KRAKEN("Kraken", ItemID.PET_KRAKEN, "Slayer", WatchNpcs.KRAKEN),
+	CERBERUS("Cerberus", ItemID.HELLPUPPY, "Slayer", WatchNpcs.CERBERUS),
+	THERMONUCLEAR_SMOKE_DEVIL("Thermonuclear Smoke Devil", ItemID.PET_SMOKE_DEVIL, "Slayer", WatchNpcs.THERMONUCLEAR_SMOKE_DEVIL),
 
 	// Other Bosses
-	GIANT_MOLE("Giant Mole", ItemID.BABY_MOLE, "Other"),
-	CORPOREAL_BEAST("Corporeal Beast", ItemID.PET_CORPOREAL_CRITTER, "Other"),
+	GIANT_MOLE("Giant Mole", ItemID.BABY_MOLE, "Other", WatchNpcs.GIANT_MOLE),
+	CORPOREAL_BEAST("Corporeal Beast", ItemID.PET_CORPOREAL_CRITTER, "Other", WatchNpcs.CORPOREAL_BEAST),
 	// Dagannoth Kings
-	DAGANNOTH_REX("Dagannoth Rex", ItemID.PET_DAGANNOTH_REX, "Dagannoth Kings"),
-	DAGANNOTH_PRIME("Dagannoth Prime", ItemID.PET_DAGANNOTH_PRIME, "Dagannoth Kings"),
-	DAGANNOTH_SUPREME("Dagannoth Supreme", ItemID.PET_DAGANNOTH_SUPREME, "Dagannoth Kings");
+	DAGANNOTH_REX("Dagannoth Rex", ItemID.PET_DAGANNOTH_REX, "Dagannoth Kings", WatchNpcs.DAGANNOTH_REX),
+	DAGANNOTH_PRIME("Dagannoth Prime", ItemID.PET_DAGANNOTH_PRIME, "Dagannoth Kings", WatchNpcs.DAGANNOTH_PRIME),
+	DAGANNOTH_SUPREME("Dagannoth Supreme", ItemID.PET_DAGANNOTH_SUPREME, "Dagannoth Kings", WatchNpcs.DAGANNOTH_SUPREME);
 
-	Tab(String name, String bossName, int itemID, String category)
+	Tab(String name, int iconItem, String category)
 	{
 		this.name = name;
-		this.bossName = bossName;
-		this.itemID = itemID;
+		this.itemID = iconItem;
 		this.category = category;
+		this.bossName = name;
+		this.watchNpcs = null;
 	}
 
-	Tab(String name, int itemID, String category)
+	Tab(String name, int iconItem, String category, WatchNpcs npcs)
 	{
 		this.name = name;
-		this.bossName = name;
-		this.itemID = itemID;
+		this.itemID = iconItem;
 		this.category = category;
+		this.bossName = npcs.getName();
+		this.watchNpcs = npcs;
 	}
 
 	private final String name;
 	private final String bossName;
 	private final int itemID;
 	private final String category;
+	private final WatchNpcs watchNpcs;
 
 	private static final Map<String, Tab> byName = buildMap();
 
