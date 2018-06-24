@@ -38,42 +38,23 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import javax.imageio.ImageIO;
 import javax.inject.Inject;
 import javax.swing.SwingUtilities;
 
 import lombok.extern.slf4j.Slf4j;
-import net.runelite.api.Actor;
 import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
-import net.runelite.api.Constants;
-import net.runelite.api.InventoryID;
-import net.runelite.api.Item;
-import net.runelite.api.ItemComposition;
-import net.runelite.api.ItemContainer;
 import net.runelite.api.ItemID;
-import net.runelite.api.ItemLayer;
-import net.runelite.api.NPC;
-import net.runelite.api.NPCComposition;
-import net.runelite.api.Node;
-import net.runelite.api.NpcID;
-import net.runelite.api.Tile;
-import net.runelite.api.coords.WorldPoint;
-import net.runelite.api.events.ActorDespawned;
 import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.ConfigChanged;
-import net.runelite.api.events.GameTick;
-import net.runelite.api.events.ItemLayerChanged;
 import net.runelite.api.events.WidgetLoaded;
 import net.runelite.api.widgets.Widget;
 import net.runelite.api.widgets.WidgetID;
@@ -84,6 +65,10 @@ import net.runelite.client.chat.ChatMessageManager;
 import net.runelite.client.chat.QueuedMessage;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.game.ItemManager;
+import net.runelite.client.game.loot.LootTypes;
+import net.runelite.client.game.loot.data.ItemStack;
+import net.runelite.client.game.loot.events.EventLootReceived;
+import net.runelite.client.game.loot.events.NpcLootReceived;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.NavigationButton;
@@ -96,7 +81,6 @@ import static net.runelite.client.RuneLite.LOOTS_DIR;
 @PluginDescriptor(
 	name = "Boss Logger"
 )
-
 @Slf4j
 public class BossLoggerPlugin extends Plugin
 {
@@ -134,24 +118,7 @@ public class BossLoggerPlugin extends Plugin
 	private Map<String, Integer> killcountMap = new HashMap<>(); 			// Store boss kill count by name
 	private Map<String, String> filenameMap = new HashMap<>(); 				// Stores filename for each boss name
 
-	// Loot Finding Variables
-	private Set<Tile> changedItemLayerTiles = new HashSet<Tile>();				// Stores tiles that have had ItemLayer changes
-	private WorldPoint[] deathLocations;										// Stores NPC Death Worldpoints
-	private Map<WorldPoint, Map<Integer, Integer>> itemArray = new HashMap<>();	// Stores item map for a specific WorldPoint
-	private Map<Actor, Actor> actors = new HashMap<>();							// Stores Actors we've interacted with to check for their deaths
-
-	// Variables for handling NPC death
-	private String deathName;				// NPC Name
-	private String lastBossKilled;			// NPC Name, saved for potential pet logging issues
-	private int deathSize;					// NPC Size
-	private int deathID;					// NPC ID
-	private WorldPoint deathSpot;			// NPC Death WorldPoint
-	private WorldPoint playerLocation;		// Players WorldPoint at time of NPC death animation
 	private boolean gotPet = false;			// Got the pet chat message?
-
-	// Watching flags (actor death/changed item layer)
-	private boolean watching = false;				// Watching for ActorDespawn?
-	private boolean watchingItemLayers = false;		// Watching for ItemLayerChanged?
 
 	@Provides
 	BossLoggerConfig provideConfig(ConfigManager configManager)
@@ -181,64 +148,51 @@ public class BossLoggerPlugin extends Plugin
 		removePanel();
 	}
 
-	// Check for loot that is rewarded via interfaces
+	@Subscribe
+	protected void onEventLootReceived(EventLootReceived e)
+	{
+		int kc = -1;
+		switch (e.getEvent())
+		{
+			case(LootTypes.BARROWS):
+				kc = killcountMap.get("BARROWS");
+				break;
+			case(LootTypes.CHAMBERS_OF_XERIC):
+				kc = killcountMap.get("RAIDS");
+				break;
+			case(LootTypes.THEATRE_OF_BLOOD):
+				kc = killcountMap.get("RAIDS 2");
+				break;
+			case(LootTypes.CLUE_SCROLL_EASY):
+			case(LootTypes.CLUE_SCROLL_MEDIUM):
+			case(LootTypes.CLUE_SCROLL_HARD):
+			case(LootTypes.CLUE_SCROLL_ELITE):
+			case(LootTypes.CLUE_SCROLL_MASTER):
+				log.info("Not handling clues currently");
+				break;
+			case(LootTypes.UNKNOWN_EVENT):
+				log.debug("Unknown Event: {}", e);
+				break;
+			default:
+				log.debug("Unhandled Event: {}", e.getEvent());
+		}
+		if (kc == -1)
+			return;
+
+		// Create loot entry and store it to file
+		LootEntry entry = new LootEntry(kc, e.getItems());
+		// Got a pet?
+		if (gotPet)
+			entry.drops.add(handlePet(e.getEvent()));
+		addLootEntry(e.getEvent(), entry);
+
+		BossLoggedAlert("Loot from " + e.getEvent().toLowerCase() + " added to log.");
+	}
+
+	// Check for Unsired loot reclaiming
 	@Subscribe
 	public void onWidgetLoaded(WidgetLoaded event)
 	{
-		// Barrows Chests
-		if (event.getGroupId() == WidgetID.BARROWS_REWARD_GROUP_ID && bossLoggerConfig.recordBarrowsChest())
-		{
-			ItemContainer rewardContainer = client.getItemContainer(InventoryID.REWARD_CHEST);
-			if (rewardContainer == null)
-			{
-				BossLoggedAlert("Couldn't find Barrows Chest Loot");
-				return;
-			}
-			int kc = killcountMap.get("BARROWS");
-			LootEntry entry = createLootEntry(kc, rewardContainer);
-			addLootEntry("Barrows", entry);
-			BossLoggedAlert("Barrows Chest added to log.");
-		}
-
-		// Raids Chest
-		if (event.getGroupId() == WidgetID.RAIDS_REWARD_GROUP_ID && bossLoggerConfig.recordRaidsChest())
-		{
-			ItemContainer rewardContainer = client.getItemContainer(InventoryID.CHAMBERS_OF_XERIC_CHEST);
-			if (rewardContainer == null)
-			{
-				BossLoggedAlert("Couldn't find Raids Chest Loot");
-				return;
-			}
-			int kc = killcountMap.get("RAIDS");
-			LootEntry entry = createLootEntry(kc, rewardContainer);
-			if (gotPet)
-			{
-				entry.drops.add(handlePet("Raids"));
-			}
-			addLootEntry("Raids", entry);
-			BossLoggedAlert("Raids Chest Loot added to log.");
-		}
-
-		// Theater of Blood Chest (Raids 2)
-		if (event.getGroupId() == WidgetID.THEATER_OF_BLOOD_GROUP_ID && bossLoggerConfig.recordTobChest())
-		{
-			ItemContainer rewardContainer = client.getItemContainer(InventoryID.THEATER_OF_BLOOD_CHEST);
-			if (rewardContainer == null)
-			{
-				BossLoggedAlert("Couldn't find Theater of Blood Chest Loot");
-				return;
-			}
-			int kc = killcountMap.get("RAIDS 2");
-			LootEntry entry = createLootEntry(kc, rewardContainer);
-			if (gotPet)
-			{
-				entry.drops.add(handlePet("Raids 2"));
-			}
-			addLootEntry("Raids 2", entry);
-			BossLoggedAlert("Theater of Blood Chest Loot added to log.");
-		}
-
-
 		// Received unsired loot?
 		if (event.getGroupId() == WidgetID.DIALOG_SPRITE_GROUP_ID)
 		{
@@ -262,159 +216,25 @@ public class BossLoggerPlugin extends Plugin
 		}
 	}
 
-	//
-	// Recreate the `onActorDeath` event
-	//
-
+	// Only check for Boss NPCs
 	@Subscribe
-	public void onGameTick(GameTick event)
+	protected void onNpcLootReceived(NpcLootReceived e)
 	{
-		checkInteractingNpcs();
-		checkDeadActors();
-	}
-
-	// Find the NPC the player is interacting with
-	private void checkInteractingNpcs()
-	{
-		Actor interacting = client.getLocalPlayer().getInteracting();
-
-		if (interacting instanceof NPC)
+		String npcName = e.getComposition().getName().toUpperCase();
+		// Special Cases
+		if (npcName.equals("Dusk"))
 		{
-			// Only add if the NPC is interacting us
-			Actor target = interacting.getInteracting();
-			if (target != null && target.getName().equals(client.getLocalPlayer().getName()))
-			{
-
-				String name = interacting.getName();
-				Boolean flag = recordingMap.get(name.toUpperCase());
-				// Special Cases
-				if (name.equals("Dusk"))
-				{
-					flag = recordingMap.get("GROTESQUE GUARDIANS");
-				}
-				if (flag != null && flag)
-				{
-					actors.putIfAbsent(interacting, interacting);
-				}
-			}
+			npcName = "GROTESQUE GUARDIANS";
 		}
-	}
+		Boolean recordingFlag = recordingMap.get(npcName);
 
-	// Did any of the NPCs we interacted with die?
-	private void checkDeadActors()
-	{
-		for (Map.Entry<Actor, Actor> entry : actors.entrySet())
-		{
-			Actor actor = entry.getKey();
-			if (actor.getHealthRatio() == 0)
-			{
-				onActorDeath(actor);
-				actors.remove(entry.getKey());
-			}
-		}
-	}
-
-	// Use to be a subscribe event but was removed on 5/27/2018. Recreated above.
-	private void onActorDeath(Actor actor)
-	{
-		// Are kills for this Boss being recorded?
-		Boolean flag = recordingMap.get(actor.getName().toUpperCase());
-		// Grotesque Guardians Handling
-		if (actor.getName().equals("Dusk"))
-		{
-			flag = recordingMap.get("GROTESQUE GUARDIANS");
-		}
-		// Can't find NPC in recording map or should not be recording the npc loot
-		if (flag == null || !flag)
+		if (recordingFlag == null || !recordingFlag)
 			return;
 
-		// Yes they are
-		NPC npc = (NPC) actor;
-		NPCComposition comp = npc.getComposition();
-		// Record Death info in global variables
-		deathSize = comp.getSize();										// NPC Size
-		deathSpot = actor.getWorldLocation();   						// Death Location
-		playerLocation = client.getLocalPlayer().getWorldLocation(); 	// Player Location on NPC Death
-		deathName = actor.getName();									// NPC Name
-		deathID = npc.getId();											// NPC ID
-		lastBossKilled = actor.getName();								// NPC Name (stored for pets)
-
-		// Get possible death locations
-		deathLocations = getExpectedLootPoints(npc, deathSpot);
-		// Loop over each death location and store its current item contents
-		for (WorldPoint point : deathLocations)
-		{
-			if (point != null)
-			{
-				Tile tile = getLootTile(point);
-				Map<Integer, Integer> items = createItemMap(tile.getItemLayer());
-				if (items.size() > 0)
-					itemArray.put(point, items);
-			}
-		}
-
-		// Start watching for NPC Despawn
-		watching = true;
-		if (deathName.equals("Zulrah"))
-			watchingItemLayers = true;
+		// We are recording this NPC, add the loot to the file
+		AddBossLootEntry(e.getComposition().getName(), e.getItems());
 	}
 
-	@Subscribe
-	public void onActorDespawn(ActorDespawned despawned)
-	{
-		Actor actor = actors.get(despawned.getActor());
-		if (actor != null)
-		{
-			actors.remove(actor);
-		}
-
-		if (watching)
-		{
-			Actor npc = despawned.getActor();
-			if (npc.getName().equals(deathName) && npc.getWorldLocation().equals(deathSpot))
-			{
-				// Correct Boss Despawned
-				watching = false;
-				// Find the drops from the correct tile and return them in the correct format
-				ArrayList<DropEntry> drops = createDropEntryArray((NPC) npc);
-				// Specific use case(s)
-				String npcName = npc.getName();
-				if (npcName.equals("Dusk"))
-					npcName = "Grotesque Guardians";
-
-				if (drops != null)
-				{
-					// Add LootEntry by Boss Name
-					AddBossLootEntry(npcName, drops);
-				}
-				else
-				{
-					log.debug("Error creating DropEntry array");
-				}
-
-				// Reset Variables
-				deathSize = -1;			// NPC Size
-				deathSpot = null;		// NPC Death WP
-				playerLocation = null;	// Player WP on NPC Death
-				deathName = null;		// NPC Name
-				deathID = -1;			// NPC ID
-
-				// Clear maps used for creating the DropEntry array
-				changedItemLayerTiles.clear();	// Changed Tiles
-				deathLocations = null;			// Possible Loot Tiles
-				itemArray.clear();				// Items on Possible Loot Tiles
-			}
-		}
-	}
-
-	@Subscribe
-	public void onItemLayerChanged(ItemLayerChanged event)
-	{
-		if (watchingItemLayers)
-		{
-			changedItemLayerTiles.add(event.getTile());
-		}
-	}
 
 	@Subscribe
 	public void onConfigChanged(ConfigChanged event)
@@ -428,7 +248,7 @@ public class BossLoggerPlugin extends Plugin
 		handleConfigChanged(event.getKey());
 	}
 
-	// Searches chat messages for kill count value or pet drop
+	// Chat Message parsing kill count value and/or pet drop
 	@Subscribe
 	public void onChatMessage(ChatMessage event)
 	{
@@ -688,26 +508,16 @@ public class BossLoggerPlugin extends Plugin
 	//
 
 	// Adds the data to the correct boss log file
-	private void AddBossLootEntry(String bossName, ArrayList<DropEntry> drops)
+	private void AddBossLootEntry(String bossName, List<ItemStack> drops)
 	{
+		if (bossName.toUpperCase().equals("DUSK"))
+			bossName = "Grotesque Guardians";
 		int KC = killcountMap.get(bossName.toUpperCase());
+
 		LootEntry newEntry = new LootEntry(KC, drops);
+
 		addLootEntry(bossName, newEntry);
 		BossLoggedAlert(bossName + " kill added to log.");
-	}
-
-	// Create Loot Entry for ItemContainer
-	private LootEntry createLootEntry(int kill_count, ItemContainer container)
-	{
-		ArrayList<DropEntry> drops = new ArrayList<>();
-		for (Item item : container.getItems())
-		{
-			int id = item.getId();
-			int amount = item.getQuantity();
-			drops.add(new DropEntry(id, amount));
-		}
-
-		return new LootEntry(kill_count, drops);
 	}
 
 	// Add Loot Entry to the necessary file
@@ -843,34 +653,6 @@ public class BossLoggerPlugin extends Plugin
 		}
 	}
 
-	//
-	// Loot Helping Functions
-	//
-
-	// Taken from Wooxs droplogger plugin
-	private List<DropEntry> getGroundItems(Tile tile)
-	{
-		List<Item> items = tile.getGroundItems();
-		if (items == null)
-		{
-			return null;
-		}
-		return items.stream()
-				.map(x -> new DropEntry(x.getId(), x.getQuantity()))
-				.collect(Collectors.toList());
-	}
-
-	// Taken from Wooxs droplogger plugin, should be added to ItemManager in the future.
-	private int getUnnotedItemId(int itemId)
-	{
-		ItemComposition comp = itemManager.getItemComposition(itemId);
-		if (comp.getNote() == -1)
-		{
-			return itemId;
-		}
-		return comp.getLinkedNoteId();
-	}
-
 	// Upon cleaning an Unsired add the item to the previous LootEntry
 	private void receivedUnsiredLoot(int itemID)
 	{
@@ -878,266 +660,6 @@ public class BossLoggerPlugin extends Plugin
 		// Update the last drop
 		addDropToLastLootEntry("Abyssal Sire", drop);
 	}
-
-	// Credit to @WooxSolo (www.github.com/wooxsolo), ripped and modified slightly from `droplogger` plugin
-	private WorldPoint[] getExpectedLootPoints(NPC npc, WorldPoint location)
-	{
-		WorldPoint location2 = null;
-		WorldPoint location3 = null;
-		// Some bosses drop their loot in specific locations
-		switch (deathID)
-		{
-			// Kraken spawns loot on you
-			case NpcID.KRAKEN:
-			case NpcID.KRAKEN_6640:
-			case NpcID.KRAKEN_6656:
-				// Location is determined at start of death animation
-				location = playerLocation;
-				break;
-			case NpcID.DUSK:
-			case NpcID.DUSK_7851:
-			case NpcID.DUSK_7854:
-			case NpcID.DUSK_7855:
-			case NpcID.DUSK_7882:
-			case NpcID.DUSK_7883:
-			case NpcID.DUSK_7886:
-			case NpcID.DUSK_7887:
-			case NpcID.DUSK_7888:
-			case NpcID.DUSK_7889:
-				location = new WorldPoint(location.getX() + 3, location.getY() + 3, location.getPlane());
-				break;
-			case NpcID.ZULRAH:
-			case NpcID.ZULRAH_2043:
-			case NpcID.ZULRAH_2044:
-				// Stop tracking which ItemLayers have been updated.
-				watchingItemLayers = false;
-				// The drop appears on the tile where zulrah scales appeared
-				WorldPoint loc = changedItemLayerTiles.stream()
-						.filter(x ->
-						{
-							List<DropEntry> groundItems = getGroundItems(x);
-							if (groundItems != null)
-							{
-								return groundItems.stream().anyMatch(y -> y.getItemId() == ItemID.ZULRAHS_SCALES);
-							}
-							return false;
-						})
-						.map(Tile::getWorldLocation)
-						// If player drops some zulrah scales themselves on the same tick,
-						// the ones that appeared further away will be chosen instead.
-						.sorted((x, y) -> y.distanceTo(playerLocation) - x.distanceTo(playerLocation))
-						.findFirst().orElse(null);
-				// Couldn't find loot
-				if (loc == null)
-				{
-					break;
-				}
-				// Found tile
-				location = loc;
-				break;
-			case NpcID.CORPOREAL_BEAST:
-				location = new WorldPoint(location.getX() + 1, location.getY() + 1, location.getPlane());
-				break;
-			case NpcID.ABYSSAL_SIRE:
-			case NpcID.ABYSSAL_SIRE_5887:
-			case NpcID.ABYSSAL_SIRE_5888:
-			case NpcID.ABYSSAL_SIRE_5889:
-			case NpcID.ABYSSAL_SIRE_5890:
-			case NpcID.ABYSSAL_SIRE_5891:
-			case NpcID.ABYSSAL_SIRE_5908:
-				location = new WorldPoint(npc.getWorldLocation().getX() + 2, npc.getWorldLocation().getY() + 2, npc.getWorldLocation().getPlane());
-				break;
-			case NpcID.VORKATH:
-			case NpcID.VORKATH_8058:
-			case NpcID.VORKATH_8059:
-			case NpcID.VORKATH_8060:
-			case NpcID.VORKATH_8061:
-				int x = location.getX() + 3;
-				int y = location.getY() + 3;
-				if (playerLocation.getX() < x)
-				{
-					x = x - 4;
-				}
-				else if (playerLocation.getX() > x)
-				{
-					x = x + 4;
-				}
-				if (playerLocation.getY() < y)
-				{
-					y = y - 4;
-				}
-				else if (playerLocation.getY() > y)
-				{
-					y = y + 4;
-				}
-				location = new WorldPoint(x, y, location.getPlane());
-				break;
-			default:
-				if (deathSize >= 3)
-				{
-					// Large NPCs (mostly bosses) drop their loot in the middle of them rather than on the southwestern spot
-					// Set location2 to be checked for loot
-					location2 = new WorldPoint(location.getX() + (deathSize - 1) / 2, location.getY() + (deathSize - 1) / 2, location.getPlane());
-					// May be completely unnecessary but i think removing 1 from deathSize can mess up certain NPCs
-					location3 = new WorldPoint( location.getX() - (deathSize / 2), location.getY() - (deathSize / 2), location.getPlane());
-				}
-		}
-		WorldPoint[] points = new WorldPoint[]{
-				location,
-				location2,
-				location3
-		};
-		return points;
-	}
-
-	// Checks which WorldPoint has had item changes
-	private WorldPoint getCorrectWorldPoint(WorldPoint[] points)
-	{
-		Tile tile;
-		for (WorldPoint location : points)
-		{
-			if (location == null)
-			{
-				continue;
-			}
-
-			tile = getLootTile(location);
-			if (tile != null)
-			{
-				// Loops over layer.getBottom() and stores K,V as ItemID,ItemAmount
-				Map<Integer, Integer> itemMap = createItemMap(tile.getItemLayer());
-				if (itemMap != null && itemMap.size() > 0)
-				{
-					Map<Integer, Integer> oldItems = itemArray.get(location);
-					if (oldItems != null )
-					{
-						if (itemMap.equals(oldItems))
-						{
-							// Didn't Change, try another location
-							continue;
-						}
-					}
-					// Tile has items and items have changed, returns this location
-					return location;
-				}
-			}
-		}
-		return null;
-	}
-
-	// Get tile based on WorldPoint. Taken from Wooxs droplogger plugin
-	private Tile getLootTile(WorldPoint location)
-	{
-		int regionX = location.getX() - client.getBaseX();
-		int regionY = location.getY() - client.getBaseY();
-		if (regionX < 0 || regionX >= Constants.REGION_SIZE || regionY < 0 || regionY >= Constants.REGION_SIZE)
-		{
-			return null;
-		}
-
-		return client.getRegion().getTiles()[location.getPlane()][regionX][regionY];
-	}
-
-	// Creates an item map (ID,amount) for the tiles item layer
-	private Map<Integer, Integer> createItemMap(ItemLayer layer)
-	{
-		Map<Integer, Integer> map = new HashMap<>();
-		if (layer == null)
-			return map;
-
-		Node current = layer.getBottom();
-		while (current instanceof Item)
-		{
-			final Item item = (Item) current;
-
-			Integer ex = map.computeIfPresent(item.getId(), (k, v) -> v + item.getQuantity());
-			if (ex == null)
-			{
-				map.computeIfAbsent(item.getId(), e -> item.getQuantity());
-			}
-			current = current.getNext();
-		}
-
-		return map;
-	}
-
-
-	// Figures out what items the boss dropped
-	private ArrayList<DropEntry> createDropEntryArray(NPC npc)
-	{
-		// Checks all deathLocations for spawned loot
-		WorldPoint correctWP = getCorrectWorldPoint(deathLocations);
-		if (correctWP == null)
-		{
-			// May be null for bosses that look for the tile where new items are added
-			WorldPoint[] points = getExpectedLootPoints(npc, deathSpot);
-			correctWP = getCorrectWorldPoint(points);
-
-			// Still not able to find correct world point
-			if (correctWP == null)
-			{
-				BossLoggedAlert("Unable to find loot for: " + npc.getName());
-				log.debug("Unable to find correct location for NPC", npc.getName());
-				return null;
-			}
-		}
-
-		// Grab the tile from this correct WorldPoint
-		Tile tile = getLootTile(correctWP);
-		if (tile == null)
-		{
-			BossLoggedAlert("Unable to find loot at expected location for: " + npc.getName());
-			log.debug("Unable to find loot tile at expected location for NPC", npc.getName(), correctWP);
-			return null;
-		}
-
-		// Get item layer from correct tile
-		ItemLayer layer = tile.getItemLayer();
-		// Grab old items for this world point
-		Map<Integer, Integer> oldMap = itemArray.get(correctWP);
-		// Create a map of the Current items
-		Map<Integer, Integer> newItems = createItemMap(layer);
-		// Tile doesn't have items or no new items
-		if (layer == null || newItems.equals(oldMap))
-		{
-			BossLoggedAlert("Unable to create drop entry for: " + npc.getName());
-			log.debug("No Layer Items or no NEW Layer Items", layer, newItems, oldMap, tile);
-			return null;
-		}
-
-		// Loop Through the new items and add them to the drops array list
-		ArrayList<DropEntry> drops = new ArrayList<DropEntry>();
-		Map<Integer, Integer> finalOldMap = oldMap;
-		newItems.forEach((id, amount) ->
-				{
-					// If some of this item already existed remove the existing amount
-					if (finalOldMap != null)
-					{
-						Integer existing = finalOldMap.get(id);
-						if (existing != null)
-						{
-							amount = amount - existing;
-						}
-					}
-					// If no new item ignore this item ID
-					if (amount <= 0)
-						return;
-					// Add new entry
-					int unnotedID = getUnnotedItemId(id);			// Store everything in unnoted form
-					drops.add(new DropEntry(unnotedID, amount));
-				}
-
-		);
-
-		// Not sure if this works since pets are so rare.
-		if (gotPet)
-		{
-			drops.add(handlePet(npc.getName()));
-		}
-
-		return drops;
-	}
-
 
 	//
 	// Other Helper Functions
@@ -1151,12 +673,6 @@ public class BossLoggerPlugin extends Plugin
 		return new DropEntry(petID, 1);
 	}
 
-	void clearData(Tab tab)
-	{
-		log.debug("Clearing data for tab: " + tab.getName());
-		clearLootFile(tab);
-	}
-
 	private int getPetIdByNpcName(String name)
 	{
 		Pet pet = Pet.getByBossName(name);
@@ -1165,6 +681,12 @@ public class BossLoggerPlugin extends Plugin
 			return pet.getPetID();
 		}
 		return -1;
+	}
+
+	void clearData(Tab tab)
+	{
+		log.debug("Clearing data for tab: " + tab.getName());
+		clearLootFile(tab);
 	}
 
 	// Updates in-game alert chat color based on config settings

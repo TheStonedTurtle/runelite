@@ -25,7 +25,9 @@
 package net.runelite.client.plugins.bosslogger;
 
 import java.util.ArrayList;
+import java.util.List;
 import lombok.Getter;
+import net.runelite.client.game.loot.data.ItemStack;
 
 class LootEntry
 {
@@ -37,6 +39,17 @@ class LootEntry
 
 	LootEntry(int killCount, ArrayList<DropEntry> drops)
 	{
+		this.killCount = killCount;
+		this.drops = drops;
+	}
+
+	LootEntry(int killCount, List<ItemStack> d)
+	{
+		ArrayList<DropEntry> drops = new ArrayList<>();
+		for (ItemStack i : d)
+		{
+			drops.add(new DropEntry(i.getId(), i.getQuantity()));
+		}
 		this.killCount = killCount;
 		this.drops = drops;
 	}
