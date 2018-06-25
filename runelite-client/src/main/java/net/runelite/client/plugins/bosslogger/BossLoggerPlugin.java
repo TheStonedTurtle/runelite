@@ -40,9 +40,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.imageio.ImageIO;
@@ -132,17 +129,15 @@ public class BossLoggerPlugin extends Plugin
 	@Override
 	protected void startUp()
 	{
-		if (bossLoggerConfig.showLootTotals())
-		{
-			// Waits 2 seconds, helps ensure itemManager is loaded
-			// Client cache loading is async, plugins can be loaded before it is finished
-			ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-			scheduler.schedule(() -> SwingUtilities.invokeLater(this::createPanel), 2, TimeUnit.SECONDS);
-		}
 		init();
 
 		// Ensure Loot Directory has been created
 		LOOTS_DIR.mkdir();
+
+		if (bossLoggerConfig.showLootTotals())
+		{
+			SwingUtilities.invokeLater(this::createPanel);
+		}
 	}
 
 	@Override
@@ -343,7 +338,7 @@ public class BossLoggerPlugin extends Plugin
 			// Only update tabs if the tabs are being shown.
 			if (isBeingRecorded(tab.getName()))
 			{
-				panel.updateTab(tab.getName());
+				panel.refreshTab(tab);
 			}
 		}
 	}
@@ -425,7 +420,7 @@ public class BossLoggerPlugin extends Plugin
 		// Remove panel tab if showing panel
 		if (bossLoggerConfig.showLootTotals())
 		{
-			panel.toggleTab();
+			panel.toggleTab(tab);
 		}
 	}
 
@@ -503,11 +498,10 @@ public class BossLoggerPlugin extends Plugin
 		}
 	}
 
-	// Returns stored data by tab name
-	public ArrayList<LootEntry> getData(String type)
+	// Returns stored data by tab
+	public ArrayList<LootEntry> getData(Tab tab)
 	{
 		// Loot Entries are stored on lootMap by boss name (upper cased)
-		Tab tab = Tab.getByName(type);
 		return lootMap.get(tab);
 	}
 
@@ -520,6 +514,8 @@ public class BossLoggerPlugin extends Plugin
 	{
 		int KC = killcountMap.get(bossName.toUpperCase());
 		LootEntry newEntry = new LootEntry(KC, drops);
+		if (gotPet)
+			newEntry.addDrop(handlePet(bossName));
 		addLootEntry(bossName, newEntry);
 		BossLoggedAlert(bossName + " kill added to log.");
 	}
@@ -563,7 +559,7 @@ public class BossLoggerPlugin extends Plugin
 		// Update tab if being displayed;
 		if (isBeingRecorded(tab.getName()))
 		{
-			panel.updateTab(tab.getName());
+			panel.updateTab(tab);
 		}
 	}
 
@@ -661,7 +657,7 @@ public class BossLoggerPlugin extends Plugin
 		// Update tab if being displayed;
 		if (isBeingRecorded(tab.getName()))
 		{
-			panel.updateTab(tab.getName());
+			panel.updateTab(tab);
 		}
 	}
 

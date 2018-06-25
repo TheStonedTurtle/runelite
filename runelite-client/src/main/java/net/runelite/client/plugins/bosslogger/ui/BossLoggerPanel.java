@@ -338,7 +338,7 @@ public class BossLoggerPanel extends PluginPanel
 	private JPanel createLootPanel(Tab tab)
 	{
 		// Grab Tab Data
-		ArrayList<LootEntry> data = bossLoggerPlugin.getData(tab.getName());
+		ArrayList<LootEntry> data = bossLoggerPlugin.getData(tab);
 
 		// Unique Items Info
 		ArrayList<UniqueItem> list = UniqueItem.getByActivityName(tab.getName());
@@ -382,31 +382,40 @@ public class BossLoggerPanel extends PluginPanel
 	}
 
 	// Updates panel for this tab name
-	public void updateTab(String tabName)
+	public void updateTab(Tab tab)
 	{
 		// Change to tab of recently killed boss if on landing page
 		if (currentTab == null)
 		{
-			Tab tab = Tab.getByName(tabName);
+			currentTab = tab;
 			SwingUtilities.invokeLater(() -> showTabDisplay(tab));
 			return;
 		}
 
 		// only update the tab if they are looking at this boss tab
-		if (tabName.equals(currentTab.getName()))
+		if (tab.equals(currentTab))
 		{
 			// Reload data from file to ensure data and UI match
 			bossLoggerPlugin.loadTabData(currentTab);
 			// Grab LootPanel that needs to be updated
-			SwingUtilities.invokeLater(() -> lootPanel.updateRecords(bossLoggerPlugin.getData(tabName)));
+			SwingUtilities.invokeLater(() -> lootPanel.updateRecords(bossLoggerPlugin.getData(tab)));
 		}
 	}
 
-	public void toggleTab()
+	public void toggleTab(Tab tab)
 	{
-		// Only toggle tab if on landing page since the tabs are recreated each time
-		if (currentTab == null)
+		// Recreate landing page if currently being shown or toggled active tab
+		if (currentTab == null || tab.equals(currentTab))
 			createLandingPanel();
+	}
+
+	// Refresh tab data if being shown
+	public void refreshTab(Tab tab)
+	{
+		if (tab.equals(currentTab))
+		{
+			showTabDisplay(tab);
+		}
 	}
 
 	// Refresh the Loot Panel with updated data (requests the data from file)
@@ -416,7 +425,7 @@ public class BossLoggerPanel extends PluginPanel
 		bossLoggerPlugin.loadTabData(tab);
 
 		// Recreate the loot panel
-		lootPanel.updateRecords(bossLoggerPlugin.getData(tab.getName()));
+		lootPanel.updateRecords(bossLoggerPlugin.getData(tab));
 
 		// Ensure changes are applied
 		this.revalidate();
