@@ -80,7 +80,14 @@ public enum Tab
 	// Dagannoth Kings
 	DAGANNOTH_REX("Dagannoth Rex", ItemID.PET_DAGANNOTH_REX, "Dagannoth Kings", WatchNpcs.DAGANNOTH_REX),
 	DAGANNOTH_PRIME("Dagannoth Prime", ItemID.PET_DAGANNOTH_PRIME, "Dagannoth Kings", WatchNpcs.DAGANNOTH_PRIME),
-	DAGANNOTH_SUPREME("Dagannoth Supreme", ItemID.PET_DAGANNOTH_SUPREME, "Dagannoth Kings", WatchNpcs.DAGANNOTH_SUPREME);
+	DAGANNOTH_SUPREME("Dagannoth Supreme", ItemID.PET_DAGANNOTH_SUPREME, "Dagannoth Kings", WatchNpcs.DAGANNOTH_SUPREME),
+
+	// Clue scrolls
+	CLUE_SCROLL_EASY("Clue Scroll Easy", ItemID.CLUE_BOTTLE_EASY, "Clue Scrolls"),
+	CLUE_SCROLL_MEDIUM("Clue Scroll Medium", ItemID.CLUE_BOTTLE_MEDIUM, "Clue Scrolls"),
+	CLUE_SCROLL_HARD("Clue Scroll Hard", ItemID.CLUE_BOTTLE_HARD, "Clue Scrolls"),
+	CLUE_SCROLL_ELITE("Clue Scroll Elite", ItemID.CLUE_BOTTLE_ELITE, "Clue Scrolls"),
+	CLUE_SCROLL_MASTER("Clue Scroll Master", ItemID.BLOODHOUND, "Clue Scrolls");
 
 	Tab(String name, int iconItem, String category)
 	{

@@ -66,7 +66,8 @@ public enum Pet
 	PET_DAGANNOTH_REX(ItemID.PET_DAGANNOTH_REX, "Dagannoth Rex"),
 	PET_DAGANNOTH_PRIME(ItemID.PET_DAGANNOTH_PRIME, "Dagannoth Prime"),
 	PET_DAGANNOTH_SUPREME(ItemID.PET_DAGANNOTH_SUPREME, "Dagannoth Supreme"),
-	VORKI(ItemID.VORKI, "Vorkath");
+	VORKI(ItemID.VORKI, "Vorkath"),
+	BLOODHOUND(ItemID.BLOODHOUND, "Clue Scroll Master");
 
 	Pet(int id, String... bossNames)
 	{

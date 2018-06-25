@@ -387,6 +387,67 @@ public interface BossLoggerConfig extends Config
 	}
 
 	@ConfigItem(
+		keyName = "recordEasyClues",
+		name = "Easy Clue Scroll Loot",
+		description = "Configures whether or not loot from Easy clue scrolls is recorded",
+		position = 28
+	)
+
+	default boolean recordEasyClues()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+		keyName = "recordMediumClues",
+		name = "Medium Clue Scroll Loot",
+		description = "Configures whether or not loot from Medium clue scrolls is recorded",
+		position = 29
+	)
+
+	default boolean recordMediumClues()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+		keyName = "recordHardClues",
+		name = "Hard Clue Scroll Loot",
+		description = "Configures whether or not loot from Hard clue scrolls is recorded",
+		position = 30
+	)
+
+	default boolean recordHardClues()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+		keyName = "recordEliteClues",
+		name = "Elite Clue Scroll Loot",
+		description = "Configures whether or not loot from Elite clue scrolls is recorded",
+		position = 31
+	)
+
+	default boolean recordEliteClues()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+		keyName = "recordMasterClues",
+		name = "Master Clue Scroll Loot",
+		description = "Configures whether or not loot from Master clue scrolls is recorded",
+		position = 32
+	)
+
+	default boolean recordMasterClues()
+	{
+		return true;
+	}
+
+
+	@ConfigItem(
 		keyName = "showChatMessages",
 		name = "In-game Chat Message Alerts",
 		description = "In-Game Chat Messages when Loot Recorded",

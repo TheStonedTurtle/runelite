@@ -107,6 +107,7 @@ public class BossLoggerPlugin extends Plugin
 	private static final Pattern BOSS_NAME_PATTERN = Pattern.compile("Your (.*) kill count is:");
 	private static final Pattern PET_RECEIVED_PATTERN = Pattern.compile("You have a funny feeling like ");
 	private static final Pattern PET_RECEIVED_INVENTORY_PATTERN = Pattern.compile("You feel something weird sneaking into your backpack.");
+	private static final Pattern CLUE_SCROLL_PATTERN = Pattern.compile("You have completed (\\d*) (\\w*) Treasure Trails.");
 	private String messageColor = ""; // in-game chat message color
 
 	private BossLoggerPanel panel;
@@ -166,7 +167,7 @@ public class BossLoggerPlugin extends Plugin
 			case(LootTypes.CLUE_SCROLL_HARD):
 			case(LootTypes.CLUE_SCROLL_ELITE):
 			case(LootTypes.CLUE_SCROLL_MASTER):
-				log.info("Not handling clues currently");
+				kc = killcountMap.get(e.getEvent());
 				break;
 			case(LootTypes.UNKNOWN_EVENT):
 				log.debug("Unknown Event: {}", e);
@@ -296,6 +297,36 @@ public class BossLoggerPlugin extends Plugin
 			}
 		}
 
+		Matcher clueScroll = CLUE_SCROLL_PATTERN.matcher(chatMessage);
+		if (clueScroll.find())
+		{
+			String type = null;
+			switch (clueScroll.group(1).toUpperCase())
+			{
+				case "EASY":
+					type = LootTypes.CLUE_SCROLL_EASY;
+					break;
+				case "MEDIUM":
+					type = LootTypes.CLUE_SCROLL_MEDIUM;
+					break;
+				case "HARD":
+					type = LootTypes.CLUE_SCROLL_HARD;
+					break;
+				case "ELITE":
+					type = LootTypes.CLUE_SCROLL_ELITE;
+					break;
+				case "MASTER":
+					type = LootTypes.CLUE_SCROLL_MASTER;
+					break;
+			}
+
+			if (type == null)
+				return;
+
+			killcountMap.put(type, Integer.valueOf(clueScroll.group(0)));
+			return;
+		}
+
 		// Handle all other boss
 		Matcher boss = BOSS_NAME_PATTERN.matcher(Text.removeTags(chatMessage));
 		if (boss.find())
@@ -335,11 +366,8 @@ public class BossLoggerPlugin extends Plugin
 
 		for (Tab tab : Tab.values())
 		{
-			// Only update tabs if the tabs are being shown.
-			if (isBeingRecorded(tab.getName()))
-			{
-				panel.refreshTab(tab);
-			}
+			// This call will only do something if this tab is currently selected in the panel
+			panel.refreshTab(tab);
 		}
 	}
 
@@ -676,12 +704,12 @@ public class BossLoggerPlugin extends Plugin
 	private DropEntry handlePet(String name)
 	{
 		gotPet = false;
-		int petID = getPetIdByNpcName(name);
+		int petID = getPetId(name);
 		BossLoggedAlert("Oh lookie a pet! Don't forget to insure it!");
 		return new DropEntry(petID, 1);
 	}
 
-	private int getPetIdByNpcName(String name)
+	private int getPetId(String name)
 	{
 		Pet pet = Pet.getByBossName(name);
 		if (pet != null)
@@ -775,6 +803,17 @@ public class BossLoggerPlugin extends Plugin
 				return bossLoggerConfig.recordDagannothSupremeKills();
 			case "RAIDS 2":
 				return bossLoggerConfig.recordTobChest();
+			// Clue Scrolls
+			case "CLUE SCROLL EASY":
+				return bossLoggerConfig.recordEasyClues();
+			case "CLUE SCROLL MEDIUM":
+				return bossLoggerConfig.recordMediumClues();
+			case "CLUE SCROLL HARD":
+				return bossLoggerConfig.recordHardClues();
+			case "CLUE SCROLL ELITE":
+				return bossLoggerConfig.recordEliteClues();
+			case "CLUE SCROLL MASTER":
+				return bossLoggerConfig.recordMasterClues();
 			default:
 				return false;
 		}
@@ -871,6 +910,21 @@ public class BossLoggerPlugin extends Plugin
 				return;
 			case "recordTobChest":
 				toggleTabRecordingStatus(Tab.RAIDS_2, bossLoggerConfig.recordTobChest());
+				return;
+			case "CLUE SCROLL EASY":
+				toggleTabRecordingStatus(Tab.CLUE_SCROLL_EASY, bossLoggerConfig.recordEasyClues());
+				return;
+			case "CLUE SCROLL MEDIUM":
+				toggleTabRecordingStatus(Tab.CLUE_SCROLL_MEDIUM, bossLoggerConfig.recordMediumClues());
+				return;
+			case "CLUE SCROLL HARD":
+				toggleTabRecordingStatus(Tab.CLUE_SCROLL_HARD, bossLoggerConfig.recordHardClues());
+				return;
+			case "CLUE SCROLL ELITE":
+				toggleTabRecordingStatus(Tab.CLUE_SCROLL_ELITE, bossLoggerConfig.recordEliteClues());
+				return;
+			case "CLUE SCROLL MASTER":
+				toggleTabRecordingStatus(Tab.CLUE_SCROLL_MASTER, bossLoggerConfig.recordMasterClues());
 				return;
 			case "showLootTotals":
 				loadAllData();
