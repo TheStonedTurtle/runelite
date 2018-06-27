@@ -563,6 +563,7 @@ public class BossLoggerPlugin extends Plugin
 		if (data == null)
 		{
 			log.debug("Couldn't find local data for tab: {}", tab);
+			lootMap.put(tab, new ArrayList<>());
 			return;
 		}
 
