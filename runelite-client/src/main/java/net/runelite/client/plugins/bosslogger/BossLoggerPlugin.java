@@ -268,7 +268,7 @@ public class BossLoggerPlugin extends Plugin
 		}
 
 		// Raids KC
-		if (chatMessage.startsWith("Your completed Chambers of Xeric count is:"))
+		if (chatMessage.startsWith("Your completed Chambers of Xeric count is"))
 		{
 			Matcher m = NUMBER_PATTERN.matcher(Text.removeTags(chatMessage));
 			if (m.find())
@@ -279,7 +279,7 @@ public class BossLoggerPlugin extends Plugin
 		}
 
 		// Raids KC
-		if (chatMessage.startsWith("Your completed Theatre of Blood count is:"))
+		if (chatMessage.startsWith("Your completed Theatre of Blood count is"))
 		{
 			Matcher m = NUMBER_PATTERN.matcher(Text.removeTags(chatMessage));
 			if (m.find())
@@ -345,21 +345,6 @@ public class BossLoggerPlugin extends Plugin
 		for (Tab tab : Tab.values())
 		{
 			lootMap.put(tab, new ArrayList<>());
-		}
-	}
-
-	private void updateTabData()
-	{
-		// Do nothing is panel isn't enabled
-		if (!bossLoggerConfig.showLootTotals())
-		{
-			return;
-		}
-
-		for (Tab tab : Tab.values())
-		{
-			// This call will only do something if this tab is currently selected in the panel
-			panel.refreshTab(tab);
 		}
 	}
 
@@ -455,7 +440,8 @@ public class BossLoggerPlugin extends Plugin
 		if (changed)
 		{
 			resetStoredData();
-			updateTabData();
+			if (bossLoggerConfig.showLootTotals())
+				panel.refreshCurrentTab();
 		}
 	}
 
@@ -488,7 +474,7 @@ public class BossLoggerPlugin extends Plugin
 	}
 
 	// Load data for all bosses being recorded
-	void loadAllData()
+	private void loadAllData()
 	{
 		for (Tab tab : Tab.values())
 		{

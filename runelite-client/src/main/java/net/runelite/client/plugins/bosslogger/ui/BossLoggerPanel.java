@@ -381,43 +381,6 @@ public class BossLoggerPanel extends PluginPanel
 		return scroller;
 	}
 
-	// Updates panel for this tab name
-	public void updateTab(Tab tab)
-	{
-		// Change to tab of recently killed boss if on landing page
-		if (currentTab == null)
-		{
-			currentTab = tab;
-			SwingUtilities.invokeLater(() -> showTabDisplay(tab));
-			return;
-		}
-
-		// only update the tab if they are looking at this boss tab
-		if (tab.equals(currentTab))
-		{
-			// Reload data from file to ensure data and UI match
-			bossLoggerPlugin.loadTabData(currentTab);
-			// Grab LootPanel that needs to be updated
-			SwingUtilities.invokeLater(() -> lootPanel.updateRecords(bossLoggerPlugin.getData(tab)));
-		}
-	}
-
-	public void toggleTab(Tab tab)
-	{
-		// Recreate landing page if currently being shown or toggled active tab
-		if (currentTab == null || tab.equals(currentTab))
-			createLandingPanel();
-	}
-
-	// Refresh tab data if being shown
-	public void refreshTab(Tab tab)
-	{
-		if (tab.equals(currentTab))
-		{
-			showTabDisplay(tab);
-		}
-	}
-
 	// Refresh the Loot Panel with updated data (requests the data from file)
 	private void refreshLootPanel(LootPanel lootPanel, Tab tab)
 	{
@@ -446,6 +409,41 @@ public class BossLoggerPanel extends PluginPanel
 			bossLoggerPlugin.clearData(tab);
 			// Refresh current panel
 			refreshLootPanel(lootPanel, tab);
+		}
+	}
+
+	public void toggleTab(Tab tab)
+	{
+		// Recreate landing page if currently being shown or toggled active tab
+		if (currentTab == null || tab.equals(currentTab))
+			createLandingPanel();
+	}
+
+	// Refresh tab data if being shown
+	public void refreshCurrentTab()
+	{
+		if (currentTab != null)
+			showTabDisplay(currentTab);
+	}
+
+	// Updates panel for this tab name
+	public void updateTab(Tab tab)
+	{
+		// Change to tab of recently killed boss if on landing page
+		if (currentTab == null)
+		{
+			currentTab = tab;
+			SwingUtilities.invokeLater(() -> showTabDisplay(tab));
+			return;
+		}
+
+		// only update the tab if they are looking at this boss tab
+		if (tab.equals(currentTab))
+		{
+			// Reload data from file to ensure data and UI match
+			bossLoggerPlugin.loadTabData(currentTab);
+			// Grab LootPanel that needs to be updated
+			SwingUtilities.invokeLater(() -> lootPanel.updateRecords(bossLoggerPlugin.getData(tab)));
 		}
 	}
 }
