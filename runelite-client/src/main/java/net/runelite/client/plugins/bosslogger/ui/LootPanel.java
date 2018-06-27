@@ -84,7 +84,7 @@ public class LootPanel extends JPanel
 			drops.forEach(de ->
 			{
 				ItemComposition item = itemManager.getUnnotedItemComposition(de.getItemId());
-				LootRecord uniq = this.consolidated.get(item.getId());
+				LootRecord uniq = this.consolidated.get(de.getItemId());
 				if (uniq == null)
 				{
 					// Create new entry
