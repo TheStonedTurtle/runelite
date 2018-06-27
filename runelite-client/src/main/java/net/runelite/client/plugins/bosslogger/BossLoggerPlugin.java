@@ -29,12 +29,6 @@ import com.google.inject.Provides;
 
 import java.awt.Color;
 import java.awt.image.BufferedImage;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -74,9 +68,6 @@ import net.runelite.client.plugins.bosslogger.ui.BossLoggerPanel;
 import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.ui.PluginToolbar;
 import net.runelite.client.util.Text;
-import net.runelite.http.api.RuneLiteAPI;
-
-import static net.runelite.client.RuneLite.LOOTS_DIR;
 
 @PluginDescriptor(
 	name = "Boss Logger"
@@ -102,7 +93,9 @@ public class BossLoggerPlugin extends Plugin
 	@Inject
 	private PluginToolbar pluginToolbar;
 
-	private File playerFolder;	// Where we are storing files
+	// File Reading/Writing
+	private BossLoggerWriter writer;
+
 	private static final Pattern NUMBER_PATTERN = Pattern.compile("([0-9]+)");
 	private static final Pattern BOSS_NAME_PATTERN = Pattern.compile("Your (.*) kill count is:");
 	private static final Pattern PET_RECEIVED_PATTERN = Pattern.compile("You have a funny feeling like ");
@@ -132,13 +125,12 @@ public class BossLoggerPlugin extends Plugin
 	{
 		init();
 
-		// Ensure Loot Directory has been created
-		LOOTS_DIR.mkdir();
-
 		if (bossLoggerConfig.showLootTotals())
 		{
 			SwingUtilities.invokeLater(this::createPanel);
 		}
+
+		writer = new BossLoggerWriter(client, filenameMap);
 	}
 
 	@Override
@@ -452,34 +444,15 @@ public class BossLoggerPlugin extends Plugin
 		}
 	}
 
-
-
 	//
 	// General Functionality functions
 	//
 
-	// Will use the main loots folder if your ingame username is not available
+	// Wrapper for changing local writing directory
 	private void updatePlayerFolder()
 	{
-		String old = "";
-		if (playerFolder != null)
-		{
-			old = playerFolder.toString();
-		}
-
-		if (client.getLocalPlayer() != null && client.getLocalPlayer().getName() != null)
-		{
-			playerFolder = new File(LOOTS_DIR, client.getLocalPlayer().getName());
-			// Ensure player folder is made
-			playerFolder.mkdir();
-		}
-		else
-		{
-			playerFolder = LOOTS_DIR;
-		}
-
-		// Reset Stored and UI Data on change of data directory
-		if (!playerFolder.toString().equals(old))
+		boolean changed = writer.updatePlayerFolder();
+		if (changed)
 		{
 			resetStoredData();
 			updateTabData();
@@ -548,9 +521,11 @@ public class BossLoggerPlugin extends Plugin
 		BossLoggedAlert(bossName + " kill added to log.");
 	}
 
-	// Add Loot Entry to the necessary file
+	// Wrapper for writer.addLootEntry
 	private void addLootEntry(String bossName, LootEntry entry)
 	{
+		updatePlayerFolder();
+
 		Tab tab = Tab.getByBossName(bossName);
 		if (tab == null)
 		{
@@ -563,25 +538,12 @@ public class BossLoggerPlugin extends Plugin
 		loots.add(entry);
 		lootMap.put(tab, loots);
 
-		// Convert entry to JSON
-		String dataAsString = RuneLiteAPI.GSON.toJson(entry);
+		boolean success = writer.addLootEntry(tab, entry);
 
-		// Grab file by username or loots directory if not logged in
-		updatePlayerFolder();
-		String fileName = filenameMap.get(tab);
-
-		// Open File and append data
-		File lootFile = new File(playerFolder, fileName);
-		try
+		if (!success)
 		{
-			BufferedWriter file = new BufferedWriter(new FileWriter(String.valueOf(lootFile), true));
-			file.append(dataAsString);
-			file.newLine();
-			file.close();
-		}
-		catch (IOException ioe)
-		{
-			log.warn("Error writing loot data in file.", ioe);
+			log.debug("Couldn't add entry to tab. (tab: {0} | entry: {1})", tab, entry);
+			return;
 		}
 
 		// Update tab if being displayed;
@@ -591,61 +553,27 @@ public class BossLoggerPlugin extends Plugin
 		}
 	}
 
-	private synchronized void clearLootFile(Tab tab)
-	{
-		String fileName = filenameMap.get(tab);
-		File lootFile = new File(playerFolder, fileName);
-
-		try
-		{
-			BufferedWriter file = new BufferedWriter(new FileWriter(String.valueOf(lootFile), false));
-			file.close();
-		}
-		catch (IOException e)
-		{
-			log.warn("Error clearing loot data in file.", e);
-		}
-	}
-
 	// Receive Loot from the necessary file
 	private synchronized void loadLootEntries(Tab tab)
 	{
-		ArrayList<LootEntry> data = new ArrayList<>();
-		// Grab target directory (username or loots directory if not logged in)
 		updatePlayerFolder();
-		String fileName = filenameMap.get(tab);
 
-		// Open File and read line by line
-		File file = new File(playerFolder, fileName);
-		try (BufferedReader br = new BufferedReader(new FileReader(file)))
-		{
-			String line;
-			while ((line = br.readLine()) != null)
-			{
-				// Convert JSON to LootEntry and add to data ArrayList
-				if (line.length() > 0)
-				{
-					LootEntry entry = RuneLiteAPI.GSON.fromJson(line, LootEntry.class);
-					data.add(entry);
-				}
-			}
+		ArrayList<LootEntry> data = writer.loadLootEntries(tab);
 
-			// Update Loot Map with new data
-			lootMap.put(tab, data);
-			// Update Killcount map with latest value
-			if (data.size() > 0)
-			{
-				int killcount = data.get(data.size() - 1).getKillCount();
-				killcountMap.put(tab.getBossName().toUpperCase(), killcount);
-			}
-		}
-		catch (FileNotFoundException e)
+		if (data == null)
 		{
-			log.debug("File not found: " + fileName);
+			log.debug("Couldn't find local data for tab: {}", tab);
+			return;
 		}
-		catch (IOException e)
+
+		// Update Loot Map with new data
+		lootMap.put(tab, data);
+
+		// Update Killcount map with latest value
+		if (data.size() > 0)
 		{
-			log.warn("Unexpected error", e);
+			int killcount = data.get(data.size() - 1).getKillCount();
+			killcountMap.put(tab.getBossName().toUpperCase(), killcount);
 		}
 	}
 
@@ -660,28 +588,21 @@ public class BossLoggerPlugin extends Plugin
 		loots.add(loots.size() - 1, entry);
 		lootMap.put(tab, loots);
 
-		// Grab file by username or loots directory if not logged in
 		updatePlayerFolder();
-		String fileName = filenameMap.get(tab);
 
-		// Rewrite the log file (to update the last loot entry)
-		File lootFile = new File(playerFolder, fileName);
-		try
+		rewriteLootFile(tab, loots);
+	}
+
+	// Wrapper for writer.rewriteLootFile
+	private void rewriteLootFile(Tab tab, ArrayList<LootEntry> loots)
+	{
+		boolean success = writer.rewriteLootFile(tab, loots);
+		if (!success)
 		{
-			BufferedWriter file = new BufferedWriter(new FileWriter(String.valueOf(lootFile), false));
-			for ( LootEntry lootEntry : loots)
-			{
-				// Convert entry to JSON
-				String dataAsString = RuneLiteAPI.GSON.toJson(lootEntry);
-				file.append(dataAsString);
-				file.newLine();
-			}
-			file.close();
+			log.debug("Couldn't add drop to last loot entry");
+			return;
 		}
-		catch (IOException ioe)
-		{
-			log.warn("Error witting loot data in file.", ioe);
-		}
+
 		// Update tab if being displayed;
 		if (isBeingRecorded(tab.getName()))
 		{
@@ -722,7 +643,7 @@ public class BossLoggerPlugin extends Plugin
 	public void clearData(Tab tab)
 	{
 		log.debug("Clearing data for tab: " + tab.getName());
-		clearLootFile(tab);
+		writer.clearLootFile(tab);
 	}
 
 	// Updates in-game alert chat color based on config settings
