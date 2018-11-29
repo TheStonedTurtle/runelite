@@ -33,7 +33,6 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.plugins.PluginManager;
 import net.runelite.client.plugins.telemetry.TelemetryPlugin;
-import net.runelite.client.plugins.telemetry.data.PestControlTelemetry;
 import net.runelite.http.api.telemetry.TelemetryClient;
 import net.runelite.http.api.telemetry.TelemetryData;
 
@@ -99,10 +98,5 @@ public class TelemetryManager
 			telemetryClient.submit(data);
 			log.info("Telemetry data flushed!");
 		}
-	}
-
-	public void submitPestControl(boolean won, String boat, int percent, long timeElapse)
-	{
-		submit(new PestControlTelemetry(won, boat, percent, timeElapse));
 	}
 }

@@ -25,17 +25,12 @@
 package net.runelite.client.plugins.pestcontrol;
 
 import com.google.common.eventbus.Subscribe;
-import java.time.Instant;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.inject.Inject;
 import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
-import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.events.ChatMessage;
-import net.runelite.api.widgets.Widget;
-import net.runelite.api.widgets.WidgetInfo;
-import net.runelite.client.game.TelemetryManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.overlay.OverlayManager;
@@ -48,20 +43,12 @@ import net.runelite.client.ui.overlay.OverlayManager;
 public class PestControlPlugin extends Plugin
 {
 	private final Pattern SHIELD_DROP = Pattern.compile("The ([a-z]+), [^ ]+ portal shield has dropped!", Pattern.CASE_INSENSITIVE);
-	private static final String FINISH_TEXT = "Congratulations! You managed to destroy all the portals!";
-
-	private static final WorldPoint NOVICE_SPAWN = new WorldPoint(2657, 2639, 0);
-	private static final WorldPoint INTERMEDIATE_SPAWN = new WorldPoint(2644, 2644, 0);
-	private static final WorldPoint VETERAN_SPAWN = new WorldPoint(2638, 2653, 0);
 
 	@Inject
 	private OverlayManager overlayManager;
 
 	@Inject
 	private Client client;
-
-	@Inject
-	private TelemetryManager telemetryManager;
 
 	@Inject
 	private PestControlOverlay overlay;
@@ -89,30 +76,5 @@ public class PestControlPlugin extends Plugin
 				overlay.getGame().fall(matcher.group(1));
 			}
 		}
-	}
-
-	void submitGame(int endingPercent, long start)
-	{
-		long timeElapsed = Instant.now().toEpochMilli() - start;
-
-		Widget w = client.getWidget(WidgetInfo.DIALOG_NPC_TEXT);
-		boolean won = w != null && w.getText().contains(FINISH_TEXT);
-
-		String boat = "UNKNOWN";
-		WorldPoint p = client.getLocalPlayer().getWorldLocation();
-		if (p.equals(NOVICE_SPAWN))
-		{
-			boat = "NOVICE";
-		}
-		else if (p.equals(INTERMEDIATE_SPAWN))
-		{
-			boat = "INTERMEDIATE";
-		}
-		else if (p.equals(VETERAN_SPAWN))
-		{
-			boat = "VETERAN";
-		}
-
-		telemetryManager.submitPestControl(won, boat, endingPercent, timeElapsed);
 	}
 }
