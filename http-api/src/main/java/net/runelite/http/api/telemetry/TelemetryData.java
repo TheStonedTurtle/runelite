@@ -30,13 +30,13 @@ import lombok.Value;
 @Value
 public class TelemetryData
 {
-	private final Date date;
+	private final long date;
 	private final Object data;
 	private final String type;
 
 	public TelemetryData(Date date, Object data)
 	{
-		this.date = date;
+		this.date = date.getTime();
 		this.data = data;
 		this.type = data.getClass().getName();
 	}
