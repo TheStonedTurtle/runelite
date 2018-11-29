@@ -76,6 +76,7 @@ public class TelemetryPlugin extends Plugin
 	private boolean ignoreTick;
 	private int tickCount;
 	private String eventType;
+	private WorldPoint posLastTick;
 
 	@Inject
 	private Client client;
@@ -107,6 +108,8 @@ public class TelemetryPlugin extends Plugin
 	@Subscribe
 	public void onGameTick(GameTick tick)
 	{
+		posLastTick = client.getLocalPlayer().getWorldLocation();
+
 		if (ignoreTick && tickCount < 1)
 		{
 			tickCount++;
@@ -128,6 +131,19 @@ public class TelemetryPlugin extends Plugin
 	{
 		NPC n = npcSpawned.getNpc();
 		if (n.getId() == -1)
+		{
+			return;
+		}
+
+		// TODO: Prevent inside minigames like Pest Control/Barb Assault and activities like Raids
+		// Initial login most likely
+		if (client.getLocalPlayer() == null)
+		{
+			return;
+		}
+
+		// NPC spawns with a plane change are probably from a ladder
+		if (client.getLocalPlayer().getWorldLocation().getPlane() != posLastTick.getPlane())
 		{
 			return;
 		}
