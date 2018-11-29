@@ -60,7 +60,7 @@ import net.runelite.client.util.Text;
 
 @PluginDescriptor(
 	name = "Telemetry Plugin",
-	enabledByDefault = false
+	description = "Collects Game Telemetry data for use on OSRS Wiki"
 )
 @Slf4j
 public class TelemetryPlugin extends Plugin
