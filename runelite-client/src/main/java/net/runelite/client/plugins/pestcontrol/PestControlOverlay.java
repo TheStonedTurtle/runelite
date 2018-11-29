@@ -30,6 +30,7 @@ import java.awt.Dimension;
 import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.geom.Rectangle2D;
+import java.time.Instant;
 import java.util.Arrays;
 import javax.inject.Inject;
 import lombok.AccessLevel;
@@ -55,17 +56,21 @@ public class PestControlOverlay extends Overlay
 {
 	private final QueryRunner queryRunner;
 	private final Client client;
+	private final PestControlPlugin plugin;
 
 	// Pest control game
 	@Getter(AccessLevel.PACKAGE)
 	private Game game;
+	private int perc;
+	private long start;
 
 	@Inject
-	public PestControlOverlay(QueryRunner queryRunner, Client client)
+	public PestControlOverlay(QueryRunner queryRunner, Client client, PestControlPlugin plugin)
 	{
 		setPosition(OverlayPosition.DYNAMIC);
 		this.queryRunner = queryRunner;
 		this.client = client;
+		this.plugin = plugin;
 	}
 
 	@Override
@@ -77,6 +82,7 @@ public class PestControlOverlay extends Overlay
 			if (game != null)
 			{
 				log.debug("Pest control game has ended");
+				plugin.submitGame(perc, start);
 				game = null;
 			}
 
@@ -86,6 +92,7 @@ public class PestControlOverlay extends Overlay
 		if (game == null)
 		{
 			log.debug("Pest control game has started");
+			start = Instant.now().toEpochMilli();
 			game = new Game();
 		}
 
@@ -153,7 +160,7 @@ public class PestControlOverlay extends Overlay
 		Rectangle2D bounds = bar.getBounds().getBounds2D();
 
 		Widget prgs = client.getWidget(WidgetInfo.PEST_CONTROL_ACTIVITY_PROGRESS).getChild(0);
-		int perc = (int) ((prgs.getBounds().getWidth() / bounds.getWidth()) * 100);
+		perc = (int) ((prgs.getBounds().getWidth() / bounds.getWidth()) * 100);
 
 		Color color = Color.GREEN;
 		if (perc < 25)
