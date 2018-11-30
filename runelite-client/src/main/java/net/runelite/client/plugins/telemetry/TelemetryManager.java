@@ -29,8 +29,7 @@ import java.util.Date;
 import java.util.List;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import net.runelite.http.api.telemetry.TelemetryClient;
-import net.runelite.http.api.telemetry.TelemetryData;
+import net.runelite.client.plugins.telemetry.data.TelemetryData;
 
 @Slf4j
 public class TelemetryManager

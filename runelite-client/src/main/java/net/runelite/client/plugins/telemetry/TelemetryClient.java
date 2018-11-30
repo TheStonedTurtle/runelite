@@ -22,11 +22,12 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package net.runelite.http.api.telemetry;
+package net.runelite.client.plugins.telemetry;
 
 import java.io.IOException;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
+import net.runelite.client.plugins.telemetry.data.TelemetryData;
 import net.runelite.http.api.RuneLiteAPI;
 import okhttp3.MediaType;
 import okhttp3.Request;
