@@ -32,6 +32,5 @@ import net.runelite.api.coords.WorldPoint;
 public class NpcSpawnedTelemetry
 {
 	private final int npcId;
-
 	private final WorldPoint worldPoint;
 }
