@@ -49,7 +49,6 @@ import net.runelite.api.events.WidgetLoaded;
 import net.runelite.api.widgets.WidgetID;
 import net.runelite.client.events.NpcLootReceived;
 import net.runelite.client.game.ItemStack;
-import net.runelite.client.game.TelemetryManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.plugins.telemetry.data.EventLootTelemetry;
@@ -81,8 +80,7 @@ public class TelemetryPlugin extends Plugin
 	@Inject
 	private Client client;
 
-	@Inject
-	private TelemetryManager telemetryManager;
+	private final TelemetryManager telemetryManager = new TelemetryManager();
 
 	@Override
 	protected void shutDown() throws Exception

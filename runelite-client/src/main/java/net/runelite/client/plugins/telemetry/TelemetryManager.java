@@ -22,48 +22,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package net.runelite.client.game;
+package net.runelite.client.plugins.telemetry;
 
-import com.google.inject.Inject;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import javax.inject.Singleton;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import net.runelite.client.plugins.PluginManager;
-import net.runelite.client.plugins.telemetry.TelemetryPlugin;
 import net.runelite.http.api.telemetry.TelemetryClient;
 import net.runelite.http.api.telemetry.TelemetryData;
 
-@Singleton
 @Slf4j
 public class TelemetryManager
 {
 	private static final int MAX_QUEUE_SIZE = 50;
 
-	private final PluginManager pluginManager;
 	private final TelemetryClient telemetryClient = new TelemetryClient();
 	private List<TelemetryData> queue = new ArrayList<>();
 
 	@Getter
 	private Date lastSubmitDate = null;
 
-	@Inject
-	private TelemetryManager(PluginManager pluginManager)
-	{
-		this.pluginManager = pluginManager;
-	}
-
 	public void submit(Object data)
 	{
-		if (!pluginManager.isPluginEnabled(TelemetryPlugin.class))
-		{
-			log.info("Telemetry data is disabled.");
-			clear();
-			return;
-		}
-
 		lastSubmitDate = new Date();
 		TelemetryData d = new TelemetryData(lastSubmitDate, data);
 		log.info("Received Telemetry data: {}",  d);
@@ -83,20 +64,17 @@ public class TelemetryManager
 
 	public void flush()
 	{
-		if (pluginManager.isPluginEnabled(TelemetryPlugin.class))
+		if (queue.size() == 0)
 		{
-			if (queue.size() == 0)
-			{
-				log.warn("Tried flushing empty queue");
-				return;
-			}
-
-			List<TelemetryData> data = new ArrayList<>(queue);
-			clear();
-
-			log.info("Flushing queued Telemetry data: {}", data);
-			telemetryClient.submit(data);
-			log.info("Telemetry data flushed!");
+			log.warn("Tried flushing empty queue");
+			return;
 		}
+
+		List<TelemetryData> data = new ArrayList<>(queue);
+		clear();
+
+		log.info("Flushing queued Telemetry data: {}", data);
+		telemetryClient.submit(data);
+		log.info("Telemetry data flushed!");
 	}
 }
