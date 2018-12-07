@@ -126,6 +126,8 @@ public class LootTrackerPlugin extends Plugin
 	private NavigationButton navButton;
 	private String eventType;
 
+	private CsvWriter csvWriter;
+
 	private List<String> ignoredItems = new ArrayList<>();
 	private Multimap<String, LootTrackerRecord> records = ArrayListMultimap.create();
 	private String keyName = KEY_PREFIX + DATE_FORMAT.format(new Date());
@@ -216,6 +218,7 @@ public class LootTrackerPlugin extends Plugin
 				return true;
 			});
 		}
+		csvWriter = new CsvWriter(client);
 	}
 
 	@Override
@@ -374,6 +377,11 @@ public class LootTrackerPlugin extends Plugin
 
 	private LootTrackerItem[] buildEntries(final Collection<GameItem> itemStacks)
 	{
+		if (itemStacks == null)
+		{
+			return new LootTrackerItem[0];
+		}
+
 		return itemStacks.stream().map(itemStack ->
 		{
 			final ItemComposition itemComposition = itemManager.getItemComposition(itemStack.getId());
@@ -427,8 +435,11 @@ public class LootTrackerPlugin extends Plugin
 		}
 
 		configManager.setConfiguration(GROUP_NAME, keyName, stored);
-		records.put(data.getN(), createLootTrackerRecord(data));
+		records.put(data.getName(), createLootTrackerRecord(data));
 		log.debug("Updated data: {}", getConfig(keyName));
+
+		boolean wrote = csvWriter.storeData(data);
+		log.info("Data written to CSV file?: {}", wrote);
 	}
 
 	private List<LootTrackerData> getAllPersistentData()
@@ -445,6 +456,10 @@ public class LootTrackerPlugin extends Plugin
 			}
 		}
 
+		Collection<LootTrackerData> d = csvWriter.loadData("Grizzly bear");
+
+		log.info("Stored csv data: {}", d);
+
 		return data;
 	}
 
@@ -452,8 +467,9 @@ public class LootTrackerPlugin extends Plugin
 	private void clearPeristentData()
 	{
 		List<String> keys = configManager.getConfigurationKeys(GROUP_NAME);
-		for (String key : keys)
+		for (String k : keys)
 		{
+			String key = k.split("\\.")[1];
 			if (key.contains(KEY_PREFIX))
 			{
 				configManager.unsetConfiguration(GROUP_NAME, key);
@@ -484,7 +500,7 @@ public class LootTrackerPlugin extends Plugin
 
 		for (LootTrackerData d : data)
 		{
-			recs.put(d.getN(), createLootTrackerRecord(d));
+			recs.put(d.getName(), createLootTrackerRecord(d));
 		}
 
 		return recs;
@@ -492,6 +508,6 @@ public class LootTrackerPlugin extends Plugin
 
 	private LootTrackerRecord createLootTrackerRecord(LootTrackerData d)
 	{
-		return new LootTrackerRecord(d.getN(), "", buildEntries(d.getI()), System.currentTimeMillis());
+		return new LootTrackerRecord(d.getName(), "", buildEntries(d.getItems()), System.currentTimeMillis());
 	}
 }
