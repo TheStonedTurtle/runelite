@@ -22,13 +22,20 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package net.runelite.client.game;
+package net.runelite.http.api.loottracker;
 
+import java.util.Collection;
 import lombok.Value;
 
 @Value
-public class GameItem
+public class LootRecord
 {
-	private final int id;
-	private final int qty;
+	private final String eventId;
+	private final LootRecordType type;
+	private Collection<GameItem> drops;
+
+	void addDrop(GameItem drop)
+	{
+		drops.add(drop);
+	}
 }

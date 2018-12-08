@@ -32,18 +32,20 @@ import java.util.Collection;
 import java.util.List;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import net.runelite.client.game.GameItem;
 import net.runelite.http.api.RuneLiteAPI;
+import net.runelite.http.api.loottracker.GameItem;
+import net.runelite.http.api.loottracker.LootRecord;
 
 @Slf4j
 @Data
 class LootTrackerData
 {
+	private static final Splitter COMMA_SPLITTER = Splitter.on(',').trimResults().omitEmptyStrings();
+	private static final Splitter COLON_SPLITTER = Splitter.on(':').trimResults().omitEmptyStrings();
+
 	// In order to save on space inside the config all variable names will be 1 letter long
 	private final String name;
 	private final Collection<GameItem> items;
-	private static final Splitter COMMA_SPLITTER = Splitter.on(',').trimResults().omitEmptyStrings();
-	private static final Splitter COLON_SPLITTER = Splitter.on(':').trimResults().omitEmptyStrings();
 
 	String asJson()
 	{
@@ -106,5 +108,16 @@ class LootTrackerData
 			items.add(new GameItem(Integer.valueOf(ids.get(i)), Integer.valueOf(qtys.get(i))));
 		}
 		return new LootTrackerData(d.get(0), items);
+	}
+
+	static Collection<LootTrackerData> convertLootRecords(Collection<LootRecord> records)
+	{
+		Collection<LootTrackerData> data = new ArrayList<>();
+		for (LootRecord r : records)
+		{
+			data.add(new LootTrackerData(r.getEventId(), r.getDrops()));
+		}
+
+		return data;
 	}
 }
