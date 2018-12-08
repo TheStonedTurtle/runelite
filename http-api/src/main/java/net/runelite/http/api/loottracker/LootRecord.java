@@ -25,17 +25,30 @@
 package net.runelite.http.api.loottracker;
 
 import java.util.Collection;
-import lombok.Value;
+import lombok.Getter;
+import net.runelite.http.api.RuneLiteAPI;
 
-@Value
+@Getter
 public class LootRecord
 {
 	private final String eventId;
 	private final LootRecordType type;
 	private Collection<GameItem> drops;
 
+	public LootRecord(String eventId, LootRecordType type, Collection<GameItem> drops)
+	{
+		this.eventId = eventId;
+		this.type = type;
+		this.drops = drops;
+	}
+
 	void addDrop(GameItem drop)
 	{
 		drops.add(drop);
+	}
+
+	public String asJson()
+	{
+		return RuneLiteAPI.GSON.toJson(this);
 	}
 }

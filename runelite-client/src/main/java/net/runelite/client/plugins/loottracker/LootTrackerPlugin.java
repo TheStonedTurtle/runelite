@@ -74,6 +74,7 @@ import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.util.ImageUtil;
 import net.runelite.client.util.Text;
 import net.runelite.http.api.loottracker.GameItem;
+import net.runelite.http.api.loottracker.LootRecordType;
 
 @PluginDescriptor(
 	name = "Loot Tracker",
@@ -234,7 +235,7 @@ public class LootTrackerPlugin extends Plugin
 
 		if (config.getPersistDataToggle())
 		{
-			persistData(new LootTrackerData(name, items));
+			persistData(new LootTrackerData(name, LootRecordType.EVENT, items));
 		}
 	}
 
@@ -250,7 +251,7 @@ public class LootTrackerPlugin extends Plugin
 
 		if (config.getPersistDataToggle())
 		{
-			persistData(new LootTrackerData(name, items));
+			persistData(new LootTrackerData(name, LootRecordType.PLAYER, items));
 		}
 	}
 
@@ -305,7 +306,7 @@ public class LootTrackerPlugin extends Plugin
 
 			if (config.getPersistDataToggle())
 			{
-				persistData(new LootTrackerData(eventType, stacked));
+				persistData(new LootTrackerData(eventType, LootRecordType.EVENT, stacked));
 			}
 		}
 		else
@@ -422,7 +423,7 @@ public class LootTrackerPlugin extends Plugin
 			log.info("Data written to CSV file?: {}", wrote);
 		}
 
-		records.put(data.getName(), createLootTrackerRecord(data));
+		records.put(data.getEventId(), createLootTrackerRecord(data));
 	}
 
 	private List<LootTrackerData> getAllPersistentData()
@@ -458,7 +459,7 @@ public class LootTrackerPlugin extends Plugin
 
 		for (LootTrackerData d : data)
 		{
-			recs.put(d.getName(), createLootTrackerRecord(d));
+			recs.put(d.getEventId(), createLootTrackerRecord(d));
 		}
 
 		return recs;
@@ -466,7 +467,7 @@ public class LootTrackerPlugin extends Plugin
 
 	private LootTrackerRecord createLootTrackerRecord(LootTrackerData d)
 	{
-		return new LootTrackerRecord(d.getName(), "", buildEntries(d.getItems()), System.currentTimeMillis());
+		return new LootTrackerRecord(d.getEventId(), "", buildEntries(d.getDrops()), System.currentTimeMillis());
 	}
 
 	private boolean isLoggedIn()

@@ -79,7 +79,7 @@ public class LootDatabaseClient
 	 * @param username in-game username as String
 	 * @return Success Flag
 	 */
-	public boolean storeData(LootTrackerData record, String username)
+	public boolean storeData(LootRecord record, String username)
 	{
 		if (uuid == null)
 		{
