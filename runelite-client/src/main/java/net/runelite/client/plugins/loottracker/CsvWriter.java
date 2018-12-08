@@ -36,6 +36,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumSet;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.WorldType;
@@ -58,6 +59,11 @@ class CsvWriter
 	// playerFolder functionality pulled from screenshot plugin
 	private File getOutputFile(String fileName)
 	{
+		return new File(getPlayerFolder(), fileName.toLowerCase().trim() + FILE_EXTENSION);
+	}
+
+	private File getPlayerFolder()
+	{
 		File playerFolder;
 		if (client.getLocalPlayer() != null && client.getLocalPlayer().getName() != null)
 		{
@@ -79,7 +85,7 @@ class CsvWriter
 		}
 
 		playerFolder.mkdirs();
-		return new File(playerFolder, fileName.toLowerCase().trim() + FILE_EXTENSION);
+		return playerFolder;
 	}
 
 	synchronized Collection<LootTrackerData> loadData(String fileName)
@@ -162,5 +168,21 @@ class CsvWriter
 			log.debug("Couldn't delete file: {}", lootFile.toString());
 			return false;
 		}
+	}
+
+	synchronized Collection<LootTrackerData> loadAllData()
+	{
+		List<LootTrackerData> data = new ArrayList<>();
+		File[] files = getPlayerFolder().listFiles((dir, name) -> name.endsWith(FILE_EXTENSION));
+		if (files != null)
+		{
+			for (File f : files)
+			{
+				log.info("Found log file: {}", f.getName());
+				data.addAll(loadData(f.getName().replace(FILE_EXTENSION, "")));
+			}
+		}
+
+		return data;
 	}
 }

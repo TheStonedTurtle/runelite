@@ -31,6 +31,8 @@ import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
+import net.runelite.client.account.AccountSession;
+import net.runelite.client.account.SessionManager;
 import net.runelite.http.api.RuneLiteAPI;
 import net.runelite.http.api.loottracker.LootRecord;
 import net.runelite.http.api.loottracker.LootRecordType;
@@ -44,12 +46,30 @@ import okhttp3.Response;
 public class LootDatabaseClient
 {
 	private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
+
 	private UUID uuid;
+
+	private final SessionManager sessionManager;
+
 	// Requires Session UUID for verification
-	public LootDatabaseClient(UUID uuid)
+	public LootDatabaseClient(SessionManager sessionManager)
 	{
-		this.uuid = uuid;
-		log.debug("Created Database Client with UUID: {}", this.uuid);
+		this.sessionManager = sessionManager;
+		sessionChanged();
+	}
+
+	public void sessionChanged()
+	{
+		AccountSession s = sessionManager.getAccountSession();
+		if (s == null)
+		{
+			this.uuid = null;
+		}
+		else
+		{
+			this.uuid = s.getUuid();
+		}
+		log.info("session changed, new UUID: {}", this.uuid);
 	}
 
 	/**
@@ -208,5 +228,10 @@ public class LootDatabaseClient
 			log.debug("JsonParseException: {}", e.getMessage());
 			return null;
 		}
+	}
+
+	boolean isLoggedIn()
+	{
+		return this.uuid != null;
 	}
 }

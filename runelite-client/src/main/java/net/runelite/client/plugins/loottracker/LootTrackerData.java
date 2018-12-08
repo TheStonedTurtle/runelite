@@ -110,6 +110,11 @@ class LootTrackerData
 		return new LootTrackerData(d.get(0), items);
 	}
 
+	/**
+	 * Converts LootRecords from the API into LootTrackerData for use inside the plugin
+	 * @param records LootRecords to convert
+	 * @return Converted LootTrackerData
+	 */
 	static Collection<LootTrackerData> convertLootRecords(Collection<LootRecord> records)
 	{
 		Collection<LootTrackerData> data = new ArrayList<>();
