@@ -27,6 +27,8 @@ package net.runelite.client.plugins.loottracker;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import com.google.inject.Provides;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -256,7 +258,8 @@ public class LootTrackerPlugin extends Plugin
 					clientThread.invokeLater(() ->
 					{
 						Collection<LootTrackerRecord> records = convertToLootTrackerRecord(lootRecords);
-						SwingUtilities.invokeLater(() -> panel.addRecords(records));
+						Multimap<String, LootTrackerRecord> lootMap = toMultimap(records);
+						SwingUtilities.invokeLater(() -> panel.addStoredRecords(lootMap));
 					});
 				});
 				return true;
@@ -462,5 +465,15 @@ public class LootTrackerPlugin extends Plugin
 		}
 
 		return trackerRecords;
+	}
+
+	private Multimap<String, LootTrackerRecord> toMultimap(Collection<LootTrackerRecord> recs)
+	{
+		Multimap<String, LootTrackerRecord> history = ArrayListMultimap.create();
+		for (LootTrackerRecord r : recs)
+		{
+			history.put(r.getTitle(), r);
+		}
+		return history;
 	}
 }

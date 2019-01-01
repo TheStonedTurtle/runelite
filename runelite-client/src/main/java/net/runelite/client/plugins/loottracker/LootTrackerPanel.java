@@ -25,6 +25,8 @@
  */
 package net.runelite.client.plugins.loottracker;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -33,7 +35,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -73,11 +74,14 @@ class LootTrackerPanel extends PluginPanel
 	private static final String HTML_LABEL_TEMPLATE =
 		"<html><body style='color:%s'>%s<span style='color:white'>%s</span></body></html>";
 
+	private static final String SESSION_TAB = "Current Session";
+
 	// When there is no loot, display this
 	private final PluginErrorPanel errorPanel = new PluginErrorPanel();
 
 	// Handle loot boxes
 	private final JPanel logsContainer = new JPanel();
+	private final JPanel buttonsContainer = new JPanel();
 
 	// Handle overall session data
 	private final JPanel overallPanel = new JPanel();
@@ -96,6 +100,9 @@ class LootTrackerPanel extends PluginPanel
 	// Log collection
 	private final List<LootTrackerRecord> records = new ArrayList<>();
 	private final List<LootTrackerBox> boxes = new ArrayList<>();
+
+	private final List<LootTrackerRecord> session = new ArrayList<>();
+	private Multimap<String, LootTrackerRecord> history = ArrayListMultimap.create();
 
 	private final ItemManager itemManager;
 	private final LootTrackerPlugin plugin;
@@ -241,10 +248,7 @@ class LootTrackerPanel extends PluginPanel
 			@Override
 			public void mousePressed(MouseEvent mouseEvent)
 			{
-				currentView = null;
-				backBtn.setVisible(false);
-				detailsTitle.setText("");
-				rebuild();
+				showLootScreen(null);
 			}
 
 			@Override
@@ -311,14 +315,116 @@ class LootTrackerPanel extends PluginPanel
 
 		// Create loot boxes wrapper
 		logsContainer.setLayout(new BoxLayout(logsContainer, BoxLayout.Y_AXIS));
+		buttonsContainer.setLayout(new GridLayout(0, 1, 0, 4));
 		layoutPanel.add(actionsContainer);
 		layoutPanel.add(Box.createRigidArea(new Dimension(0, 5)));
 		layoutPanel.add(overallPanel);
 		layoutPanel.add(logsContainer);
+		layoutPanel.add(buttonsContainer);
 
 		// Add error pane
 		errorPanel.setContent("Loot trackers", "You have not received any loot yet.");
 		add(errorPanel);
+
+		showSelectionScreen();
+	}
+
+	private void showSelectionScreen()
+	{
+		if (history.size() < 1)
+		{
+			// Continue displaying error panel until a record is added.
+			if (session.size() < 1)
+			{
+				return;
+			}
+
+			// If no history but session data show it.
+			showLootScreen(SESSION_TAB);
+			return;
+		}
+
+		remove(errorPanel);
+		actionsContainer.setVisible(false);
+		overallPanel.setVisible(false);
+		logsContainer.removeAll();
+		boxes.clear();
+		buttonsContainer.removeAll();
+
+		// Add a button for each name to view data just for that one.
+		buttonsContainer.add(createNameButton(SESSION_TAB));
+		// Sort names alphabetically
+		String[] names = history.keySet().stream().sorted().toArray(String[]::new);
+		for (String s : names)
+		{
+			buttonsContainer.add(createNameButton(s));
+		}
+
+		buttonsContainer.setVisible(true);
+
+		this.revalidate();
+		this.repaint();
+	}
+
+	// Creates the buttons for use on the selection screen
+	private JPanel createNameButton(String name)
+	{
+		JPanel p = new JPanel();
+		p.add(new JLabel(name));
+		p.setBackground(ColorScheme.DARKER_GRAY_COLOR);
+		p.addMouseListener(new MouseAdapter()
+		{
+			@Override
+			public void mouseEntered(MouseEvent e)
+			{
+				p.setBackground(ColorScheme.DARKER_GRAY_HOVER_COLOR);
+			}
+
+			@Override
+			public void mouseExited(MouseEvent e)
+			{
+				p.setBackground(ColorScheme.DARKER_GRAY_COLOR);
+			}
+
+			@Override
+			public void mouseClicked(MouseEvent e)
+			{
+				showLootScreen(name);
+			}
+		});
+
+		return p;
+	}
+
+	private void showLootScreen(String s)
+	{
+		records.clear();
+		currentView = s;
+
+		if (s == null)
+		{
+			showSelectionScreen();
+			return;
+		}
+
+		remove(errorPanel);
+		buttonsContainer.setVisible(false);
+		actionsContainer.setVisible(true);
+		overallPanel.setVisible(true);
+		backBtn.setVisible(true);
+		detailsTitle.setText(s);
+
+		if (s.equals(SESSION_TAB))
+		{
+			records.addAll(session);
+			backBtn.setVisible(history.size() > 0);
+		}
+		else
+		{
+			records.addAll(history.get(s));
+		}
+
+		rebuild();
 	}
 
 	void loadHeaderIcon(BufferedImage img)
@@ -335,30 +441,33 @@ class LootTrackerPanel extends PluginPanel
 	{
 		final String subTitle = actorLevel > -1 ? "(lvl-" + actorLevel + ")" : "";
 		final LootTrackerRecord record = new LootTrackerRecord(eventName, subTitle, items, System.currentTimeMillis());
-		records.add(record);
-		LootTrackerBox box = buildBox(record);
-		if (box != null)
+		session.add(record);
+
+		if (SESSION_TAB.equals(currentView) || eventName.equals(currentView))
 		{
-			box.rebuild();
-			updateOverall();
+			records.add(record);
+			LootTrackerBox box = buildBox(record);
+			if (box != null)
+			{
+				box.rebuild();
+				updateOverall();
+			}
+		}
+
+		// Should we add session data to history?
+		if (history.size() > 0)
+		{
+			history.put(eventName, record);
 		}
 	}
 
 	/**
-	 * Adds a Collection of records to the panel
+	 * Adds a Collection of stored records to the panel
 	 */
-	void addRecords(Collection<LootTrackerRecord> recs)
+	void addStoredRecords(Multimap<String, LootTrackerRecord> multimap)
 	{
-		for (LootTrackerRecord r : recs)
-		{
-			records.add(r);
-			LootTrackerBox box = buildBox(r);
-			if (box != null)
-			{
-				box.rebuild();
-			}
-		}
-		updateOverall();
+		history = multimap;
+		showSelectionScreen();
 	}
 
 	/**
@@ -436,7 +545,7 @@ class LootTrackerPanel extends PluginPanel
 	private LootTrackerBox buildBox(LootTrackerRecord record)
 	{
 		// If this record is not part of current view, return
-		if (!record.matches(currentView))
+		if (!record.matches(currentView) && !SESSION_TAB.equals(currentView))
 		{
 			return null;
 		}
@@ -456,6 +565,7 @@ class LootTrackerPanel extends PluginPanel
 
 		// Show main view
 		remove(errorPanel);
+		buttonsContainer.setVisible(false);
 		actionsContainer.setVisible(true);
 		overallPanel.setVisible(true);
 
@@ -519,7 +629,7 @@ class LootTrackerPanel extends PluginPanel
 
 		for (LootTrackerRecord record : records)
 		{
-			if (!record.matches(currentView))
+			if (!record.matches(currentView) && !SESSION_TAB.equals(currentView))
 			{
 				continue;
 			}
