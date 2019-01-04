@@ -47,11 +47,11 @@ public class LootRecordWriter
 	private static final File LOOT_RECORD_DIR = new File(RUNELITE_DIR, "loots");
 
 	// Data is stored in a folder with the players in-game username
-	private File playerFolder;
+	private File playerFolder = LOOT_RECORD_DIR;
 
 	public LootRecordWriter()
 	{
-		LOOT_RECORD_DIR.mkdir();
+		playerFolder.mkdir();
 	}
 
 	private static String npcNameToFileName(String npcName)

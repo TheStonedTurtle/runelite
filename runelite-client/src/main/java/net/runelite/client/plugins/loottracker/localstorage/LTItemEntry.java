@@ -42,4 +42,9 @@ public class LTItemEntry
 		this.quantity = quantity;
 		this.price = price;
 	}
+
+	public long getTotal()
+	{
+		return this.quantity * this.price;
+	}
 }

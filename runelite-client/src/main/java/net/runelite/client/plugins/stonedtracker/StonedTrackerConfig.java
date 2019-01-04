@@ -22,55 +22,56 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package net.runelite.client.plugins.loottracker.localstorage;
+package net.runelite.client.plugins.stonedtracker;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import lombok.Getter;
+import net.runelite.client.config.Config;
+import net.runelite.client.config.ConfigGroup;
+import net.runelite.client.config.ConfigItem;
 
-@Getter
-public class LTRecord
+@ConfigGroup("stonedtracker")
+public interface StonedTrackerConfig extends Config
 {
-	private final int id;
-	private final String name;
-	private final int level;
-	private final int killCount;
-	final Collection<LTItemEntry> drops;
-
-	public LTRecord(int id, String name, int level, int kc, Collection<LTItemEntry> drops)
+	@ConfigItem(
+		position = 0,
+		keyName = "hideUniques",
+		name = "Hide uniques",
+		description = "Hides unique items from the item breakdown"
+	)
+	default boolean hideUniques()
 	{
-		this.id = id;
-		this.name = name;
-		this.level = level;
-		this.killCount = kc;
-		this.drops = (drops == null ? new ArrayList<>() : drops);
-	}
-
-	public void addDropEntry(LTItemEntry itemEntry)
-	{
-		drops.add(itemEntry);
-	}
-
-	public static Map<Integer, LTItemEntry> consolidateLootTrackerItemEntries(Collection<LTRecord> records)
-	{
-		// Store LootTrackerItemEntry by ItemID
-		Map<Integer, LTItemEntry> itemMap = new HashMap<>();
-		for (LTRecord r : records)
-		{
-			for (LTItemEntry e : r.getDrops())
-			{
-				int old = 0;
-				if (itemMap.containsKey(e.getId()))
-				{
-					old = itemMap.get(e.getId()).getQuantity();
-					itemMap.remove(e.getId());
-				}
-				itemMap.put(e.getId(), new LTItemEntry(e.getName(), e.getId(), e.getQuantity() + old, e.getPrice()));
-			}
+		return true;
 		}
 
-		return itemMap;
+	@ConfigItem(
+		position = 1,
+		keyName = "itemSortType",
+		name = "Sort Items by",
+		description = "Sorts items by the requested value inside the UI. (Doesn't effect session/box view)"
+	)
+	default ItemSortTypes itemSortType()
+	{
+		return ItemSortTypes.ALPHABETICAL;
+	}
+
+	@ConfigItem(
+		position = 2,
+		keyName = "itemBreakdown",
+		name = "Breakdown individual items",
+		description = "Toggles whether the Individual item UI should be used inside npc-specific tabs"
+	)
+	default boolean itemBreakdown()
+		{
+			return true;
+		}
+
+	@ConfigItem(
+		position = 3,
+		keyName = "bossButtons",
+		name = "Show boss icons",
+		description = "Toggles whether the selection screen will use the boss icons"
+	)
+	default boolean bossButtons()
+	{
+		return true;
 	}
 }
