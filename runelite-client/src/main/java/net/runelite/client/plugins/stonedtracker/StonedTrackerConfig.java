@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2018, Tomas Slusny <slusnucky@gmail.com>
- * Copyright (c) 2018, TheStonedTurtle <www.github.com/TheStonedTurtle>
+ * Copyright (c) 2018, TheStonedTurtle <https://github.com/TheStonedTurtle>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,22 +22,56 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package net.runelite.client.plugins.loottracker.localstorage;
+package net.runelite.client.plugins.stonedtracker;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import net.runelite.client.config.Config;
+import net.runelite.client.config.ConfigGroup;
+import net.runelite.client.config.ConfigItem;
 
-@Data
-@AllArgsConstructor
-public class LTItemEntry
+@ConfigGroup("stonedtracker")
+public interface StonedTrackerConfig extends Config
 {
-	private final String name;
-	private final int id;
-	private int quantity;
-	private final long price;
-
-	public long getTotal()
+	@ConfigItem(
+		position = 0,
+		keyName = "hideUniques",
+		name = "Hide uniques",
+		description = "Hides unique items from the item breakdown"
+	)
+	default boolean hideUniques()
 	{
-		return this.quantity * this.price;
+		return true;
+		}
+
+	@ConfigItem(
+		position = 1,
+		keyName = "itemSortType",
+		name = "Sort Items by",
+		description = "Sorts items by the requested value inside the UI. (Doesn't effect session/box view)"
+	)
+	default ItemSortTypes itemSortType()
+	{
+		return ItemSortTypes.ALPHABETICAL;
+	}
+
+	@ConfigItem(
+		position = 2,
+		keyName = "itemBreakdown",
+		name = "Breakdown individual items",
+		description = "Toggles whether the Individual item UI should be used inside npc-specific tabs"
+	)
+	default boolean itemBreakdown()
+		{
+			return true;
+		}
+
+	@ConfigItem(
+		position = 3,
+		keyName = "bossButtons",
+		name = "Show boss icons",
+		description = "Toggles whether the selection screen will use the boss icons"
+	)
+	default boolean bossButtons()
+	{
+		return true;
 	}
 }

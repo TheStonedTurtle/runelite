@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2018, Tomas Slusny <slusnucky@gmail.com>
- * Copyright (c) 2018, TheStonedTurtle <www.github.com/TheStonedTurtle>
+ * Copyright (c) 2018, TheStonedTurtle <https://github.com/TheStonedTurtle>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,22 +22,14 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package net.runelite.client.plugins.loottracker.localstorage;
+package net.runelite.client.plugins.stonedtracker.data;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Value;
 
-@Data
-@AllArgsConstructor
-public class LTItemEntry
+@Value
+public class UniqueItemPrepared
 {
-	private final String name;
-	private final int id;
-	private int quantity;
-	private final long price;
-
-	public long getTotal()
-	{
-		return this.quantity * this.price;
-	}
+	private int linkedID;
+	private int price;
+	private UniqueItem uniqueItem;
 }
