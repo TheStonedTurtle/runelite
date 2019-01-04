@@ -39,6 +39,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -106,6 +107,8 @@ public class LootTrackerPlugin extends Plugin
 	// Activity/Event loot handling
 	private static final Pattern CLUE_SCROLL_PATTERN = Pattern.compile("You have completed [0-9]+ ([a-z]+) Treasure Trails.");
 	private static final int THEATRE_OF_BLOOD_REGION = 12867;
+	private static final Pattern BOSS_NAME_NUMBER_PATTERN = Pattern.compile("Your (.*) kill count is: ([0-9]*).");
+	private static final Pattern NUMBER_PATTERN = Pattern.compile("([0-9]+)");
 
 	// Herbiboar loot handling
 	private static final String HERBIBOAR_LOOTED_MESSAGE = "You harvest herbs from the herbiboar, whereupon it escapes.";
@@ -171,6 +174,8 @@ public class LootTrackerPlugin extends Plugin
 	@Getter(AccessLevel.PACKAGE)
 	private LootTrackerClient lootTrackerClient;
 	private final List<LootRecord> queuedLoots = new ArrayList<>();
+
+	private Map<String, Integer> killCountMap = new HashMap<>();
 
 	private static Collection<ItemStack> stack(Collection<ItemStack> items)
 	{
@@ -330,7 +335,9 @@ public class LootTrackerPlugin extends Plugin
 		final LootTrackerItem[] entries = buildEntries(stack(items));
 		SwingUtilities.invokeLater(() -> panel.add(name, combat, entries));
 
-		if (config.saveLoot())
+		final int killCount = killCountMap.getOrDefault(name.toUpperCase(), -1);
+
+		if (lootTrackerClient != null && config.saveLoot())
 		{
 			LootRecord lootRecord = new LootRecord(name, LootRecordType.NPC, toGameItems(items), Instant.now());
 			synchronized (queuedLoots)
@@ -436,7 +443,9 @@ public class LootTrackerPlugin extends Plugin
 		final LootTrackerItem[] entries = buildEntries(stack(items));
 		SwingUtilities.invokeLater(() -> panel.add(eventType, -1, entries));
 
-		if (config.saveLoot())
+		final int killCount = killCountMap.getOrDefault(eventType.toUpperCase(), -1);
+
+		if (lootTrackerClient != null && config.saveLoot())
 		{
 			LootRecord lootRecord = new LootRecord(eventType, LootRecordType.EVENT, toGameItems(items), Instant.now());
 			synchronized (queuedLoots)
@@ -492,9 +501,12 @@ public class LootTrackerPlugin extends Plugin
 			takeInventorySnapshot();
 			return;
 		}
+		
+		// Remove all tags
+		final String chatMessage = Text.removeTags(message);
 
 		// Check if message is for a clue scroll reward
-		final Matcher m = CLUE_SCROLL_PATTERN.matcher(Text.removeTags(message));
+		final Matcher m = CLUE_SCROLL_PATTERN.matcher(chatMessage);
 		if (m.find())
 		{
 			final String type = m.group(1).toLowerCase();
@@ -519,6 +531,51 @@ public class LootTrackerPlugin extends Plugin
 					eventType = "Clue Scroll (Master)";
 					break;
 			}
+
+			int killCount = Integer.valueOf(m.group(1));
+			killCountMap.put(eventType.toUpperCase(), killCount);
+			return;
+		}
+
+
+		// Barrows KC
+		if (chatMessage.startsWith("Your Barrows chest count is"))
+		{
+			Matcher n = NUMBER_PATTERN.matcher(chatMessage);
+			if (n.find())
+			{
+				killCountMap.put("BARROWS", Integer.valueOf(n.group()));
+				return;
+			}
+		}
+
+		// Raids KC
+		if (chatMessage.startsWith("Your completed Chambers of Xeric count is"))
+		{
+			Matcher n = NUMBER_PATTERN.matcher(chatMessage);
+			if (n.find())
+			{
+				killCountMap.put("CHAMBERS OF XERIC", Integer.valueOf(n.group()));
+				return;
+			}
+		}
+		// Raids KC
+		if (chatMessage.startsWith("Your completed Theatre of Blood count is"))
+		{
+			Matcher n = NUMBER_PATTERN.matcher(chatMessage);
+			if (n.find())
+			{
+				killCountMap.put("THEATRE OF BLOOD", Integer.valueOf(n.group()));
+				return;
+			}
+		}
+		// Handle all other boss
+		Matcher boss = BOSS_NAME_NUMBER_PATTERN.matcher(chatMessage);
+		if (boss.find())
+		{
+			String bossName = boss.group(1);
+			int killCount = Integer.valueOf(boss.group(2));
+			killCountMap.put(bossName.toUpperCase(), killCount);
 		}
 	}
 
