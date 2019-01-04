@@ -101,6 +101,8 @@ public class LootTrackerPlugin extends Plugin
 	private static final int THEATRE_OF_BLOOD_REGION = 12867;
 	private static final Pattern BOSS_NAME_NUMBER_PATTERN = Pattern.compile("Your (.*) kill count is: ([0-9]*).");
 	private static final Pattern NUMBER_PATTERN = Pattern.compile("([0-9]+)");
+	private static final Pattern PET_RECEIVED_PATTERN = Pattern.compile("You have a funny feeling like ");
+	private static final Pattern PET_RECEIVED_INVENTORY_PATTERN = Pattern.compile("You feel something weird sneaking into your backpack.");
 
 	// Herbiboar loot handling
 	private static final String HERBIBOAR_LOOTED_MESSAGE = "You harvest herbs from the herbiboar, whereupon it escapes.";
@@ -149,6 +151,7 @@ public class LootTrackerPlugin extends Plugin
 	private LootTrackerClient lootTrackerClient;
 
 	private Map<String, Integer> killCountMap = new HashMap<>();
+	private boolean gotPet = false;
 
 	private static Collection<ItemStack> stack(Collection<ItemStack> items)
 	{
@@ -297,6 +300,18 @@ public class LootTrackerPlugin extends Plugin
 		SwingUtilities.invokeLater(() -> panel.add(name, combat, entries));
 
 		final int killCount = killCountMap.getOrDefault(name.toUpperCase(), -1);
+		if (gotPet)
+		{
+			ItemStack pet = handlePet(name);
+			if (pet == null)
+			{
+				log.warn("Error finding pet for npc name: {}", name);
+			}
+			else
+			{
+				items.add(pet);
+			}
+		}
 
 		if (lootTrackerClient != null && config.saveLoot())
 		{
@@ -369,6 +384,19 @@ public class LootTrackerPlugin extends Plugin
 		{
 			log.debug("No items to find for Event: {} | Container: {}", eventType, container);
 			return;
+		}
+
+		if (gotPet)
+		{
+			ItemStack pet = handlePet(eventType);
+			if (pet == null)
+			{
+				log.warn("Error finding pet for event: {}", eventType);
+			}
+			else
+			{
+				items.add(pet);
+			}
 		}
 
 		final LootTrackerItem[] entries = buildEntries(stack(items));
@@ -489,6 +517,15 @@ public class LootTrackerPlugin extends Plugin
 			String bossName = boss.group(1);
 			int killCount = Integer.valueOf(boss.group(2));
 			killCountMap.put(bossName.toUpperCase(), killCount);
+			return;
+		}
+
+		// Handle Pet Received Message
+		Matcher pet1 = PET_RECEIVED_PATTERN.matcher(Text.removeTags(chatMessage));
+		Matcher pet2 = PET_RECEIVED_INVENTORY_PATTERN.matcher(Text.removeTags(chatMessage));
+		if (pet1.find() || pet2.find())
+		{
+			gotPet = true;
 		}
 	}
 
@@ -609,5 +646,18 @@ public class LootTrackerPlugin extends Plugin
 		}
 
 		return trackerRecords;
+	}
+
+	private ItemStack handlePet(String name)
+	{
+		gotPet = false;
+
+		Pet pet = Pet.getByBossName(name);
+		if (pet == null)
+		{
+			return null;
+		}
+
+		return new ItemStack(pet.getPetID(), 1, null);
 	}
 }
