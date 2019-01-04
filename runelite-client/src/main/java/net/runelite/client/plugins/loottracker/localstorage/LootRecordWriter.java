@@ -203,4 +203,59 @@ public class LootRecordWriter
 
 		return recs;
 	}
+
+	public void convertFileFormats()
+	{
+		for (String f : getKnownFileNames())
+		{
+			updateFileFormat(npcNameToFileName(f));
+		}
+		log.info("Done converting");
+	}
+
+	private void updateFileFormat(String fileName)
+	{
+		File lootFile = new File(playerFolder, fileName);
+		Collection<LTRecord> data = new ArrayList<>();
+
+		try (BufferedReader br = new BufferedReader(new FileReader(lootFile)))
+		{
+			String line;
+			while ((line = br.readLine()) != null)
+			{
+				// Skip empty line at end of file
+				if (line.length() > 0)
+				{
+					LTRecord r = RuneLiteAPI.GSON.fromJson(line, StonedRecord.class).toNewFormat();
+					data.add(r);
+				}
+			}
+
+		}
+		catch (FileNotFoundException e)
+		{
+			log.info("File not found: {}", fileName);
+		}
+		catch (IOException e)
+		{
+			log.warn("IOException for file {}: {}", fileName, e.getMessage());
+		}
+
+		try
+		{
+			BufferedWriter file = new BufferedWriter(new FileWriter(String.valueOf(lootFile), false));
+			for (LTRecord rec : data)
+			{
+				// Convert entry to JSON
+				String dataAsString = RuneLiteAPI.GSON.toJson(rec);
+				file.append(dataAsString);
+				file.newLine();
+			}
+			file.close();
+		}
+		catch (IOException ioe)
+		{
+			log.warn("Error rewriting loot data to file {}: {}", fileName, ioe.getMessage());
+		}
+	}
 }
