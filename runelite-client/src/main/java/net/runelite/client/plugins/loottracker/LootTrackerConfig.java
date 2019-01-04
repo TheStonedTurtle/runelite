@@ -90,4 +90,14 @@ public interface LootTrackerConfig extends Config
 	{
 		return true;
 	}
+
+	@ConfigItem(
+		keyName = "saveLocalLoot",
+		name = "Save loot locally",
+		description = "Save loot between client sessions by writing files on your local machine"
+	)
+	default boolean saveLocalLoot()
+	{
+		return false;
+	}
 }

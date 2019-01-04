@@ -85,6 +85,9 @@ import net.runelite.client.game.SpriteManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.task.Schedule;
+import net.runelite.client.plugins.loottracker.localstorage.LTItemEntry;
+import net.runelite.client.plugins.loottracker.localstorage.LTRecord;
+import net.runelite.client.plugins.loottracker.localstorage.LootRecordWriter;
 import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.util.ImageUtil;
@@ -161,6 +164,9 @@ public class LootTrackerPlugin extends Plugin
 
 	@Inject
 	private ScheduledExecutorService executor;
+
+	@Inject
+	private LootRecordWriter writer;
 
 	private LootTrackerPanel panel;
 	private NavigationButton navButton;
@@ -345,6 +351,12 @@ public class LootTrackerPlugin extends Plugin
 				queuedLoots.add(lootRecord);
 			}
 		}
+
+		if (config.saveLocalLoot())
+		{
+			LTRecord record = new LTRecord(npc.getId(), npc.getName(), combat, killCount, convertToLTItemEntries(items));
+			writer.addLootTrackerRecord(record);
+		}
 	}
 
 	@Subscribe
@@ -370,6 +382,12 @@ public class LootTrackerPlugin extends Plugin
 			{
 				queuedLoots.add(lootRecord);
 			}
+		}
+
+		if (config.saveLocalLoot())
+		{
+			LTRecord record = new LTRecord(-1, name, combat, -1, convertToLTItemEntries(items));
+			writer.addLootTrackerRecord(record);
 		}
 	}
 
@@ -452,6 +470,12 @@ public class LootTrackerPlugin extends Plugin
 			{
 				queuedLoots.add(lootRecord);
 			}
+		}
+
+		if (config.saveLocalLoot())
+		{
+			LTRecord record = new LTRecord(-1, eventType, -1, killCount, convertToLTItemEntries(items));
+			writer.addLootTrackerRecord(record);
 		}
 	}
 
@@ -668,6 +692,12 @@ public class LootTrackerPlugin extends Plugin
 				}
 			}
 
+			if (config.saveLocalLoot())
+			{
+				LTRecord record = new LTRecord(-1, chestType, -1, -1, convertToLTItemEntries(items));
+				writer.addLootTrackerRecord(record);
+			}
+
 			inventorySnapshot = null;
 		}
 	}
@@ -756,5 +786,49 @@ public class LootTrackerPlugin extends Plugin
 		}
 
 		return false;
+	}
+
+	private Collection<LTItemEntry> convertToLTItemEntries(Collection<ItemStack> stacks)
+	{
+		return stacks.stream().map(i ->
+		{
+			final ItemComposition c = itemManager.getItemComposition(i.getId());
+			final int id = c.getNote() == -1 ? c.getId() : c.getLinkedNoteId();
+			final int price = itemManager.getItemPrice(id);
+			return new LTItemEntry(c.getName(), i.getId(), i.getQuantity(), price);
+		}).collect(Collectors.toList());
+	}
+
+	@Subscribe
+	public void onGameStateChanged(GameStateChanged c)
+	{
+		if (c.getGameState().equals(GameState.LOGGING_IN))
+		{
+			clientThread.invokeLater(() ->
+			{
+				switch (client.getGameState())
+				{
+					case LOGGED_IN:
+						break;
+					case LOGGING_IN:
+					case LOADING:
+						return false;
+					default:
+						// Quit running if any other state
+						return true;
+				}
+
+				String name = client.getLocalPlayer().getName();
+				if (name != null)
+				{
+					writer.setPlayerUsername(name);
+					return true;
+				}
+				else
+				{
+					return false;
+				}
+			});
+		}
 	}
 }
