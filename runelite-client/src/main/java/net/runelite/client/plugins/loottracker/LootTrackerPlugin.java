@@ -52,6 +52,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
+import net.runelite.api.GameState;
 import net.runelite.api.InventoryID;
 import net.runelite.api.ItemComposition;
 import net.runelite.api.ItemContainer;
@@ -61,6 +62,7 @@ import net.runelite.api.SpriteID;
 import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.ConfigChanged;
+import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.ItemContainerChanged;
 import net.runelite.api.events.WidgetLoaded;
 import net.runelite.api.widgets.WidgetID;
@@ -78,6 +80,9 @@ import net.runelite.client.game.ItemStack;
 import net.runelite.client.game.SpriteManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
+import net.runelite.client.plugins.loottracker.localstorage.LTItemEntry;
+import net.runelite.client.plugins.loottracker.localstorage.LTRecord;
+import net.runelite.client.plugins.loottracker.localstorage.LootRecordWriter;
 import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.util.ImageUtil;
@@ -97,7 +102,7 @@ import net.runelite.http.api.loottracker.LootTrackerClient;
 public class LootTrackerPlugin extends Plugin
 {
 	// Activity/Event loot handling
-	private static final Pattern CLUE_SCROLL_PATTERN = Pattern.compile("You have completed [0-9]+ ([a-z]+) Treasure Trails.");
+	private static final Pattern CLUE_SCROLL_PATTERN = Pattern.compile("You have completed ([0-9]+) ([a-z]+) Treasure Trails.");
 	private static final int THEATRE_OF_BLOOD_REGION = 12867;
 	private static final Pattern BOSS_NAME_NUMBER_PATTERN = Pattern.compile("Your (.*) kill count is: ([0-9]*).");
 	private static final Pattern NUMBER_PATTERN = Pattern.compile("([0-9]+)");
@@ -153,6 +158,7 @@ public class LootTrackerPlugin extends Plugin
 	@Getter(AccessLevel.PACKAGE)
 	private LootTrackerClient lootTrackerClient;
 
+	private LootRecordWriter writer;
 	private Map<String, Integer> killCountMap = new HashMap<>();
 	private boolean gotPet = false;
 
@@ -283,6 +289,8 @@ public class LootTrackerPlugin extends Plugin
 				return true;
 			});
 		}
+
+		writer = new LootRecordWriter();
 	}
 
 	@Override
@@ -321,6 +329,12 @@ public class LootTrackerPlugin extends Plugin
 			LootRecord lootRecord = new LootRecord(name, LootRecordType.NPC, toGameItems(items), Instant.now());
 			lootTrackerClient.submit(lootRecord);
 		}
+
+		if (config.saveLocalLoot())
+		{
+			LTRecord record = new LTRecord(npc.getId(), npc.getName(), combat, killCount, convertToLTItemEntries(items));
+			writer.addLootTrackerRecord(record);
+		}
 	}
 
 	@Subscribe
@@ -337,6 +351,12 @@ public class LootTrackerPlugin extends Plugin
 		{
 			LootRecord lootRecord = new LootRecord(name, LootRecordType.PLAYER, toGameItems(items), Instant.now());
 			lootTrackerClient.submit(lootRecord);
+		}
+
+		if (config.saveLocalLoot())
+		{
+			LTRecord record = new LTRecord(-1, name, combat, -1, convertToLTItemEntries(items));
+			writer.addLootTrackerRecord(record);
 		}
 	}
 
@@ -412,6 +432,12 @@ public class LootTrackerPlugin extends Plugin
 			LootRecord lootRecord = new LootRecord(eventType, LootRecordType.EVENT, toGameItems(items), Instant.now());
 			lootTrackerClient.submit(lootRecord);
 		}
+
+		if (config.saveLocalLoot())
+		{
+			LTRecord record = new LTRecord(-1, eventType, -1, killCount, convertToLTItemEntries(items));
+			writer.addLootTrackerRecord(record);
+		}
 	}
 
 	@Subscribe
@@ -453,7 +479,7 @@ public class LootTrackerPlugin extends Plugin
 		final Matcher m = CLUE_SCROLL_PATTERN.matcher(chatMessage);
 		if (m.find())
 		{
-			final String type = m.group(1).toLowerCase();
+			final String type = m.group(2).toLowerCase();
 			switch (type)
 			{
 				case "beginner":
@@ -651,6 +677,16 @@ public class LootTrackerPlugin extends Plugin
 		return trackerRecords;
 	}
 
+	private Collection<LTItemEntry> convertToLTItemEntries(Collection<ItemStack> stacks)
+	{
+		return stacks.stream().map(i ->
+		{
+			ItemComposition c = itemManager.getItemComposition(i.getId());
+			int price = c.getNote() == -1 ? c.getPrice() : itemManager.getItemPrice(c.getLinkedNoteId());
+			return new LTItemEntry(c.getName(), i.getId(), i.getQuantity(), price);
+		}).collect(Collectors.toList());
+	}
+
 	private ItemStack handlePet(String name)
 	{
 		gotPet = false;
@@ -662,5 +698,38 @@ public class LootTrackerPlugin extends Plugin
 		}
 
 		return new ItemStack(pet.getPetID(), 1, null);
+	}
+
+	@Subscribe
+	public void onGameStateChanged(GameStateChanged c)
+	{
+		if (c.getGameState().equals(GameState.LOGGED_IN))
+		{
+			clientThread.invokeLater(() ->
+			{
+				switch (client.getGameState())
+				{
+					case LOGGED_IN:
+						break;
+					case LOGGING_IN:
+					case LOADING:
+						return false;
+					default:
+						// Quit running if any other state
+						return true;
+				}
+
+				String name = client.getLocalPlayer().getName();
+				if (name != null)
+				{
+					writer.setPlayerUsername(name);
+					return true;
+				}
+				else
+				{
+					return false;
+				}
+			});
+		}
 	}
 }
