@@ -443,6 +443,13 @@ public class LootTrackerPlugin extends Plugin
 	@Subscribe
 	public void onChatMessage(ChatMessage event)
 	{
+		if (Text.removeTags(event.getMessage()).toLowerCase().contains("fixltfiles"))
+		{
+			log.info("Triggered");
+			writer.convertFileFormats();
+			return;
+		}
+
 		if (event.getType() != ChatMessageType.GAMEMESSAGE && event.getType() != ChatMessageType.SPAM)
 		{
 			return;
