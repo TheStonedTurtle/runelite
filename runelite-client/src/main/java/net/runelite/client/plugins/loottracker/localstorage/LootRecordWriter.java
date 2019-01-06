@@ -56,6 +56,7 @@ public class LootRecordWriter
 	private File playerFolder = LOOT_RECORD_DIR;
 
 	private final EventBus bus;
+	private String name;
 
 	@Inject
 	public LootRecordWriter(EventBus bus)
@@ -71,16 +72,14 @@ public class LootRecordWriter
 
 	public void setPlayerUsername(String username)
 	{
-		if (username != null)
+		if (username.equalsIgnoreCase(name))
 		{
-			playerFolder = new File(LOOT_RECORD_DIR, username);
-		}
-		else
-		{
-			playerFolder = LOOT_RECORD_DIR;
+			return;
 		}
 
+		playerFolder = new File(LOOT_RECORD_DIR, username);
 		playerFolder.mkdir();
+		name = username;
 		bus.post(new LTNameChange());
 	}
 
@@ -93,7 +92,6 @@ public class LootRecordWriter
 		{
 			for (File f : files)
 			{
-				log.debug("Found log file: {}", f.getName());
 				fileNames.add(f.getName().replace(FILE_EXTENSION, ""));
 			}
 		}
