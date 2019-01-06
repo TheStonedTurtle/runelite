@@ -25,9 +25,14 @@
  */
 package net.runelite.client.plugins.menuentryswapper;
 
+import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableSet;
 import com.google.inject.Provides;
+import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.inject.Inject;
 import lombok.Getter;
 import lombok.Setter;
@@ -66,6 +71,12 @@ import org.apache.commons.lang3.ArrayUtils;
 )
 public class MenuEntrySwapperPlugin extends Plugin
 {
+	private static final Splitter COMMA_SPLITTER = Splitter
+		.on(",")
+		.omitEmptyStrings()
+		.trimResults();
+	private static final Pattern removeLevelPattern = Pattern.compile("(.*) \\(level.*\\)");
+
 	private static final String CONFIGURE = "Configure";
 	private static final String SAVE = "Save";
 	private static final String RESET = "Reset";
@@ -130,6 +141,8 @@ public class MenuEntrySwapperPlugin extends Plugin
 	@Setter
 	private boolean shiftModifier = false;
 
+	private List<String> rightClickAttackList = new CopyOnWriteArrayList<>();
+
 	@Provides
 	MenuEntrySwapperConfig provideConfig(ConfigManager configManager)
 	{
@@ -143,6 +156,8 @@ public class MenuEntrySwapperPlugin extends Plugin
 		{
 			enableCustomization();
 		}
+
+		rightClickAttackList = COMMA_SPLITTER.splitToList(config.forceRightClickAttack().toLowerCase());
 	}
 
 	@Override
@@ -173,6 +188,10 @@ public class MenuEntrySwapperPlugin extends Plugin
 		else if (event.getKey().startsWith(ITEM_KEY_PREFIX))
 		{
 			clientThread.invoke(this::resetItemCompositionCache);
+		}
+		else if (event.getKey().equals("forceRightClickAttack"))
+		{
+			rightClickAttackList = COMMA_SPLITTER.splitToList(config.forceRightClickAttack());
 		}
 	}
 
@@ -570,6 +589,16 @@ public class MenuEntrySwapperPlugin extends Plugin
 		{
 			swap("use", option, target, true);
 		}
+
+		else if (rightClickAttackList.size() > 0 && option.equals("attack"))
+		{
+			Matcher m = removeLevelPattern.matcher(target);
+
+			if (m.matches() && rightClickAttackList.contains(m.group(1).trim()))
+			{
+				moveAttackDown();
+			}
+		}
 	}
 
 	@Subscribe
@@ -661,6 +690,32 @@ public class MenuEntrySwapperPlugin extends Plugin
 			menuManager.addManagedCustomMenu(FIXED_INVENTORY_TAB_CONFIGURE);
 			menuManager.addManagedCustomMenu(RESIZABLE_BOTTOM_LINE_INVENTORY_TAB_CONFIGURE);
 			menuManager.addManagedCustomMenu(RESIZABLE_INVENTORY_TAB_CONFIGURE);
+		}
+	}
+
+	private void moveAttackDown()
+	{
+		MenuEntry[] entries = client.getMenuEntries();
+		int idx = entries.length - 1;
+
+		// Only do stuff if top option is attack
+		if (Text.removeTags(entries[idx].getOption()).toLowerCase().contains("attack"))
+		{
+			// Find first non-attack/examine option in list
+			for (int i = idx - 1; i >= 0; i--)
+			{
+				MenuEntry e = entries[i];
+				String opt = Text.removeTags(e.getOption()).toLowerCase();
+				if (!opt.contains("attack") && !opt.contains("examine"))
+				{
+					MenuEntry entry = entries[idx];
+					entries[idx] = entries[i];
+					entries[i] = entry;
+
+					client.setMenuEntries(entries);
+					return;
+				}
+			}
 		}
 	}
 }
