@@ -305,7 +305,7 @@ public class LootTrackerPlugin extends Plugin
 	{
 		final NPC npc = npcLootReceived.getNpc();
 		final Collection<ItemStack> items = npcLootReceived.getItems();
-		final String name = npc.getName();
+		final String name = npc.getName().toLowerCase().contains("vet'ion reborn") ? "Vet'ion" : npc.getName();
 		final int combat = npc.getCombatLevel();
 		final LootTrackerItem[] entries = buildEntries(stack(items));
 		SwingUtilities.invokeLater(() -> panel.add(name, combat, entries));

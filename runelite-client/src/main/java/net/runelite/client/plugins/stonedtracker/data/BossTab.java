@@ -52,7 +52,7 @@ public enum BossTab
 	ZAMMY("K'ril Tsutsaroth", ItemID.PET_KRIL_TSUTSAROTH , "God Wars Dungeon"),
 
 	// Wildy Bosses
-	VETION("Vet'ion Reborn", ItemID.VETION_JR , "Wilderness"),
+	VETION("Vet'ion", ItemID.VETION_JR , "Wilderness"),
 	VENENATIS("Venenatis", ItemID.VENENATIS_SPIDERLING , "Wilderness"),
 	CALLISTO("Callisto", ItemID.CALLISTO_CUB , "Wilderness"),
 	CHAOS_ELEMENTAL("Chaos Elemental", ItemID.PET_CHAOS_ELEMENTAL , "Wilderness"),
