@@ -33,19 +33,14 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.TreeSet;
 import javax.inject.Inject;
 import javax.swing.SwingUtilities;
-import lombok.AccessLevel;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
-import net.runelite.api.GameState;
 import net.runelite.api.ItemComposition;
 import net.runelite.api.NpcID;
 import net.runelite.api.events.ConfigChanged;
-import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.events.WidgetLoaded;
 import net.runelite.api.widgets.Widget;
@@ -57,9 +52,11 @@ import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
-import net.runelite.client.plugins.loottracker.localstorage.LootRecordWriter;
 import net.runelite.client.plugins.loottracker.localstorage.LTItemEntry;
+import net.runelite.client.plugins.loottracker.localstorage.events.LTNameChange;
 import net.runelite.client.plugins.loottracker.localstorage.LTRecord;
+import net.runelite.client.plugins.loottracker.localstorage.events.LTRecordStored;
+import net.runelite.client.plugins.loottracker.localstorage.LootRecordWriter;
 import net.runelite.client.plugins.stonedtracker.data.UniqueItem;
 import net.runelite.client.plugins.stonedtracker.data.UniqueItemPrepared;
 import net.runelite.client.plugins.stonedtracker.ui.LootTrackerPanel;
@@ -91,6 +88,9 @@ public class StonedTrackerPlugin extends Plugin
 	@Inject
 	private ClientThread clientThread;
 
+	@Inject
+	private LootRecordWriter writer;
+
 	private LootTrackerPanel panel;
 	private NavigationButton navButton;
 
@@ -98,17 +98,26 @@ public class StonedTrackerPlugin extends Plugin
 	private Multimap<String, LTRecord> sessionLootRecordMultimap = ArrayListMultimap.create();
 	private Multimap<String, UniqueItemPrepared> uniques = ArrayListMultimap.create();
 
-	// key = name, value=current killCount
 	private boolean loaded = false;
 	private String currentPlayer;
-
-	@Getter(AccessLevel.PACKAGE)
-	private LootRecordWriter writer;
 
 	@Provides
 	StonedTrackerConfig provideConfig(ConfigManager configManager)
 	{
 		return configManager.getConfig(StonedTrackerConfig.class);
+	}
+
+	@Subscribe
+	public void onLTRecordStored(LTRecordStored s)
+	{
+		SwingUtilities.invokeLater(() -> panel.addLog(s.getRecord()));
+	}
+
+	@Subscribe
+	public void onLTNameChange(LTNameChange c)
+	{
+		refreshData();
+		SwingUtilities.invokeLater(() -> panel.updateNames());
 	}
 
 	@Subscribe
@@ -135,8 +144,6 @@ public class StonedTrackerPlugin extends Plugin
 			.build();
 
 		clientToolbar.addNavigation(navButton);
-
-		writer = new LootRecordWriter();
 
 		if (!loaded)
 		{
@@ -243,54 +250,6 @@ public class StonedTrackerPlugin extends Plugin
 	public TreeSet<String> getNames()
 	{
 		return new TreeSet<>(lootRecordMultimap.keySet());
-	}
-
-	@Subscribe
-	public void onGameStateChanged(GameStateChanged c)
-	{
-		if (c.getGameState().equals(GameState.LOGGED_IN))
-		{
-			clientThread.invokeLater(() ->
-			{
-				switch (client.getGameState())
-				{
-					case LOGGED_IN:
-						break;
-					case LOGGING_IN:
-					case LOADING:
-						return false;
-					default:
-						// Quit running if any other state
-						return true;
-				}
-
-				String name = client.getLocalPlayer().getName();
-				if (name != null)
-				{
-					updatePlayerFolder(name);
-					return true;
-				}
-				else
-				{
-					return false;
-				}
-			});
-		}
-	}
-
-	private void updatePlayerFolder(String name)
-	{
-		if (Objects.equals(currentPlayer, name))
-		{
-			return;
-		}
-
-		currentPlayer = name;
-		writer.setPlayerUsername(name);
-
-		refreshData();
-
-		SwingUtilities.invokeLater(() -> panel.updateNames());
 	}
 
 	private boolean unsiredReclaiming = false;

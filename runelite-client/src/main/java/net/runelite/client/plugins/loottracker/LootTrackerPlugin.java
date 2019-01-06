@@ -144,6 +144,9 @@ public class LootTrackerPlugin extends Plugin
 	@Inject
 	private ScheduledExecutorService executor;
 
+	@Inject
+	private LootRecordWriter writer;
+
 	private LootTrackerPanel panel;
 	private NavigationButton navButton;
 	private String eventType;
@@ -155,7 +158,6 @@ public class LootTrackerPlugin extends Plugin
 	@Getter(AccessLevel.PACKAGE)
 	private LootTrackerClient lootTrackerClient;
 
-	private LootRecordWriter writer;
 	private Map<String, Integer> killCountMap = new HashMap<>();
 	private boolean gotPet = false;
 
@@ -286,8 +288,6 @@ public class LootTrackerPlugin extends Plugin
 				return true;
 			});
 		}
-
-		writer = new LootRecordWriter();
 	}
 
 	@Override
