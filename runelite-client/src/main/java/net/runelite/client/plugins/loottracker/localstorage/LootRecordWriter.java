@@ -40,6 +40,9 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import static net.runelite.client.RuneLite.RUNELITE_DIR;
+import net.runelite.client.eventbus.EventBus;
+import net.runelite.client.plugins.loottracker.localstorage.events.LTNameChange;
+import net.runelite.client.plugins.loottracker.localstorage.events.LTRecordStored;
 import net.runelite.http.api.RuneLiteAPI;
 
 @Slf4j
@@ -49,13 +52,16 @@ public class LootRecordWriter
 	private static final String FILE_EXTENSION = ".log";
 	private static final File LOOT_RECORD_DIR = new File(RUNELITE_DIR, "loots");
 
+	private final EventBus bus;
+
 	// Data is stored in a folder with the players in-game username
 	private File playerFolder = LOOT_RECORD_DIR;
 	private String name;
 
 	@Inject
-	public LootRecordWriter()
+	public LootRecordWriter(EventBus bus)
 	{
+		this.bus = bus;
 		LOOT_RECORD_DIR.mkdir();
 	}
 
@@ -74,6 +80,7 @@ public class LootRecordWriter
 		playerFolder = new File(LOOT_RECORD_DIR, username);
 		playerFolder.mkdir();
 		name = username;
+		bus.post(new LTNameChange());
 	}
 
 	public Set<String> getKnownFileNames()
@@ -140,6 +147,7 @@ public class LootRecordWriter
 			file.append(dataAsString);
 			file.newLine();
 			file.close();
+			bus.post(new LTRecordStored(rec));
 			return true;
 		}
 		catch (IOException ioe)
