@@ -686,7 +686,7 @@ public class LootTrackerPlugin extends Plugin
 		return stacks.stream().map(i ->
 		{
 			ItemComposition c = itemManager.getItemComposition(i.getId());
-			int price = c.getNote() == -1 ? c.getPrice() : itemManager.getItemPrice(c.getLinkedNoteId());
+			int price = c.getNote() == -1 ? itemManager.getItemPrice(c.getId()) : itemManager.getItemPrice(c.getLinkedNoteId());
 			return new LTItemEntry(c.getName(), i.getId(), i.getQuantity(), price);
 		}).collect(Collectors.toList());
 	}
