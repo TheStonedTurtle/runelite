@@ -24,33 +24,59 @@
  */
 package net.runelite.client.util;
 
-import java.util.HashSet;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
+import javax.annotation.Nullable;
 import net.runelite.api.Item;
+import net.runelite.http.api.loottracker.GameItem;
 
 /**
- * Utility class for Item arrays
+ * Utility class for Item arrays.
  */
 public class ItemUtil
 {
-	private static Set<Integer> findMatchingItemIds(Item[] itemArray, Set<Integer> ids)
+	/**
+	 * Converts itemArray into a GameItem collection limited to the passed ids
+	 * Consolidates all matching Item's qty, by id
+	 * @param itemArray item array to work on
+	 * @param ids item ids to include in result
+	 * @return Map of GameItem by item id
+	 */
+	public static Map<Integer, GameItem> toGameItemMap(Item[] itemArray, @Nullable Set<Integer> ids)
 	{
-		final Set<Integer> found = new HashSet<>();
+		final Map<Integer, GameItem> map = new HashMap<>();
 		for (Item i : itemArray)
 		{
 			final int id = i.getId();
-			if (ids.contains(id))
+			if (ids == null || ids.contains(id))
 			{
-				found.add(id);
+				int qty = i.getQuantity();
+				if (map.containsKey(id))
+				{
+					qty += map.get(id).getQty();
+				}
+				map.put(id, new GameItem(id, qty));
 			}
 		}
 
-		return found;
+		return map;
+	}
+
+	/**
+	 * Converts itemArray into a GameItem collection
+	 * Consolidates all matching Item's qty, by id
+	 * @param itemArray item array to work on
+	 * @return Map of GameItem by item id
+	 */
+	public static Map<Integer, GameItem> toGameItemMap(Item[] itemArray)
+	{
+		return toGameItemMap(itemArray, null);
 	}
 
 	public static boolean containsAllItemIds(Item[] itemArray, Set<Integer> ids)
 	{
-		return findMatchingItemIds(itemArray, ids).size() == ids.size();
+		return toGameItemMap(itemArray, ids).size() == ids.size();
 	}
 
 	public static boolean containsAnyItemId(Item[] itemArray, Set<Integer> ids)
