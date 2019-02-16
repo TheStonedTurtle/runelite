@@ -24,6 +24,7 @@
  */
 package net.runelite.client.util;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -104,5 +105,66 @@ public class ItemUtil
 		}
 
 		return false;
+	}
+
+	/**
+	 * Returns null if index is bigger than array otherwise array content.
+	 * @param itemArray item array to check
+	 * @param index index to grab
+	 * @return null if index is bigger than array otherwise array content
+	 */
+	public static Item safeGetItemAtIndex(Item[] itemArray, int index)
+	{
+		if (itemArray.length <= index)
+		{
+			return null;
+		}
+
+		return itemArray[index];
+	}
+
+
+	/**
+	 * Returns -1 if index is bigger than array otherwise array contents `id` value
+	 * @param itemArray item array to check
+	 * @param index index to grab
+	 * @return -1 if index is bigger than array otherwise array contents `id` value
+	 */
+	public static Integer safeGetItemIdAtIndex(Item[] itemArray, int index)
+	{
+		if (itemArray.length <= index)
+		{
+			return -1;
+		}
+
+		return itemArray[index].getId();
+	}
+
+	/**
+	 * Checks that the itemArray contains all requestedItems. Must contain >= the requested qty for each id
+	 * Uses GameItem to represent the requestedItems since we can't easily create Item instances
+	 * @param itemArray item array to check against
+	 * @param requestedItems Collection of GameItems which contain the item id & minimum qty
+	 * @return true if contains all requestedItems
+	 */
+	public static boolean containsAllGameItems(Item[] itemArray, Collection<GameItem> requestedItems)
+	{
+		final Map<Integer, GameItem> map = toGameItemMap(itemArray, null);
+		for (GameItem i : requestedItems)
+		{
+			final int id = i.getId();
+			GameItem item = map.get(id);
+			if (item == null)
+			{
+				return false;
+			}
+
+			if (item.getQty() < i.getQty())
+			{
+				return false;
+			}
+		}
+
+		return true;
 	}
 }
