@@ -24,7 +24,6 @@
  */
 package net.runelite.client.plugins.party.performance;
 
-import java.text.DecimalFormat;
 import javax.inject.Inject;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -45,7 +44,6 @@ import net.runelite.client.eventbus.Subscribe;
 @Getter
 public class PerformanceServiceImpl implements PerformanceService
 {
-	private static final DecimalFormat NUMBER_FORMAT = new DecimalFormat("#,###");
 	// For every damage point dealt 1.33 experience is given to the player's hitpoints (base rate)
 	private static final double HITPOINT_RATIO = 1.33;
 	private static final double DMM_MULTIPLIER_RATIO = 10;
