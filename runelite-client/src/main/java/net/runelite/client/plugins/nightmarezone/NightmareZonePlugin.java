@@ -40,6 +40,7 @@ import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
+import net.runelite.client.plugins.party.performance.PerformanceService;
 import net.runelite.client.ui.overlay.OverlayManager;
 import net.runelite.client.util.Text;
 
@@ -66,6 +67,9 @@ public class NightmareZonePlugin extends Plugin
 
 	@Inject
 	private NightmareZoneOverlay overlay;
+
+	@Inject
+	private PerformanceService performanceService;
 
 	// This starts as true since you need to get
 	// above the threshold before sending notifications
@@ -114,8 +118,19 @@ public class NightmareZonePlugin extends Plugin
 				absorptionNotificationSend = true;
 			}
 
+			if (performanceService.isEnabled())
+			{
+				performanceService.disable();
+			}
+
 			return;
 		}
+
+		if (!performanceService.isEnabled())
+		{
+			performanceService.enable();
+		}
+		
 		if (config.absorptionNotification())
 		{
 			checkAbsorption();
