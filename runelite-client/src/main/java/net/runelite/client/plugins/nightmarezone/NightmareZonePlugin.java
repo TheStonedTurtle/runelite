@@ -27,6 +27,7 @@ package net.runelite.client.plugins.nightmarezone;
 import com.google.inject.Provides;
 import java.util.Arrays;
 import javax.inject.Inject;
+import lombok.Getter;
 import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
 import net.runelite.api.Varbits;
@@ -69,6 +70,7 @@ public class NightmareZonePlugin extends Plugin
 	private NightmareZoneOverlay overlay;
 
 	@Inject
+	@Getter
 	private PerformanceService performanceService;
 
 	// This starts as true since you need to get
@@ -130,7 +132,7 @@ public class NightmareZonePlugin extends Plugin
 		{
 			performanceService.enable();
 		}
-		
+
 		if (config.absorptionNotification())
 		{
 			checkAbsorption();

@@ -107,6 +107,19 @@ class NightmareZoneOverlay extends Overlay
 			.right(StackFormatter.formatNumber(client.getVar(Varbits.NMZ_POINTS)))
 			.build());
 
+		panelComponent.getChildren().add(LineComponent.builder()
+			.left("Time Elapsed: ")
+			.right(plugin.getPerformanceService().getReadableSecondsSpent())
+			.build());
+		panelComponent.getChildren().add(LineComponent.builder()
+			.left("Highest Hit: ")
+			.right(String.valueOf(plugin.getPerformanceService().getHighestHitDealt()))
+			.build());
+		panelComponent.getChildren().add(LineComponent.builder()
+			.left("Damage per Second: ")
+			.right(String.valueOf(plugin.getPerformanceService().getDPS()))
+			.build());
+
 		return panelComponent.render(graphics);
 	}
 
