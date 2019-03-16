@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, TheStonedTurtle <https://github.com/TheStonedTurtle>
+ * Copyright (c) 2019, TheStonedTurtle <https://github.com/TheStonedTurtle>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,6 +25,7 @@
 package net.runelite.client.plugins.performancetracker;
 
 import javax.inject.Inject;
+import javax.inject.Singleton;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Actor;
@@ -41,7 +42,8 @@ import net.runelite.client.eventbus.EventBus;
 import net.runelite.client.eventbus.Subscribe;
 
 @Slf4j
-public class PerformanceTracker extends PerformanceMessage implements Performance
+@Singleton
+public class PerformanceServiceImpl extends PerformanceMessage implements PerformanceService
 {
 	// For every damage point dealt 1.33 experience is given to the player's hitpoints (base rate)
 	private static final double HITPOINT_RATIO = 1.33;
@@ -50,6 +52,10 @@ public class PerformanceTracker extends PerformanceMessage implements Performanc
 	private final Client client;
 
 	@Getter
+	boolean enabled = false;
+	@Getter
+	boolean paused = false;
+	@Getter
 	private int lastActivityTick = -1;
 
 	private double hpExp;
@@ -57,7 +63,7 @@ public class PerformanceTracker extends PerformanceMessage implements Performanc
 	private boolean hopping;
 
 	@Inject
-	public PerformanceTracker(
+	public PerformanceServiceImpl(
 		final Client client,
 		final EventBus eventBus)
 	{
@@ -65,7 +71,12 @@ public class PerformanceTracker extends PerformanceMessage implements Performanc
 		eventBus.register(this);
 	}
 
-	public void reset()
+	public PerformanceMessage getPerformanceMessage()
+	{
+		return this;
+	}
+
+	void reset()
 	{
 		this.enabled = false;
 		this.paused = false;
@@ -83,7 +94,7 @@ public class PerformanceTracker extends PerformanceMessage implements Performanc
 		this.paused = !this.paused;
 	}
 
-	public void enable()
+	void enable()
 	{
 		this.enabled = true;
 		hpExp = client.getSkillExperience(Skill.HITPOINTS);
@@ -132,7 +143,7 @@ public class PerformanceTracker extends PerformanceMessage implements Performanc
 
 	// Calculate Damage Taken
 	@Subscribe
-	protected void onHitsplatApplied(HitsplatApplied e)
+	public void onHitsplatApplied(HitsplatApplied e)
 	{
 		if (isPaused())
 		{
@@ -152,7 +163,7 @@ public class PerformanceTracker extends PerformanceMessage implements Performanc
 
 	// Calculate Damage Dealt
 	@Subscribe
-	protected void onExperienceChanged(ExperienceChanged c)
+	public void onExperienceChanged(ExperienceChanged c)
 	{
 		if (isPaused() || hopping)
 		{

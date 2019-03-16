@@ -28,29 +28,65 @@ import java.text.DecimalFormat;
 import net.runelite.client.chat.ChatColorType;
 import net.runelite.client.chat.ChatMessageBuilder;
 
-interface Performance
+public interface PerformanceService
 {
+	/**
+	 * Total damage taken to local player
+	 */
 	double getDamageTaken();
+
+	/**
+	 * Highest hitsplat taken to local player
+	 */
 	double getHighestHitTaken();
 
+	/**
+	 * Total damage dealt
+	 */
 	double getDamageDealt();
+
+	/**
+	 * Highest damage dealt based on a single experience drop
+	 */
 	double getHighestHitDealt();
 
+	/**
+	 * How many ticks this has run while enabled and not paused
+	 */
 	double getTicksSpent();
 
+	/**
+	 * Is the tracker currently enabled
+	 */
+	boolean isEnabled();
+
+	/**
+	 * Is the tracker currently paused
+	 */
 	boolean isPaused();
 
+	/**
+	 * Converts the ticks spent to seconds
+	 */
 	default double getSecondsSpent()
 	{
 		// Each tick is .6 seconds
-		return Math.round(getTicksSpent() * 0.6);
+		final double tickLength = 0.6;
+
+		return Math.round(getTicksSpent() * tickLength);
 	}
 
+	/**
+	 * Calculates damage per second to the hundredth decimal place
+	 */
 	default double getDPS()
 	{
 		return Math.round((getDamageDealt() / getSecondsSpent()) * 100) / 100.00;
 	}
 
+	/**
+	 * Converts seconds spent to a more human readable format
+	 */
 	default String getReadableSecondsSpent()
 	{
 		final double secondsSpent = getSecondsSpent();
@@ -66,6 +102,9 @@ interface Performance
 		return h < 1 ? String.format("%2.0f:%02.0f", m, s) : String.format("%2.0f:%02.0f:%02.0f", h, m, s);
 	}
 
+	/**
+	 * Creates the chat message for the performance
+	 */
 	default String createPerformanceChatMessage()
 	{
 		final DecimalFormat numberFormat = new DecimalFormat("#,###");
