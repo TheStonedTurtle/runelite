@@ -61,6 +61,16 @@ public class PerformanceTrackerPlugin extends Plugin
 	@Inject
 	private PerformanceTrackerConfig config;
 
+	@Inject
+	private PerformanceTrackerOverlay performanceTrackerOverlay;
+
+	@Inject
+	@Getter
+	private PerformanceServiceImpl performanceService;
+
+	@Inject
+	private OverlayManager overlayManager;
+
 	@Provides
 	PerformanceTrackerConfig getConfig(ConfigManager configManager)
 	{
@@ -73,15 +83,7 @@ public class PerformanceTrackerPlugin extends Plugin
 		binder.bind(PerformanceService.class).to(PerformanceServiceImpl.class);
 	}
 
-	@Inject
-	private PerformanceTrackerOverlay performanceTrackerOverlay;
-
-	@Inject
-	@Getter
-	private PerformanceServiceImpl performanceService;
-
-	@Inject
-	private OverlayManager overlayManager;
+	private int pausedTicks = 0;
 
 	@Override
 	protected void startUp()
@@ -122,8 +124,14 @@ public class PerformanceTrackerPlugin extends Plugin
 	@Subscribe
 	public void onGameTick(GameTick t)
 	{
-		if (performanceService.isPaused() || !performanceService.isEnabled())
+		if (!performanceService.isEnabled())
 		{
+			return;
+		}
+
+		if (performanceService.isPaused())
+		{
+			pausedTicks++;
 			return;
 		}
 
@@ -134,7 +142,7 @@ public class PerformanceTrackerPlugin extends Plugin
 		}
 
 		final double tickTimeout = timeout / GAME_TICK_SECONDS;
-		final int activityDiff = client.getTickCount() - performanceService.getLastActivityTick();
+		final int activityDiff = (client.getTickCount() - pausedTicks) - performanceService.getLastActivityTick();
 		if (activityDiff > tickTimeout)
 		{
 			// offset the tracker time to account for idle timeout
@@ -148,6 +156,8 @@ public class PerformanceTrackerPlugin extends Plugin
 			.build());
 
 			performanceService.reset();
+			pausedTicks = 0;
 		}
+
 	}
 }
