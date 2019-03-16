@@ -130,8 +130,10 @@ public class PerformanceTrackerPlugin extends Plugin
 		final int activityDiff = client.getTickCount() - performanceService.getLastActivityTick();
 		if (activityDiff > tickTimeout)
 		{
-			// Adjust performance message so it ignores the timeout duration
-			performanceService.setTicksSpent(performanceService.getTicksSpent() - tickTimeout);
+			// offset the tracker time to account for idle timeout
+			// Leave an additional tick to pad elapsed time
+			final double offset = tickTimeout - GAME_TICK_SECONDS;
+			performanceService.setTicksSpent(performanceService.getTicksSpent() - offset);
 
 			chatMessageManager.queue(QueuedMessage.builder()
 			.type(ChatMessageType.GAME)
