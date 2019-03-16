@@ -30,6 +30,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
+import net.runelite.api.GameState;
 import net.runelite.api.events.GameTick;
 import net.runelite.client.chat.ChatMessageManager;
 import net.runelite.client.chat.QueuedMessage;
@@ -79,6 +80,10 @@ public class PerformanceTrackerPlugin extends Plugin
 	protected void startUp()
 	{
 		overlayManager.add(performanceTrackerOverlay);
+		if (client.getGameState() == GameState.LOGGED_IN)
+		{
+			performanceService.enable();
+		}
 	}
 
 	@Override
@@ -100,14 +105,21 @@ public class PerformanceTrackerPlugin extends Plugin
 		{
 			case "Pause":
 				performanceService.togglePaused();
+				break;
 			case "Reset":
 				performanceService.reset();
+				break;
 		}
 	}
 
 	@Subscribe
 	public void onGameTick(GameTick t)
 	{
+		if (performanceService.isPaused() || !performanceService.isEnabled())
+		{
+			return;
+		}
+
 		final int timeout = config.trackerTimeout();
 		if (timeout == 0)
 		{

@@ -150,16 +150,16 @@ public class PerformanceService implements Performance
 	@Subscribe
 	protected void onHitsplatApplied(HitsplatApplied e)
 	{
-		if (!isEnabled())
+		if (isPaused())
 		{
 			return;
 		}
 
 		if (e.getActor().equals(client.getLocalPlayer()))
 		{
-			if (isPaused())
+			if (!isEnabled())
 			{
-				togglePaused();
+				enable();
 			}
 
 			addDamageTaken(e.getHitsplat().getAmount());
@@ -170,21 +170,26 @@ public class PerformanceService implements Performance
 	@Subscribe
 	protected void onExperienceChanged(ExperienceChanged c)
 	{
-		if (!isEnabled())
+		if (isPaused())
 		{
 			return;
 		}
 
-
 		if (c.getSkill().equals(Skill.HITPOINTS))
 		{
-			if (isPaused())
-			{
-				togglePaused();
-			}
-
 			final double oldExp = hpExp;
 			hpExp = client.getSkillExperience(Skill.HITPOINTS);
+
+			// Ignore initial login
+			if (client.getTickCount() < 2)
+			{
+				return;
+			}
+
+			if (!isEnabled())
+			{
+				enable();
+			}
 
 			final double diff = hpExp - oldExp;
 			if (diff < 1)
@@ -201,7 +206,7 @@ public class PerformanceService implements Performance
 	@Subscribe
 	public void onScriptCallbackEvent(ScriptCallbackEvent e)
 	{
-		if (!isEnabled())
+		if (isPaused())
 		{
 			return;
 		}
@@ -215,9 +220,9 @@ public class PerformanceService implements Performance
 			final Skill skill = Skill.values()[skillId];
 			if (skill.equals(Skill.HITPOINTS))
 			{
-				if (isPaused())
+				if (!isEnabled())
 				{
-					togglePaused();
+					enable();
 				}
 
 				final int exp = intStack[intStackSize - 1];
