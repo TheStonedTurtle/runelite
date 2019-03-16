@@ -29,10 +29,8 @@ import lombok.Setter;
 import net.runelite.http.api.ws.messages.party.PartyMemberMessage;
 
 @Getter
-abstract class PerformanceMessage extends PartyMemberMessage
+public abstract class PerformanceMessage extends PartyMemberMessage
 {
-	boolean enabled = false;
-	boolean paused = false;
 	double damageTaken = 0;
 	double damageDealt = 0;
 	@Setter

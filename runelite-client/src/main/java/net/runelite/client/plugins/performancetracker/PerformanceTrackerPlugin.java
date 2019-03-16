@@ -24,6 +24,7 @@
  */
 package net.runelite.client.plugins.performancetracker;
 
+import com.google.inject.Binder;
 import com.google.inject.Provides;
 import javax.inject.Inject;
 import lombok.Getter;
@@ -43,7 +44,7 @@ import net.runelite.client.ui.overlay.OverlayManager;
 
 @PluginDescriptor(
 	name = "Performance Tracker",
-	description = "Tracks & displays your current PvM performance stats",
+	description = "Tracks & displays your current combat performance stats",
 	tags = {"performance", "tracker", "stats", "dps", "damage"}
 )
 @Slf4j
@@ -64,6 +65,12 @@ public class PerformanceTrackerPlugin extends Plugin
 	PerformanceTrackerConfig getConfig(ConfigManager configManager)
 	{
 		return configManager.getConfig(PerformanceTrackerConfig.class);
+	}
+
+	@Override
+	public void configure(Binder binder)
+	{
+		binder.bind(PerformanceService.class).to(PerformanceServiceImpl.class);
 	}
 
 	@Inject
