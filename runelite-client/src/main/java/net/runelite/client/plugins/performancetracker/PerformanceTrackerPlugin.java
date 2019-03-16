@@ -121,7 +121,7 @@ public class PerformanceTrackerPlugin extends Plugin
 		}
 
 		final int timeout = config.trackerTimeout();
-		if (timeout == 0)
+		if (timeout <= 0)
 		{
 			return;
 		}
