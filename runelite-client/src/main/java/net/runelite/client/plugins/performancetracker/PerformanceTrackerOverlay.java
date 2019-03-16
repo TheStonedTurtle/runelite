@@ -68,7 +68,7 @@ public class PerformanceTrackerOverlay extends Overlay
 	@Override
 	public Dimension render(Graphics2D graphics)
 	{
-		final PerformanceTracker current = tracker.getPerformanceTracker();
+		final PerformanceService current = tracker.getPerformanceService();
 		if (!current.isEnabled())
 		{
 			return null;

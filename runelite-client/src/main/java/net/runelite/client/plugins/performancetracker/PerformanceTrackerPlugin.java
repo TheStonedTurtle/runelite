@@ -78,7 +78,7 @@ public class PerformanceTrackerPlugin extends Plugin
 
 	@Inject
 	@Getter
-	private PerformanceTracker performanceTracker;
+	private PerformanceServiceImpl performanceService;
 
 	@Inject
 	private OverlayManager overlayManager;
@@ -89,7 +89,7 @@ public class PerformanceTrackerPlugin extends Plugin
 		overlayManager.add(performanceTrackerOverlay);
 		if (client.getGameState() == GameState.LOGGED_IN)
 		{
-			performanceTracker.enable();
+			performanceService.enable();
 		}
 	}
 
@@ -97,7 +97,7 @@ public class PerformanceTrackerPlugin extends Plugin
 	protected void shutDown()
 	{
 		overlayManager.remove(performanceTrackerOverlay);
-		performanceTracker.reset();
+		performanceService.reset();
 	}
 
 	@Subscribe
@@ -111,10 +111,10 @@ public class PerformanceTrackerPlugin extends Plugin
 		switch (c.getEntry().getOption())
 		{
 			case "Pause":
-				performanceTracker.togglePaused();
+				performanceService.togglePaused();
 				break;
 			case "Reset":
-				performanceTracker.reset();
+				performanceService.reset();
 				break;
 		}
 	}
@@ -122,7 +122,7 @@ public class PerformanceTrackerPlugin extends Plugin
 	@Subscribe
 	public void onGameTick(GameTick t)
 	{
-		if (performanceTracker.isPaused() || !performanceTracker.isEnabled())
+		if (performanceService.isPaused() || !performanceService.isEnabled())
 		{
 			return;
 		}
@@ -134,20 +134,20 @@ public class PerformanceTrackerPlugin extends Plugin
 		}
 
 		final double tickTimeout = timeout / GAME_TICK_SECONDS;
-		final int activityDiff = client.getTickCount() - performanceTracker.getLastActivityTick();
+		final int activityDiff = client.getTickCount() - performanceService.getLastActivityTick();
 		if (activityDiff > tickTimeout)
 		{
 			// offset the tracker time to account for idle timeout
 			// Leave an additional tick to pad elapsed time
 			final double offset = tickTimeout - GAME_TICK_SECONDS;
-			performanceTracker.setTicksSpent(performanceTracker.getTicksSpent() - offset);
+			performanceService.setTicksSpent(performanceService.getTicksSpent() - offset);
 
 			chatMessageManager.queue(QueuedMessage.builder()
 			.type(ChatMessageType.GAME)
-			.runeLiteFormattedMessage(performanceTracker.createPerformanceChatMessage())
+			.runeLiteFormattedMessage(performanceService.createPerformanceChatMessage())
 			.build());
 
-			performanceTracker.reset();
+			performanceService.reset();
 		}
 	}
 }
