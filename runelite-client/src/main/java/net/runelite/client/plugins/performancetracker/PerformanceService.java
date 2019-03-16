@@ -30,7 +30,6 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Actor;
 import net.runelite.api.Client;
-import net.runelite.api.GameState;
 import net.runelite.api.NPC;
 import net.runelite.api.Skill;
 import net.runelite.api.WorldType;
@@ -71,6 +70,7 @@ public class PerformanceService implements Performance
 
 	private double hpExp;
 	private Actor oldTarget;
+	private boolean hopping;
 
 	@Inject
 	public PerformanceService(
@@ -135,14 +135,14 @@ public class PerformanceService implements Performance
 	@Subscribe
 	public void onGameStateChanged(GameStateChanged event)
 	{
-		if (!isEnabled())
+		switch (event.getGameState())
 		{
-			return;
-		}
-
-		if (event.getGameState() == GameState.LOGIN_SCREEN)
-		{
-			disable();
+			case LOGIN_SCREEN:
+				disable();
+				break;
+			case HOPPING:
+				hopping = true;
+				break;
 		}
 	}
 
@@ -170,7 +170,7 @@ public class PerformanceService implements Performance
 	@Subscribe
 	protected void onExperienceChanged(ExperienceChanged c)
 	{
-		if (isPaused())
+		if (isPaused() || hopping)
 		{
 			return;
 		}
@@ -242,6 +242,8 @@ public class PerformanceService implements Performance
 		{
 			this.ticksSpent++;
 		}
+
+		hopping = false;
 	}
 
 	/**
