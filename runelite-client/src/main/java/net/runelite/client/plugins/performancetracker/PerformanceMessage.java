@@ -37,4 +37,9 @@ public abstract class PerformanceMessage extends PartyMemberMessage
 	double ticksSpent = 0;
 	double highestHitDealt = 0;
 	double highestHitTaken = 0;
+
+	public String getOverlayText()
+	{
+		return "Dealt:" + ((int) damageDealt) + " | Taken: " + ((int) damageTaken);
+	}
 }

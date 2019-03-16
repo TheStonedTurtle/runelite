@@ -62,12 +62,16 @@ import net.runelite.client.events.PartyChanged;
 import net.runelite.client.input.KeyListener;
 import net.runelite.client.input.KeyManager;
 import net.runelite.client.plugins.Plugin;
+import net.runelite.client.plugins.PluginDependency;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.plugins.party.data.PartyData;
 import net.runelite.client.plugins.party.data.PartyTilePingData;
 import net.runelite.client.plugins.party.messages.LocationUpdate;
 import net.runelite.client.plugins.party.messages.SkillUpdate;
 import net.runelite.client.plugins.party.messages.TilePing;
+import net.runelite.client.plugins.performancetracker.PerformanceMessage;
+import net.runelite.client.plugins.performancetracker.PerformanceService;
+import net.runelite.client.plugins.performancetracker.PerformanceTrackerPlugin;
 import net.runelite.client.task.Schedule;
 import net.runelite.client.ui.overlay.OverlayManager;
 import net.runelite.client.ui.overlay.worldmap.WorldMapPoint;
@@ -84,6 +88,7 @@ import net.runelite.http.api.ws.messages.party.UserSync;
 	name = "Party",
 	description = "Shows useful information about current party"
 )
+@PluginDependency(PerformanceTrackerPlugin.class)
 @Slf4j
 public class PartyPlugin extends Plugin implements KeyListener
 {
@@ -119,6 +124,9 @@ public class PartyPlugin extends Plugin implements KeyListener
 
 	@Inject
 	private ChatMessageManager chatMessageManager;
+
+	@Inject
+	private PerformanceService performanceService;
 
 	@Getter
 	private final Map<UUID, PartyData> partyDataMap = Collections.synchronizedMap(new HashMap<>());
@@ -323,6 +331,13 @@ public class PartyPlugin extends Plugin implements KeyListener
 				update.setMemberId(localMember.getMemberId());
 				ws.send(update);
 			}
+
+			if (performanceService.isEnabled())
+			{
+				final PerformanceMessage performanceUpdate = (PerformanceMessage) performanceService;
+				performanceUpdate.setMemberId(localMember.getMemberId());
+				ws.send(performanceUpdate);
+			}
 		}
 
 		lastHp = currentHealth;
@@ -411,6 +426,13 @@ public class PartyPlugin extends Plugin implements KeyListener
 			final SkillUpdate prayUpdate = new SkillUpdate(Skill.PRAYER, currentPrayer, realPrayer);
 			prayUpdate.setMemberId(localMember.getMemberId());
 			ws.send(prayUpdate);
+
+			if (performanceService.isEnabled())
+			{
+				final PerformanceMessage performanceUpdate = (PerformanceMessage) performanceService;
+				performanceUpdate.setMemberId(localMember.getMemberId());
+				ws.send(performanceUpdate);
+			}
 		}
 	}
 
@@ -446,6 +468,19 @@ public class PartyPlugin extends Plugin implements KeyListener
 		partyDataMap.clear();
 		pendingTilePings.clear();
 		worldMapManager.removeIf(PartyWorldMapPoint.class::isInstance);
+	}
+
+	@Subscribe
+	public void onPerformanceMessage(final PerformanceMessage message)
+	{
+		final PartyData partyData = getPartyData(message.getMemberId());
+
+		if (partyData == null)
+		{
+			return;
+		}
+
+		partyData.setPerformance(message);
 	}
 
 	@Nullable

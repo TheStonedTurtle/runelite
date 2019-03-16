@@ -134,6 +134,12 @@ public class PartyStatsOverlay extends Overlay
 					panel.getChildren().add(prayBar);
 				}
 
+				if (v.getPerformance() != null)
+				{
+					final TitleComponent performance = TitleComponent.builder().text(v.getPerformance().getOverlayText()).build();
+					panel.getChildren().add(performance);
+				}
+
 				body.getChildren().add(panel);
 			});
 		}
