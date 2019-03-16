@@ -24,52 +24,36 @@
  */
 package net.runelite.client.plugins.performancetracker;
 
-import lombok.Data;
-import net.runelite.client.ui.overlay.components.LineComponent;
-import net.runelite.http.api.ws.messages.party.PartyMemberMessage;
+import java.text.DecimalFormat;
+import net.runelite.client.chat.ChatColorType;
+import net.runelite.client.chat.ChatMessageBuilder;
 
-@Data
-public class Performance extends PartyMemberMessage
+interface Performance
 {
-	private boolean started = false;
-	
-	private double damageTaken = 0;
-	private double damageDealt = 0;
-	private double secondsSpent = 0;
+	double getDamageTaken();
+	double getHighestHitTaken();
 
-	private double highestHitDealt;
-	private double highestHitTaken;
+	double getDamageDealt();
+	double getHighestHitDealt();
 
-	void addDamageTaken(double a)
+	double getTicksSpent();
+
+	boolean isPaused();
+
+	default double getSecondsSpent()
 	{
-		this.damageTaken += a;
-		if (a > highestHitTaken)
-		{
-			highestHitTaken = a;
-		}
+		// Each tick is .6 seconds
+		return Math.round(getTicksSpent() * 0.6);
 	}
 
-	void addDamageDealt(double a)
+	default double getDPS()
 	{
-		this.damageDealt += a;
-		if (a > highestHitDealt)
-		{
-			highestHitDealt = a;
-		}
+		return Math.round((getDamageDealt() / getSecondsSpent()) * 100) / 100.00;
 	}
 
-	void incrementSeconds()
+	default String getReadableSecondsSpent()
 	{
-		this.secondsSpent++;
-	}
-
-	double getDPS()
-	{
-		return Math.round((this.damageDealt / this.secondsSpent) * 100) / 100.00;
-	}
-
-	String getReadableSecondsSpent()
-	{
+		final double secondsSpent = getSecondsSpent();
 		if (secondsSpent <= 60)
 		{
 			return String.format("%2.0f", secondsSpent) + "s";
@@ -82,10 +66,38 @@ public class Performance extends PartyMemberMessage
 		return h < 1 ? String.format("%2.0f:%02.0f", m, s) : String.format("%2.0f:%02.0f:%02.0f", h, m, s);
 	}
 
-	String singleLineData()
+	default String createPerformanceChatMessage()
 	{
-		return String.valueOf(Math.round(damageDealt)) +
-			" | " + Math.round(damageTaken) +
-			" | " + getDPS();
+		final DecimalFormat numberFormat = new DecimalFormat("#,###");
+
+		// Expected result: Damage Dealt: ## (Max: ##), Damage Taken: ## (Max: ##), Time Spent: ##:## (DPS: ##.##)
+		return new ChatMessageBuilder()
+			.append(ChatColorType.NORMAL)
+			.append("Damage dealt: ")
+			.append(ChatColorType.HIGHLIGHT)
+			.append(numberFormat.format(getDamageDealt()))
+			.append(ChatColorType.NORMAL)
+			.append(" (Max: ")
+			.append(ChatColorType.HIGHLIGHT)
+			.append(numberFormat.format(getHighestHitDealt()))
+			.append(ChatColorType.NORMAL)
+			.append("), Damage Taken: ")
+			.append(ChatColorType.HIGHLIGHT)
+			.append(numberFormat.format(getDamageTaken()))
+			.append(ChatColorType.NORMAL)
+			.append(" (Max: ")
+			.append(ChatColorType.HIGHLIGHT)
+			.append(numberFormat.format(getHighestHitTaken()))
+			.append(ChatColorType.NORMAL)
+			.append("), Time Spent: ")
+			.append(ChatColorType.HIGHLIGHT)
+			.append(getReadableSecondsSpent())
+			.append(ChatColorType.NORMAL)
+			.append(" (DPS: ")
+			.append(ChatColorType.HIGHLIGHT)
+			.append(String.valueOf(getDPS()))
+			.append(ChatColorType.NORMAL)
+			.append(")")
+			.build();
 	}
 }
