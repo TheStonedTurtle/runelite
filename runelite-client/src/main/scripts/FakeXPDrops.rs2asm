@@ -5,7 +5,7 @@
 .string_var_count   0
    iload                  0
    iload                  1
-   load_string            "fakeXpDrop"
+   sconst				  "fakeXpDrop"
    runelite_callback	  ;
    iconst                 105
    iconst                 83
