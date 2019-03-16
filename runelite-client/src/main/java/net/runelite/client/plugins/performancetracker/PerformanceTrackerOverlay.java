@@ -27,7 +27,6 @@ package net.runelite.client.plugins.performancetracker;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
-import java.util.Map;
 import javax.inject.Inject;
 import net.runelite.api.MenuAction;
 import net.runelite.client.ui.overlay.Overlay;
@@ -69,8 +68,8 @@ public class PerformanceTrackerOverlay extends Overlay
 	@Override
 	public Dimension render(Graphics2D graphics)
 	{
-		final Performance current = tracker.getCurrent();
-		if (!tracker.isTracking() || current == null)
+		final PerformanceService current = tracker.getPerformanceService();
+		if (!current.isEnabled())
 		{
 			return null;
 		}
@@ -84,21 +83,10 @@ public class PerformanceTrackerOverlay extends Overlay
 		add(LineComponent.builder().left("Dmg Taken").right(String.valueOf((int) Math.round(current.getDamageTaken()))).build());
 		add(LineComponent.builder().left("Time Spent").right(current.getReadableSecondsSpent()).build());
 		add(LineComponent.builder().left("DPS").right(String.valueOf(current.getDPS())).build());
-		if (tracker.isPaused())
+		if (current.isPaused())
 		{
 			add(TitleComponent.builder().text("Paused").build());
 			panelComponent.setBackgroundColor(PAUSED_COLOR);
-		}
-
-		Map<String, Performance> performanceMap = tracker.getPartyPerformances();
-		if (tracker.getPartyPerformances().size() > 0)
-		{
-			for (Map.Entry<String, Performance> perf : performanceMap.entrySet())
-			{
-				add(TitleComponent.builder().text(perf.getKey()).build());
-				Performance p = perf.getValue();
-				add(TitleComponent.builder().text(p.singleLineData()).build());
-			}
 		}
 
 		return panelComponent.render(graphics);

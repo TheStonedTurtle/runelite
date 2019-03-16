@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, TheStonedTurtle <https://github.com/TheStonedTurtle>
+ * Copyright (c) 2019, TheStonedTurtle <https://github.com/TheStonedTurtle>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -24,57 +24,20 @@
  */
 package net.runelite.client.plugins.performancetracker;
 
-import java.util.HashMap;
-import java.util.Map;
-import lombok.Getter;
+import net.runelite.client.config.ConfigGroup;
+import net.runelite.client.config.ConfigItem;
 
-@Getter
-public enum PTRegion
+@ConfigGroup("performancetracker")
+public interface PerformanceTrackerConfig
 {
-	// PvM Bosses
-	DKS(11588, 11589),
-	GIANT_MOLE(6736, 6737, 6992, 6993),
-	KQ(13972),
-	VORKATH(9023),
-	ZULRAH(9007),
-	// Sporadic TODO: Add moss & hill giant boss region(s)
-	SKOTIZO(6810),
-	// GWD
-	KREEARRA(11346),
-	GENERAL_GRAARDOR(11347),
-	COMMANDER_ZILYANA(11602),
-	KRIL_TSUTSAROTH(11603),
-	// Slayer
-	GROTESQUE_GUARDIANS(6727),
-	ABYSSAL_SIRE(11851, 11850, 12363, 12362),
-	KRAKEN(9116),
-	CERBERUS(4883, 5140, 5395),
-	SMOKE_DEVIL(9363, 9619),
-	// Theatre of Blood
-	MAIDEN(12613, 12869),
-	BLOAT(13125),
-	NYLOCAS(13122),
-	SOTETSEG(13123, 13379),
-	XARPUS(12612),
-	VERZIK(12611),
-	TEST(12342, 12343);
-
-	private final int[] regionIDs;
-
-	public static final Map<Integer, PTRegion> map = new HashMap<>();
-	static
+	@ConfigItem(
+		position = 0,
+		keyName = "trackerTimeout",
+		name = "Tracker Timeout (seconds)",
+		description = "Automatically stops the tracker after x seconds"
+	)
+	default int trackerTimeout()
 	{
-		for (PTRegion r : values())
-		{
-			for (int i : r.regionIDs)
-			{
-				map.put(i, r);
-			}
-		}
-	}
-
-	PTRegion(int... regionIDs)
-	{
-		this.regionIDs = regionIDs;
+		return 30;
 	}
 }
