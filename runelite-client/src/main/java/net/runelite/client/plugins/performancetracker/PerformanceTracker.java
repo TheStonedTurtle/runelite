@@ -42,7 +42,7 @@ import net.runelite.client.eventbus.EventBus;
 import net.runelite.client.eventbus.Subscribe;
 
 @Slf4j
-public class PerformanceService implements Performance
+public class PerformanceTracker implements Performance
 {
 	// For every damage point dealt 1.33 experience is given to the player's hitpoints (base rate)
 	private static final double HITPOINT_RATIO = 1.33;
@@ -73,7 +73,7 @@ public class PerformanceService implements Performance
 	private boolean hopping;
 
 	@Inject
-	public PerformanceService(
+	public PerformanceTracker(
 		final Client client,
 		final EventBus eventBus)
 	{
