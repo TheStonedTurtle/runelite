@@ -26,7 +26,6 @@ package net.runelite.client.plugins.performancetracker;
 
 import javax.inject.Inject;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Actor;
 import net.runelite.api.Client;
@@ -42,7 +41,7 @@ import net.runelite.client.eventbus.EventBus;
 import net.runelite.client.eventbus.Subscribe;
 
 @Slf4j
-public class PerformanceTracker implements Performance
+public class PerformanceTracker extends PerformanceMessage implements Performance
 {
 	// For every damage point dealt 1.33 experience is given to the player's hitpoints (base rate)
 	private static final double HITPOINT_RATIO = 1.33;
@@ -50,21 +49,6 @@ public class PerformanceTracker implements Performance
 
 	private final Client client;
 
-	@Getter
-	private boolean enabled = false;
-	@Getter
-	private boolean paused = false;
-	@Getter
-	private double damageTaken = 0;
-	@Getter
-	private double damageDealt = 0;
-	@Getter
-	@Setter
-	private double ticksSpent = 0;
-	@Getter
-	private double highestHitDealt = 0;
-	@Getter
-	private double highestHitTaken = 0;
 	@Getter
 	private int lastActivityTick = -1;
 
