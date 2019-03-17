@@ -206,25 +206,25 @@ public class PerformanceServiceImpl extends PerformanceMessage implements Perfor
 			return;
 		}
 
-		if ( e.getEventName().equals("fakeXpDrop"))
+		if (!"fakeXpDrop".equals(e.getEventName()))
 		{
-			final int[] intStack = client.getIntStack();
-			final int intStackSize = client.getIntStackSize();
+			return;
+		}
 
-			final int skillId = intStack[intStackSize - 2];
-			final Skill skill = Skill.values()[skillId];
-			if (skill.equals(Skill.HITPOINTS))
+		final int[] intStack = client.getIntStack();
+		final int intStackSize = client.getIntStackSize();
+
+		final int skillId = intStack[intStackSize - 2];
+		final Skill skill = Skill.values()[skillId];
+		if (skill.equals(Skill.HITPOINTS))
+		{
+			if (!isEnabled())
 			{
-				if (!isEnabled())
-				{
-					enable();
-				}
-
-				final int exp = intStack[intStackSize - 1];
-				addDamageDealt(calculateDamageDealt(exp));
+				enable();
 			}
 
-			client.setIntStackSize(intStackSize - 2);
+			final int exp = intStack[intStackSize - 1];
+			addDamageDealt(calculateDamageDealt(exp));
 		}
 	}
 
