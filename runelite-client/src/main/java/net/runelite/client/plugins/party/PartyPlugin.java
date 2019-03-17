@@ -152,6 +152,7 @@ public class PartyPlugin extends Plugin implements KeyListener
 		wsClient.registerMessage(SkillUpdate.class);
 		wsClient.registerMessage(TilePing.class);
 		wsClient.registerMessage(LocationUpdate.class);
+		wsClient.registerMessage(PerformanceMessage.class);
 		keyManager.registerKeyListener(this);
 		doSync = true; // Delay sync so eventbus can process correctly.
 	}
@@ -167,6 +168,7 @@ public class PartyPlugin extends Plugin implements KeyListener
 		wsClient.unregisterMessage(SkillUpdate.class);
 		wsClient.unregisterMessage(TilePing.class);
 		wsClient.unregisterMessage(LocationUpdate.class);
+		wsClient.unregisterMessage(PerformanceMessage.class);
 		keyManager.unregisterKeyListener(this);
 		hotkeyDown = false;
 		doSync = false;

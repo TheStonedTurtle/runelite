@@ -24,12 +24,14 @@
  */
 package net.runelite.client.plugins.performancetracker;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import net.runelite.http.api.ws.messages.party.PartyMemberMessage;
 
 @Getter
-public abstract class PerformanceMessage extends PartyMemberMessage
+@EqualsAndHashCode(callSuper = true)
+public class PerformanceMessage extends PartyMemberMessage
 {
 	double damageTaken = 0;
 	double damageDealt = 0;
