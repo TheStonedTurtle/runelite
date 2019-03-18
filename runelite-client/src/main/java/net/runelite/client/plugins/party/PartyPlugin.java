@@ -473,7 +473,7 @@ public class PartyPlugin extends Plugin implements KeyListener
 	}
 
 	@Subscribe
-	public void onPerformanceMessage(final Performance message)
+	public void onPerformance(final Performance message)
 	{
 		final PartyData partyData = getPartyData(message.getMemberId());
 
