@@ -48,6 +48,9 @@ import net.runelite.client.events.OverlayMenuClicked;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.overlay.OverlayManager;
+import net.runelite.client.ws.PartyMember;
+import net.runelite.client.ws.PartyService;
+import net.runelite.client.ws.WSClient;
 
 @PluginDescriptor(
 	name = "Performance Tracker",
@@ -78,6 +81,12 @@ public class PerformanceTrackerPlugin extends Plugin
 	@Inject
 	private OverlayManager overlayManager;
 
+	@Inject
+	private PartyService partyService;
+
+	@Inject
+	private WSClient wsClient;
+
 	@Getter
 	private boolean enabled = false;
 	@Getter
@@ -101,7 +110,6 @@ public class PerformanceTrackerPlugin extends Plugin
 	{
 		binder.bind(PerformanceService.class).to(PerformanceServiceImpl.class);
 	}
-
 
 	@Override
 	protected void startUp()
@@ -179,42 +187,12 @@ public class PerformanceTrackerPlugin extends Plugin
 			pausedTicks = 0;
 		}
 
-	}
-
-	void reset()
-	{
-		this.enabled = false;
-		this.paused = false;
-
-		this.performance.reset();
-	}
-
-	void togglePaused()
-	{
-		this.paused = !this.paused;
-	}
-
-	void enable()
-	{
-		this.enabled = true;
-		hpExp = client.getSkillExperience(Skill.HITPOINTS);
-	}
-
-	void disable()
-	{
-		this.enabled = false;
-	}
-
-	private void addDamageTaken(double a)
-	{
-		performance.addDamageTaken(a);
-		performance.setLastActivityTick(client.getTickCount());
-	}
-
-	private void addDamageDealt(double a)
-	{
-		performance.addDamageDealt(a);
-		performance.setLastActivityTick(client.getTickCount());
+		final PartyMember localMember = partyService.getLocalMember();
+		if (localMember != null)
+		{
+			performance.setMemberId(localMember.getMemberId());
+			wsClient.send(performance);
+		}
 	}
 
 	@Subscribe
@@ -316,6 +294,42 @@ public class PerformanceTrackerPlugin extends Plugin
 			final int exp = intStack[intStackSize - 1];
 			addDamageDealt(calculateDamageDealt(exp));
 		}
+	}
+
+	private void reset()
+	{
+		this.enabled = false;
+		this.paused = false;
+
+		this.performance.reset();
+	}
+
+	private void togglePaused()
+	{
+		this.paused = !this.paused;
+	}
+
+	private void enable()
+	{
+		this.enabled = true;
+		hpExp = client.getSkillExperience(Skill.HITPOINTS);
+	}
+
+	private void disable()
+	{
+		this.enabled = false;
+	}
+
+	private void addDamageTaken(double a)
+	{
+		performance.addDamageTaken(a);
+		performance.setLastActivityTick(client.getTickCount());
+	}
+
+	private void addDamageDealt(double a)
+	{
+		performance.addDamageDealt(a);
+		performance.setLastActivityTick(client.getTickCount());
 	}
 
 	/**

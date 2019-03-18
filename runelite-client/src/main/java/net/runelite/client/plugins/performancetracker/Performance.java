@@ -159,6 +159,6 @@ public class Performance extends PartyMemberMessage
 	 */
 	public String getOverlayText()
 	{
-		return "Dealt:" + ((int) damageDealt) + " | Taken: " + ((int) damageTaken);
+		return "Dealt: " + ((int) damageDealt) + " | Taken: " + ((int) damageTaken);
 	}
 }
