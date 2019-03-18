@@ -32,7 +32,6 @@ import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Actor;
 import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
-import net.runelite.api.GameState;
 import net.runelite.api.NPC;
 import net.runelite.api.Skill;
 import net.runelite.api.WorldType;
@@ -53,7 +52,8 @@ import net.runelite.client.ui.overlay.OverlayManager;
 @PluginDescriptor(
 	name = "Performance Tracker",
 	description = "Tracks & displays your current combat performance stats",
-	tags = {"performance", "tracker", "stats", "dps", "damage"}
+	tags = {"performance", "tracker", "stats", "dps", "damage"},
+	enabledByDefault = false
 )
 @Slf4j
 public class PerformanceTrackerPlugin extends Plugin
@@ -107,16 +107,13 @@ public class PerformanceTrackerPlugin extends Plugin
 	protected void startUp()
 	{
 		overlayManager.add(performanceTrackerOverlay);
-		if (client.getGameState() == GameState.LOGGED_IN)
-		{
-			enable();
-		}
 	}
 
 	@Override
 	protected void shutDown()
 	{
 		overlayManager.remove(performanceTrackerOverlay);
+		disable();
 		reset();
 	}
 

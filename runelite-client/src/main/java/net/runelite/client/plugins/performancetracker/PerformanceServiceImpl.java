@@ -41,33 +41,39 @@ public class PerformanceServiceImpl implements PerformanceService
 	}
 
 	@Override
+	public Performance getPerformance()
+	{
+		return plugin.getPerformance();
+	}
+
+	@Override
 	public double getDamageTaken()
 	{
-		return plugin.getPerformance().getDamageTaken();
+		return getPerformance().getDamageTaken();
 	}
 
 	@Override
 	public double getHighestHitTaken()
 	{
-		return plugin.getPerformance().getHighestHitTaken();
+		return getPerformance().getHighestHitTaken();
 	}
 
 	@Override
 	public double getDamageDealt()
 	{
-		return plugin.getPerformance().getDamageDealt();
+		return getPerformance().getDamageDealt();
 	}
 
 	@Override
 	public double getHighestHitDealt()
 	{
-		return plugin.getPerformance().getHighestHitDealt();
+		return getPerformance().getHighestHitDealt();
 	}
 
 	@Override
 	public double getTicksSpent()
 	{
-		return plugin.getPerformance().getTicksSpent();
+		return getPerformance().getTicksSpent();
 	}
 
 	@Override

@@ -336,9 +336,9 @@ public class PartyPlugin extends Plugin implements KeyListener
 
 			if (performanceService.isEnabled())
 			{
-				final Performance performanceUpdate = (Performance) performanceService;
-				performanceUpdate.setMemberId(localMember.getMemberId());
-				ws.send(performanceUpdate);
+				Performance p = performanceService.getPerformance();
+				p.setMemberId(localMember.getMemberId());
+				ws.send(p);
 			}
 		}
 
@@ -431,9 +431,9 @@ public class PartyPlugin extends Plugin implements KeyListener
 
 			if (performanceService.isEnabled())
 			{
-				final Performance performanceUpdate = (Performance) performanceService;
-				performanceUpdate.setMemberId(localMember.getMemberId());
-				ws.send(performanceUpdate);
+				Performance p = performanceService.getPerformance();
+				p.setMemberId(localMember.getMemberId());
+				ws.send(p);
 			}
 		}
 	}

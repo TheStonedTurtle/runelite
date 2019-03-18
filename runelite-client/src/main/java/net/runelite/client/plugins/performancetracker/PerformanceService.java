@@ -26,6 +26,7 @@ package net.runelite.client.plugins.performancetracker;
 
 public interface PerformanceService
 {
+	Performance getPerformance();
 	/**
 	 * Total damage taken to local player
 	 */
