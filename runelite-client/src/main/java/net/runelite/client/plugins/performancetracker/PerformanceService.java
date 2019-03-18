@@ -24,10 +24,6 @@
  */
 package net.runelite.client.plugins.performancetracker;
 
-import java.text.DecimalFormat;
-import net.runelite.client.chat.ChatColorType;
-import net.runelite.client.chat.ChatMessageBuilder;
-
 public interface PerformanceService
 {
 	/**
@@ -64,79 +60,4 @@ public interface PerformanceService
 	 * Is the tracker currently paused
 	 */
 	boolean isPaused();
-
-	/**
-	 * Converts the ticks spent to seconds
-	 */
-	default double getSecondsSpent()
-	{
-		// Each tick is .6 seconds
-		final double tickLength = 0.6;
-
-		return Math.round(getTicksSpent() * tickLength);
-	}
-
-	/**
-	 * Calculates damage per second to the hundredth decimal place
-	 */
-	default double getDPS()
-	{
-		return Math.round((getDamageDealt() / getSecondsSpent()) * 100) / 100.00;
-	}
-
-	/**
-	 * Converts seconds spent to a more human readable format
-	 */
-	default String getReadableSecondsSpent()
-	{
-		final double secondsSpent = getSecondsSpent();
-		if (secondsSpent <= 60)
-		{
-			return String.format("%2.0f", secondsSpent) + "s";
-		}
-
-		final double s = secondsSpent % 3600 % 60;
-		final double m = Math.floor(secondsSpent % 3600 / 60);
-		final double h = Math.floor(secondsSpent / 3600);
-
-		return h < 1 ? String.format("%2.0f:%02.0f", m, s) : String.format("%2.0f:%02.0f:%02.0f", h, m, s);
-	}
-
-	/**
-	 * Creates the chat message for the performance
-	 */
-	default String createPerformanceChatMessage()
-	{
-		final DecimalFormat numberFormat = new DecimalFormat("#,###");
-
-		// Expected result: Damage Dealt: ## (Max: ##), Damage Taken: ## (Max: ##), Time Spent: ##:## (DPS: ##.##)
-		return new ChatMessageBuilder()
-			.append(ChatColorType.NORMAL)
-			.append("Damage dealt: ")
-			.append(ChatColorType.HIGHLIGHT)
-			.append(numberFormat.format(getDamageDealt()))
-			.append(ChatColorType.NORMAL)
-			.append(" (Max: ")
-			.append(ChatColorType.HIGHLIGHT)
-			.append(numberFormat.format(getHighestHitDealt()))
-			.append(ChatColorType.NORMAL)
-			.append("), Damage Taken: ")
-			.append(ChatColorType.HIGHLIGHT)
-			.append(numberFormat.format(getDamageTaken()))
-			.append(ChatColorType.NORMAL)
-			.append(" (Max: ")
-			.append(ChatColorType.HIGHLIGHT)
-			.append(numberFormat.format(getHighestHitTaken()))
-			.append(ChatColorType.NORMAL)
-			.append("), Time Spent: ")
-			.append(ChatColorType.HIGHLIGHT)
-			.append(getReadableSecondsSpent())
-			.append(ChatColorType.NORMAL)
-			.append(" (DPS: ")
-			.append(ChatColorType.HIGHLIGHT)
-			.append(String.valueOf(getDPS()))
-			.append(ChatColorType.NORMAL)
-			.append(")")
-			.build();
-	}
 }

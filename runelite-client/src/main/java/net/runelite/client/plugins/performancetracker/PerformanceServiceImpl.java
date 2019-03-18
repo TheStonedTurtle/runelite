@@ -24,252 +24,61 @@
  */
 package net.runelite.client.plugins.performancetracker;
 
-import javax.inject.Inject;
+import com.google.inject.Inject;
 import javax.inject.Singleton;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import net.runelite.api.Actor;
-import net.runelite.api.Client;
-import net.runelite.api.NPC;
-import net.runelite.api.Skill;
-import net.runelite.api.WorldType;
-import net.runelite.api.events.ExperienceChanged;
-import net.runelite.api.events.GameStateChanged;
-import net.runelite.api.events.GameTick;
-import net.runelite.api.events.HitsplatApplied;
-import net.runelite.api.events.ScriptCallbackEvent;
-import net.runelite.client.eventbus.EventBus;
-import net.runelite.client.eventbus.Subscribe;
 
 @Slf4j
 @Singleton
-public class PerformanceServiceImpl extends PerformanceMessage implements PerformanceService
+public class PerformanceServiceImpl implements PerformanceService
 {
-	// For every damage point dealt 1.33 experience is given to the player's hitpoints (base rate)
-	private static final double HITPOINT_RATIO = 1.33;
-	private static final double DMM_MULTIPLIER_RATIO = 10;
-
-	private final Client client;
-
-	@Getter
-	boolean enabled = false;
-	@Getter
-	boolean paused = false;
-	@Getter
-	private int lastActivityTick = -1;
-
-	private double hpExp;
-	private Actor oldTarget;
-	private boolean hopping;
+	private final PerformanceTrackerPlugin plugin;
 
 	@Inject
-	public PerformanceServiceImpl(
-		final Client client,
-		final EventBus eventBus)
+	private PerformanceServiceImpl(PerformanceTrackerPlugin plugin)
 	{
-		this.client = client;
-		eventBus.register(this);
+		this.plugin = plugin;
 	}
 
-	public PerformanceMessage getPerformanceMessage()
+	@Override
+	public double getDamageTaken()
 	{
-		return this;
+		return plugin.getPerformance().getDamageTaken();
 	}
 
-	void reset()
+	@Override
+	public double getHighestHitTaken()
 	{
-		this.enabled = false;
-		this.paused = false;
-
-		this.damageTaken = 0;
-		this.damageDealt = 0;
-		this.ticksSpent = 0;
-		this.highestHitDealt = 0;
-		this.highestHitTaken = 0;
-		this.lastActivityTick = -1;
+		return plugin.getPerformance().getHighestHitTaken();
 	}
 
-	void togglePaused()
+	@Override
+	public double getDamageDealt()
 	{
-		this.paused = !this.paused;
+		return plugin.getPerformance().getDamageDealt();
 	}
 
-	void enable()
+	@Override
+	public double getHighestHitDealt()
 	{
-		this.enabled = true;
-		hpExp = client.getSkillExperience(Skill.HITPOINTS);
+		return plugin.getPerformance().getHighestHitDealt();
 	}
 
-	void disable()
+	@Override
+	public double getTicksSpent()
 	{
-		this.enabled = false;
+		return plugin.getPerformance().getTicksSpent();
 	}
 
-	private void addDamageTaken(double a)
+	@Override
+	public boolean isEnabled()
 	{
-		this.damageTaken += a;
-		if (a > this.highestHitTaken)
-		{
-			this.highestHitTaken = a;
-		}
-
-		this.lastActivityTick = client.getTickCount();
+		return plugin.isEnabled();
 	}
 
-	private void addDamageDealt(double a)
+	@Override
+	public boolean isPaused()
 	{
-		this.damageDealt += a;
-		if (a > this.highestHitDealt)
-		{
-			this.highestHitDealt = a;
-		}
-
-		this.lastActivityTick = client.getTickCount();
-	}
-
-	@Subscribe
-	public void onGameStateChanged(GameStateChanged event)
-	{
-		switch (event.getGameState())
-		{
-			case LOGIN_SCREEN:
-				disable();
-				break;
-			case HOPPING:
-				hopping = true;
-				break;
-		}
-	}
-
-	// Calculate Damage Taken
-	@Subscribe
-	public void onHitsplatApplied(HitsplatApplied e)
-	{
-		if (isPaused())
-		{
-			return;
-		}
-
-		if (e.getActor().equals(client.getLocalPlayer()))
-		{
-			if (!isEnabled())
-			{
-				enable();
-			}
-
-			addDamageTaken(e.getHitsplat().getAmount());
-		}
-	}
-
-	// Calculate Damage Dealt
-	@Subscribe
-	public void onExperienceChanged(ExperienceChanged c)
-	{
-		if (isPaused() || hopping)
-		{
-			return;
-		}
-
-		if (c.getSkill().equals(Skill.HITPOINTS))
-		{
-			final double oldExp = hpExp;
-			hpExp = client.getSkillExperience(Skill.HITPOINTS);
-
-			// Ignore initial login
-			if (client.getTickCount() < 2)
-			{
-				return;
-			}
-
-			if (!isEnabled())
-			{
-				enable();
-			}
-
-			final double diff = hpExp - oldExp;
-			if (diff < 1)
-			{
-				return;
-			}
-
-			final double damageDealt = calculateDamageDealt(diff);
-			addDamageDealt(damageDealt);
-		}
-	}
-
-	// Handles Fake XP drops (Ironman in PvP, DMM Cap, 200m xp, etc)
-	@Subscribe
-	public void onScriptCallbackEvent(ScriptCallbackEvent e)
-	{
-		if (isPaused())
-		{
-			return;
-		}
-
-		if (!"fakeXpDrop".equals(e.getEventName()))
-		{
-			return;
-		}
-
-		final int[] intStack = client.getIntStack();
-		final int intStackSize = client.getIntStackSize();
-
-		final int skillId = intStack[intStackSize - 2];
-		final Skill skill = Skill.values()[skillId];
-		if (skill.equals(Skill.HITPOINTS))
-		{
-			if (!isEnabled())
-			{
-				enable();
-			}
-
-			final int exp = intStack[intStackSize - 1];
-			addDamageDealt(calculateDamageDealt(exp));
-		}
-	}
-
-	@Subscribe
-	public void onGameTick(GameTick tick)
-	{
-		oldTarget = client.getLocalPlayer().getInteracting();
-
-		if (isEnabled() && !isPaused())
-		{
-			this.ticksSpent++;
-		}
-
-		hopping = false;
-	}
-
-	/**
-	 * Calculates damage dealt based on HP xp gained accounting for NPC Exp Modifiers
-	 * @param diff HP xp gained
-	 * @return damage dealt
-	 */
-	private double calculateDamageDealt(double diff)
-	{
-		double damageDealt = diff / HITPOINT_RATIO;
-		// DeadMan mode has an XP modifier
-		if (client.getWorldType().contains(WorldType.DEADMAN))
-		{
-			damageDealt = damageDealt / DMM_MULTIPLIER_RATIO;
-		}
-
-		// Some NPCs have an XP modifier, account for it here.
-		Actor a = client.getLocalPlayer().getInteracting();
-		if (!(a instanceof NPC))
-		{
-			// If we are interacting with nothing we may have clicked away at the perfect time fall back to last tick
-			if (!(oldTarget instanceof NPC))
-			{
-				log.warn("Couldn't find current or past target for experienced gain...");
-				return damageDealt;
-			}
-
-			a = oldTarget;
-		}
-
-		NPC target = (NPC) a;
-		return damageDealt / NpcExpModifier.getByNpcId(target.getId());
+		return plugin.isPaused();
 	}
 }

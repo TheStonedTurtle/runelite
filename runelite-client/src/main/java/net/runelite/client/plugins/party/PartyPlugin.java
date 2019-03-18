@@ -69,7 +69,7 @@ import net.runelite.client.plugins.party.data.PartyTilePingData;
 import net.runelite.client.plugins.party.messages.LocationUpdate;
 import net.runelite.client.plugins.party.messages.SkillUpdate;
 import net.runelite.client.plugins.party.messages.TilePing;
-import net.runelite.client.plugins.performancetracker.PerformanceMessage;
+import net.runelite.client.plugins.performancetracker.Performance;
 import net.runelite.client.plugins.performancetracker.PerformanceService;
 import net.runelite.client.plugins.performancetracker.PerformanceTrackerPlugin;
 import net.runelite.client.task.Schedule;
@@ -152,7 +152,7 @@ public class PartyPlugin extends Plugin implements KeyListener
 		wsClient.registerMessage(SkillUpdate.class);
 		wsClient.registerMessage(TilePing.class);
 		wsClient.registerMessage(LocationUpdate.class);
-		wsClient.registerMessage(PerformanceMessage.class);
+		wsClient.registerMessage(Performance.class);
 		keyManager.registerKeyListener(this);
 		doSync = true; // Delay sync so eventbus can process correctly.
 	}
@@ -168,7 +168,7 @@ public class PartyPlugin extends Plugin implements KeyListener
 		wsClient.unregisterMessage(SkillUpdate.class);
 		wsClient.unregisterMessage(TilePing.class);
 		wsClient.unregisterMessage(LocationUpdate.class);
-		wsClient.unregisterMessage(PerformanceMessage.class);
+		wsClient.unregisterMessage(Performance.class);
 		keyManager.unregisterKeyListener(this);
 		hotkeyDown = false;
 		doSync = false;
@@ -336,7 +336,7 @@ public class PartyPlugin extends Plugin implements KeyListener
 
 			if (performanceService.isEnabled())
 			{
-				final PerformanceMessage performanceUpdate = (PerformanceMessage) performanceService;
+				final Performance performanceUpdate = (Performance) performanceService;
 				performanceUpdate.setMemberId(localMember.getMemberId());
 				ws.send(performanceUpdate);
 			}
@@ -431,7 +431,7 @@ public class PartyPlugin extends Plugin implements KeyListener
 
 			if (performanceService.isEnabled())
 			{
-				final PerformanceMessage performanceUpdate = (PerformanceMessage) performanceService;
+				final Performance performanceUpdate = (Performance) performanceService;
 				performanceUpdate.setMemberId(localMember.getMemberId());
 				ws.send(performanceUpdate);
 			}
@@ -473,7 +473,7 @@ public class PartyPlugin extends Plugin implements KeyListener
 	}
 
 	@Subscribe
-	public void onPerformanceMessage(final PerformanceMessage message)
+	public void onPerformanceMessage(final Performance message)
 	{
 		final PartyData partyData = getPartyData(message.getMemberId());
 

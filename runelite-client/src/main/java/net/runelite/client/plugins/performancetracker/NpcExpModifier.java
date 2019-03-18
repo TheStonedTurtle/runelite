@@ -36,7 +36,7 @@ import net.runelite.api.NpcID;
 @Getter
 enum NpcExpModifier
 {
-	// TODO: Add missing NPCs and remove unused ids
+	// TODO: Use Deathbeams wiki scraper?
 	DAGANNOTH_REX(255, 255, 255, 255, 255, 255, 255, 0, 0, NpcID.DAGANNOTH_REX),
 	DAGANNOTH_PRIME(255, 255, 255, 255, 255, 255, 255, 0, 0, NpcID.DAGANNOTH_PRIME),
 	DAGANNOTH_SUPREME(225, 255, 128, 255, 10, 10, 10, 0, 0, NpcID.DAGANNOTH_SUPREME),

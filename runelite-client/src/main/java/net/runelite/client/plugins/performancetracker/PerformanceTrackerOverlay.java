@@ -68,8 +68,8 @@ public class PerformanceTrackerOverlay extends Overlay
 	@Override
 	public Dimension render(Graphics2D graphics)
 	{
-		final PerformanceService current = tracker.getPerformanceService();
-		if (!current.isEnabled())
+		final Performance current = tracker.getPerformance();
+		if (!tracker.isEnabled())
 		{
 			return null;
 		}
@@ -83,7 +83,7 @@ public class PerformanceTrackerOverlay extends Overlay
 		add(LineComponent.builder().left("Dmg Taken").right(String.valueOf((int) Math.round(current.getDamageTaken()))).build());
 		add(LineComponent.builder().left("Time Spent").right(current.getReadableSecondsSpent()).build());
 		add(LineComponent.builder().left("DPS").right(String.valueOf(current.getDPS())).build());
-		if (current.isPaused())
+		if (tracker.isPaused())
 		{
 			add(TitleComponent.builder().text("Paused").build());
 			panelComponent.setBackgroundColor(PAUSED_COLOR);

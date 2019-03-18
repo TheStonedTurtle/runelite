@@ -29,7 +29,7 @@ import java.util.UUID;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-import net.runelite.client.plugins.performancetracker.PerformanceMessage;
+import net.runelite.client.plugins.performancetracker.Performance;
 import net.runelite.client.ui.overlay.components.PanelComponent;
 import net.runelite.client.ui.overlay.worldmap.WorldMapPoint;
 
@@ -48,5 +48,5 @@ public class PartyData
 	private int maxHitpoints;
 	private int prayer;
 	private int maxPrayer;
-	private PerformanceMessage performance;
+	private Performance performance;
 }
