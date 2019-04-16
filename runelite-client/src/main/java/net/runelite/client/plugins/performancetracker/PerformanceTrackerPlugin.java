@@ -45,26 +45,25 @@ import net.runelite.client.chat.QueuedMessage;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.OverlayMenuClicked;
+import net.runelite.client.game.NPCManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.overlay.OverlayManager;
-import net.runelite.client.ws.PartyMember;
-import net.runelite.client.ws.PartyService;
-import net.runelite.client.ws.WSClient;
 
 @PluginDescriptor(
 	name = "Performance Tracker",
-	description = "Tracks & displays your current combat performance stats",
+	description = "Displays your current combat performance stats",
 	tags = {"performance", "tracker", "stats", "dps", "damage"},
 	enabledByDefault = false
 )
 @Slf4j
 public class PerformanceTrackerPlugin extends Plugin
 {
-	private static final double GAME_TICK_SECONDS = 0.6;
 	// For every damage point dealt 1.33 experience is given to the player's hitpoints (base rate)
 	private static final double HITPOINT_RATIO = 1.33;
 	private static final double DMM_MULTIPLIER_RATIO = 10;
+
+	private static final double GAME_TICK_SECONDS = 0.6;
 
 	@Inject
 	private Client client;
@@ -82,10 +81,7 @@ public class PerformanceTrackerPlugin extends Plugin
 	private OverlayManager overlayManager;
 
 	@Inject
-	private PartyService partyService;
-
-	@Inject
-	private WSClient wsClient;
+	private NPCManager npcManager;
 
 	@Getter
 	private boolean enabled = false;
@@ -94,8 +90,10 @@ public class PerformanceTrackerPlugin extends Plugin
 	@Getter
 	private final Performance performance = new Performance();
 
-	private double hpExp;
+	// Keep track of actor last tick as sometimes getInteracting can return null when hp xp event is triggered
+	// as the player clicked away at the perfect time
 	private Actor oldTarget;
+	private double hpExp;
 	private boolean hopping;
 	private int pausedTicks = 0;
 
@@ -126,21 +124,107 @@ public class PerformanceTrackerPlugin extends Plugin
 	}
 
 	@Subscribe
-	public void onOverlayMenuClicked(OverlayMenuClicked c)
+	public void onGameStateChanged(GameStateChanged event)
 	{
-		if (!c.getOverlay().equals(performanceTrackerOverlay))
+		switch (event.getGameState())
+		{
+			case LOGIN_SCREEN:
+				disable();
+				break;
+			case HOPPING:
+				hopping = true;
+				break;
+		}
+	}
+
+	@Subscribe
+	public void onHitsplatApplied(HitsplatApplied e)
+	{
+		if (isPaused())
 		{
 			return;
 		}
 
-		switch (c.getEntry().getOption())
+		if (e.getActor().equals(client.getLocalPlayer()))
 		{
-			case "Pause":
-				togglePaused();
-				break;
-			case "Reset":
-				reset();
-				break;
+			// Auto enables when hitsplat is applied to player
+			if (!isEnabled())
+			{
+				enable();
+			}
+
+			performance.addDamageTaken(e.getHitsplat().getAmount());
+			performance.setLastActivityTick(client.getTickCount());
+		}
+	}
+
+	@Subscribe
+	public void onExperienceChanged(ExperienceChanged c)
+	{
+		if (isPaused() || hopping)
+		{
+			return;
+		}
+
+		if (c.getSkill().equals(Skill.HITPOINTS))
+		{
+			final double oldExp = hpExp;
+			hpExp = client.getSkillExperience(Skill.HITPOINTS);
+
+			// Ignore initial login
+			if (client.getTickCount() < 2)
+			{
+				return;
+			}
+
+			final double diff = hpExp - oldExp;
+			if (diff < 1)
+			{
+				return;
+			}
+
+			// Auto enables when player receives hp exp
+			if (!isEnabled())
+			{
+				enable();
+			}
+
+			final double damageDealt = calculateDamageDealt(diff);
+			performance.addDamageDealt(damageDealt);
+			performance.setLastActivityTick(client.getTickCount());
+		}
+	}
+
+	@Subscribe
+	public void onScriptCallbackEvent(ScriptCallbackEvent e)
+	{
+		// Handles Fake XP drops (Ironman in PvP, DMM Cap, 200m xp, etc)
+		if (isPaused())
+		{
+			return;
+		}
+
+		if (!"fakeXpDrop".equals(e.getEventName()))
+		{
+			return;
+		}
+
+		final int[] intStack = client.getIntStack();
+		final int intStackSize = client.getIntStackSize();
+
+		final int skillId = intStack[intStackSize - 2];
+		final Skill skill = Skill.values()[skillId];
+		if (skill.equals(Skill.HITPOINTS))
+		{
+			// Auto enables when player would have received hp exp
+			if (!isEnabled())
+			{
+				enable();
+			}
+
+			final int exp = intStack[intStackSize - 1];
+			performance.addDamageDealt(calculateDamageDealt(exp));
+			performance.setLastActivityTick(client.getTickCount());
 		}
 	}
 
@@ -164,149 +248,42 @@ public class PerformanceTrackerPlugin extends Plugin
 		hopping = false;
 
 		final int timeout = config.trackerTimeout();
-		if (timeout <= 0)
+		if (timeout > 0)
 		{
-			return;
-		}
+			final double tickTimeout = timeout / GAME_TICK_SECONDS;
+			final int activityDiff = (client.getTickCount() - pausedTicks) - performance.getLastActivityTick();
+			if (activityDiff > tickTimeout)
+			{
+				// offset the tracker time to account for idle timeout
+				// Leave an additional tick to pad elapsed time
+				final double offset = tickTimeout - GAME_TICK_SECONDS;
+				performance.setTicksSpent(performance.getTicksSpent() - offset);
 
-		final double tickTimeout = timeout / GAME_TICK_SECONDS;
-		final int activityDiff = (client.getTickCount() - pausedTicks) - performance.getLastActivityTick();
-		if (activityDiff > tickTimeout)
-		{
-			// offset the tracker time to account for idle timeout
-			// Leave an additional tick to pad elapsed time
-			final double offset = tickTimeout - GAME_TICK_SECONDS;
-			performance.setTicksSpent(performance.getTicksSpent() - offset);
-
-			chatMessageManager.queue(QueuedMessage.builder()
-			.type(ChatMessageType.GAME)
-			.runeLiteFormattedMessage(performance.createChatMessage())
-			.build());
-
-			reset();
-			pausedTicks = 0;
-		}
-
-		final PartyMember localMember = partyService.getLocalMember();
-		if (localMember != null)
-		{
-			performance.setMemberId(localMember.getMemberId());
-			wsClient.send(performance);
+				submit();
+			}
 		}
 	}
 
 	@Subscribe
-	public void onGameStateChanged(GameStateChanged event)
+	public void onOverlayMenuClicked(OverlayMenuClicked c)
 	{
-		switch (event.getGameState())
+		if (!c.getOverlay().equals(performanceTrackerOverlay))
 		{
-			case LOGIN_SCREEN:
-				disable();
+			return;
+		}
+
+		switch (c.getEntry().getOption())
+		{
+			case "Pause":
+				togglePaused();
 				break;
-			case HOPPING:
-				hopping = true;
+			case "Reset":
+				reset();
+				break;
+			case "Submit":
+				submit();
 				break;
 		}
-	}
-
-	// Calculate Damage Taken
-	@Subscribe
-	public void onHitsplatApplied(HitsplatApplied e)
-	{
-		if (isPaused())
-		{
-			return;
-		}
-
-		if (e.getActor().equals(client.getLocalPlayer()))
-		{
-			if (!isEnabled())
-			{
-				enable();
-			}
-
-			addDamageTaken(e.getHitsplat().getAmount());
-		}
-	}
-
-	// Calculate Damage Dealt
-	@Subscribe
-	public void onExperienceChanged(ExperienceChanged c)
-	{
-		if (isPaused() || hopping)
-		{
-			return;
-		}
-
-		if (c.getSkill().equals(Skill.HITPOINTS))
-		{
-			final double oldExp = hpExp;
-			hpExp = client.getSkillExperience(Skill.HITPOINTS);
-
-			// Ignore initial login
-			if (client.getTickCount() < 2)
-			{
-				return;
-			}
-
-			if (!isEnabled())
-			{
-				enable();
-			}
-
-			final double diff = hpExp - oldExp;
-			if (diff < 1)
-			{
-				return;
-			}
-
-			final double damageDealt = calculateDamageDealt(diff);
-			addDamageDealt(damageDealt);
-		}
-	}
-
-	// Handles Fake XP drops (Ironman in PvP, DMM Cap, 200m xp, etc)
-	@Subscribe
-	public void onScriptCallbackEvent(ScriptCallbackEvent e)
-	{
-		if (isPaused())
-		{
-			return;
-		}
-
-		if (!"fakeXpDrop".equals(e.getEventName()))
-		{
-			return;
-		}
-
-		final int[] intStack = client.getIntStack();
-		final int intStackSize = client.getIntStackSize();
-
-		final int skillId = intStack[intStackSize - 2];
-		final Skill skill = Skill.values()[skillId];
-		if (skill.equals(Skill.HITPOINTS))
-		{
-			if (!isEnabled())
-			{
-				enable();
-			}
-
-			final int exp = intStack[intStackSize - 1];
-			addDamageDealt(calculateDamageDealt(exp));
-		}
-	}
-
-	private void reset()
-	{
-		this.enabled = false;
-		this.paused = false;
-
-		this.performance.reset();
-	}
-
-	private void togglePaused()
-	{
-		this.paused = !this.paused;
 	}
 
 	private void enable()
@@ -320,20 +297,32 @@ public class PerformanceTrackerPlugin extends Plugin
 		this.enabled = false;
 	}
 
-	private void addDamageTaken(double a)
+	private void togglePaused()
 	{
-		performance.addDamageTaken(a);
-		performance.setLastActivityTick(client.getTickCount());
+		this.paused = !this.paused;
 	}
 
-	private void addDamageDealt(double a)
+	private void reset()
 	{
-		performance.addDamageDealt(a);
-		performance.setLastActivityTick(client.getTickCount());
+		this.enabled = false;
+		this.paused = false;
+
+		this.performance.reset();
+		pausedTicks = 0;
+	}
+
+	private void submit()
+	{
+		chatMessageManager.queue(QueuedMessage.builder()
+			.type(ChatMessageType.GAME)
+			.runeLiteFormattedMessage(performance.createChatMessage())
+			.build());
+
+		reset();
 	}
 
 	/**
-	 * Calculates damage dealt based on HP xp gained accounting for NPC Exp Modifiers
+	 * Calculates damage dealt based on HP xp gained accounting for multipliers such as DMM mode
 	 * @param diff HP xp gained
 	 * @return damage dealt
 	 */
@@ -361,6 +350,6 @@ public class PerformanceTrackerPlugin extends Plugin
 		}
 
 		NPC target = (NPC) a;
-		return damageDealt / NpcExpModifier.getByNpcId(target.getId());
+		return damageDealt / 1.0;
 	}
 }

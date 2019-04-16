@@ -57,6 +57,7 @@ public class PerformanceTrackerOverlay extends Overlay
 
 		getMenuEntries().add(new OverlayMenuEntry(MenuAction.RUNELITE_OVERLAY, "Pause", TARGET));
 		getMenuEntries().add(new OverlayMenuEntry(MenuAction.RUNELITE_OVERLAY, "Reset", TARGET));
+		getMenuEntries().add(new OverlayMenuEntry(MenuAction.RUNELITE_OVERLAY, "Submit", TARGET));
 	}
 
 	@Override
@@ -68,11 +69,11 @@ public class PerformanceTrackerOverlay extends Overlay
 	@Override
 	public Dimension render(Graphics2D graphics)
 	{
-		final Performance current = tracker.getPerformance();
 		if (!tracker.isEnabled())
 		{
 			return null;
 		}
+		final Performance current = tracker.getPerformance();
 
 		panelComponent.getChildren().clear();
 		graphics.setColor(Color.WHITE);

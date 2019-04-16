@@ -52,7 +52,6 @@ public class Performance extends PartyMemberMessage
 		{
 			highestHitTaken = a;
 		}
-
 	}
 
 	void addDamageDealt(double a)
