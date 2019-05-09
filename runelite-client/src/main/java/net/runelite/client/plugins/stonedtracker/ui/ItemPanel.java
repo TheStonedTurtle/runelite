@@ -50,7 +50,7 @@ class ItemPanel extends JPanel
 	private static final GridBagLayout LAYOUT = new GridBagLayout();
 	private static final Dimension PANEL_SIZE = new Dimension(215, 50);
 
-	private static final Border PANEL_BORDER = BorderFactory.createMatteBorder(2, 0, 2, 0, ColorScheme.DARK_GRAY_COLOR);
+	private static final Border PANEL_BORDER = BorderFactory.createMatteBorder(3, 0, 3, 0, ColorScheme.DARK_GRAY_COLOR);
 	private static final Color PANEL_BACKGROUND_COLOR = ColorScheme.DARKER_GRAY_COLOR;
 
 	private static final Border CONTAINER_BORDER = BorderFactory.createMatteBorder(4, 15, 4, 15, PANEL_BACKGROUND_COLOR);

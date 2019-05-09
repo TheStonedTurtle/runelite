@@ -74,7 +74,7 @@ class UniqueItemPanel extends JPanel
 		c.weightx = 1;
 		c.gridx = 0;
 		c.gridy = 0;
-		c.ipady = 20;
+		c.ipady = 5;
 
 		// Add each Unique Item icon to the panel
 		for (UniqueItemPrepared l : items)
