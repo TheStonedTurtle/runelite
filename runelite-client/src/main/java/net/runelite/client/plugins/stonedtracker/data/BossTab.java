@@ -81,11 +81,12 @@ public enum BossTab
 	DAGANNOTH_SUPREME("Dagannoth Supreme", ItemID.PET_DAGANNOTH_SUPREME, "Dagannoth Kings"),
 
 	// Clue scrolls
-	CLUE_SCROLL_EASY("Clue Scroll (Easy)", ItemID.CLUE_BOTTLE_EASY, "Clue Scrolls"),
-	CLUE_SCROLL_MEDIUM("Clue Scroll (Medium)", ItemID.CLUE_BOTTLE_MEDIUM, "Clue Scrolls"),
-	CLUE_SCROLL_HARD("Clue Scroll (Hard)", ItemID.CLUE_BOTTLE_HARD, "Clue Scrolls"),
-	CLUE_SCROLL_ELITE("Clue Scroll (Elite)", ItemID.CLUE_BOTTLE_ELITE, "Clue Scrolls"),
-	CLUE_SCROLL_MASTER("Clue Scroll (Master)", ItemID.BLOODHOUND, "Clue Scrolls");
+	CLUE_SCROLL_BEGINNER("Clue Scroll (Beginner)", ItemID.CLUE_SCROLL_BEGINNER, "Clue Scrolls"),
+	CLUE_SCROLL_EASY("Clue Scroll (Easy)", ItemID.CLUE_SCROLL_EASY, "Clue Scrolls"),
+	CLUE_SCROLL_MEDIUM("Clue Scroll (Medium)", ItemID.CLUE_SCROLL_MEDIUM, "Clue Scrolls"),
+	CLUE_SCROLL_HARD("Clue Scroll (Hard)", ItemID.CLUE_SCROLL_HARD, "Clue Scrolls"),
+	CLUE_SCROLL_ELITE("Clue Scroll (Elite)", ItemID.CLUE_SCROLL_ELITE, "Clue Scrolls"),
+	CLUE_SCROLL_MASTER("Clue Scroll (Master)", ItemID.CLUE_SCROLL_MASTER, "Clue Scrolls");
 
 	BossTab(String name, int iconItem, String category)
 	{
