@@ -267,6 +267,26 @@ public enum UniqueItem
 	ARCHERS_RING("Archers ring", ItemID.ARCHERS_RING, "Dagannoth Supreme", "Uniques", -1),
 	PET_DAGANNOTH_SUPREME("Pet dagannoth supreme", ItemID.PET_DAGANNOTH_SUPREME, "Dagannoth Supreme", "Uniques", -1),
 
+	// Beginner Clue Scrolls
+	BEAR_FEET("Bear feet", ItemID.BEAR_FEET, "Clue Scroll (Beginner)", "Footwear", -1),
+	FROG_SLIPPERS("Frog slippers", ItemID.FROG_SLIPPERS, "Clue Scroll (Beginner)", "Footwear", -1),
+	DEMON_FEET("Demon feet", ItemID.DEMON_FEET, "Clue Scroll (Beginner)", "Footwear", -1),
+	MOLE_SLIPPERS("Mole slippers", ItemID.MOLE_SLIPPERS, "Clue Scroll (Beginner)", "Footwear", -1),
+
+	SANDWICH_LADY_HAT("Sandwich lady hat", ItemID.SANDWICH_LADY_HAT, "Clue Scroll (Beginner)", "Sandwich lady", 0),
+	SANDWICH_LADY_TOP("Sandwich lady top", ItemID.SANDWICH_LADY_TOP, "Clue Scroll (Beginner)", "Sandwich lady", 0),
+	SANDWICH_LADY_BOTTOM("Sandwich lady bottom", ItemID.SANDWICH_LADY_BOTTOM, "Clue Scroll (Beginner)", "Sandwich lady", 0),
+
+	JESTER_CAPE("Jester cape", ItemID.JESTER_CAPE, "Clue Scroll (Beginner)", "Other", 1),
+	SHOULDER_PARROT("Shoulder parrot", ItemID.SHOULDER_PARROT, "Clue Scroll (Beginner)", "Other", 1),
+	AMULET_OF_DEFENCE_T("Amulet of defence (t)", ItemID.AMULET_OF_DEFENCE_T, "Clue Scroll (Beginner)", "Other", 1),
+
+	MONKS_ROBE_TOP_T("Monk's robe top (t)", ItemID.MONKS_ROBE_TOP_T, "Clue Scroll (Beginner)", "Fancy", 2),
+	MONKS_ROBE_T("Monk's robe (t)", ItemID.MONKS_ROBE_T, "Clue Scroll (Beginner)", "Fancy", 2),
+	RUNE_SCIMITAR_ORNAMENT_KIT_GUTHIX("Rune scimitar ornament kit (guthix)", ItemID.RUNE_SCIMITAR_ORNAMENT_KIT_GUTHIX, "Clue Scroll (Beginner)", "Fancy", 2),
+	RUNE_SCIMITAR_ORNAMENT_KIT_SARADOMIN("Rune scimitar ornament kit (saradomin)", ItemID.RUNE_SCIMITAR_ORNAMENT_KIT_SARADOMIN, "Clue Scroll (Beginner)", "Fancy", 2),
+	RUNE_SCIMITAR_ORNAMENT_KIT_ZAMORAK("Rune scimitar ornament kit (zamorak)", ItemID.RUNE_SCIMITAR_ORNAMENT_KIT_ZAMORAK, "Clue Scroll (Beginner)", "Fancy", 2),
+
 	// Easy Clue Scrolls
 	BRONZE_FULL_HELM_T("Bronze full helm (t)", ItemID.BRONZE_FULL_HELM_T, "Clue Scroll (Easy)", "Armor", -1),
 	BRONZE_PLATEBODY_T("Bronze platebody (t)", ItemID.BRONZE_PLATEBODY_T, "Clue Scroll (Easy)", "Armor", -1),
