@@ -29,7 +29,8 @@ import lombok.Value;
 @Value
 public class UniqueItemPrepared
 {
-	private int linkedID;
+	private String name;
 	private int price;
+	private int linkedID;
 	private UniqueItem uniqueItem;
 }

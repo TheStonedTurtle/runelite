@@ -38,18 +38,18 @@ public enum BossTab
 {
 	// Chest Rewards
 	BARROWS("Barrows", ItemID.BARROWS_TELEPORT, "Other"),
-	RAIDS("Chambers of Xeric", ItemID.OLMLET, "Other"),
-	RAIDS_2("Theatre of Blood", ItemID.LIL_ZIK, "Other"),
+	CHAMBERS_OF_XERIC("Chambers of Xeric", ItemID.OLMLET, "Other"),
+	THEATRE_OF_BLOOD("Theatre of Blood", ItemID.LIL_ZIK, "Other"),
 
 	// Loot received on NPC death
 	ZULRAH("Zulrah", ItemID.PET_SNAKELING, "Other"),
 	VORKATH("Vorkath", ItemID.VORKI, "Other"),
 
 	// God wars dungeon
-	ARMADYL("Kree'arra", ItemID.PET_KREEARRA , "God Wars Dungeon"),
-	BANDOS("General Graardor", ItemID.PET_GENERAL_GRAARDOR , "God Wars Dungeon"),
-	SARADOMIN("Commander Zilyana", ItemID.PET_ZILYANA , "God Wars Dungeon"),
-	ZAMMY("K'ril Tsutsaroth", ItemID.PET_KRIL_TSUTSAROTH , "God Wars Dungeon"),
+	KREEARRA("Kree'arra", ItemID.PET_KREEARRA , "God Wars Dungeon"),
+	GENERAL_GRAARDOR("General Graardor", ItemID.PET_GENERAL_GRAARDOR , "God Wars Dungeon"),
+	COMMANDER_ZILYANA("Commander Zilyana", ItemID.PET_ZILYANA , "God Wars Dungeon"),
+	KRIL_TSUTSAROTH("K'ril Tsutsaroth", ItemID.PET_KRIL_TSUTSAROTH , "God Wars Dungeon"),
 
 	// Wildy Bosses
 	VETION("Vet'ion", ItemID.VETION_JR , "Wilderness"),
@@ -99,13 +99,7 @@ public enum BossTab
 	private final int itemID;
 	private final String category;
 
-	// By Boss Name
-	private static final Map<String, BossTab> byName = buildMap();
-	public static BossTab getByName(String name)
-	{
-		return byName.get(name.toUpperCase());
-	}
-	private static Map<String, BossTab> buildMap()
+	public static Map<String, BossTab> getNameMap()
 	{
 		Map<String, BossTab> byName = new HashMap<>();
 		for (BossTab tab : values())
@@ -116,13 +110,7 @@ public enum BossTab
 		return byName;
 	}
 
-	// By Category Name
-	private static final Map<String, ArrayList<BossTab>> byCategoryName = buildCategoryMap();
-	public static ArrayList<BossTab> getByCategoryName(String name)
-	{
-		return byCategoryName.get(name.toUpperCase());
-	}
-	private static Map<String, ArrayList<BossTab>> buildCategoryMap()
+	public static Map<String, ArrayList<BossTab>> getCategoryMap()
 	{
 		Map<String, ArrayList<BossTab>> map = new HashMap<>();
 		for (BossTab tab : values())
@@ -133,9 +121,7 @@ public enum BossTab
 		return map;
 	}
 
-	// All Categories
-	public static final Set<String> categories = getCategories();
-	private static Set<String> getCategories()
+	public static Set<String> getCategories()
 	{
 		Set<String> s = new TreeSet<String>();
 		for (BossTab tab : values())
