@@ -24,6 +24,13 @@
  */
 package net.runelite.client.plugins.stonedtracker.ui;
 
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.image.BufferedImage;
+import java.util.Collection;
+import java.util.Map;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -35,15 +42,7 @@ import net.runelite.client.game.AsyncBufferedImage;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.plugins.stonedtracker.data.UniqueItemPrepared;
 import net.runelite.client.ui.ColorScheme;
-import java.awt.AlphaComposite;
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.image.BufferedImage;
-import java.util.Collection;
-import java.util.Map;
+import net.runelite.client.util.ImageUtil;
 import net.runelite.client.util.StackFormatter;
 
 @Getter
@@ -83,7 +82,7 @@ class UniqueItemPanel extends JPanel
 			final int quantity = uniqueMap.getOrDefault(l, 0);
 			final float alpha = (quantity > 0 ? alphaHas : alphaMissing);
 			AsyncBufferedImage image = itemManager.getImage(l.getUniqueItem().getItemID(), quantity, quantity > 1);
-			BufferedImage opaque = createOpaqueImage(image, alpha);
+			BufferedImage opaque = ImageUtil.alphaOffset(image, alpha);
 
 			// Attach Image to Label and append label to Panel
 			ImageIcon o = new ImageIcon(opaque);
@@ -103,23 +102,12 @@ class UniqueItemPanel extends JPanel
 	// Used to refresh the item icon if the image was still loading when attempting to create it earlier
 	private void refreshImage(JLabel label, AsyncBufferedImage image, float finalAlpha)
 	{
-		BufferedImage opaque = createOpaqueImage(image, finalAlpha);
+		BufferedImage opaque = ImageUtil.alphaOffset(image, finalAlpha);
 		ImageIcon o = new ImageIcon(opaque);
 
 		label.setIcon(o);
 		label.revalidate();
 		label.repaint();
-	}
-
-	// Creates the Item Icon with opacity depending on if they have received the item or not
-	private BufferedImage createOpaqueImage(AsyncBufferedImage image, float alpha)
-	{
-		BufferedImage x = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_ARGB);
-		Graphics2D g2d = (Graphics2D)x.getGraphics();
-		g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha));
-		g2d.drawImage(image, null, 0, 0);
-		g2d.dispose();
-		return x;
 	}
 
 	private static String buildToolTip(UniqueItemPrepared item, int qty)
