@@ -30,6 +30,7 @@ import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
+import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
@@ -47,13 +48,12 @@ import net.runelite.client.util.StackFormatter;
 class ItemPanel extends JPanel
 {
 	private static final GridBagLayout LAYOUT = new GridBagLayout();
-	private static final Dimension PANEL_SIZE = new Dimension(215, 60);
+	private static final Dimension PANEL_SIZE = new Dimension(215, 50);
 
-	private static final Border PANEL_BORDER = new EmptyBorder(3, 0, 3, 0);
-	private static final Color PANEL_BACKGROUND_COLOR = ColorScheme.DARK_GRAY_COLOR;
+	private static final Border PANEL_BORDER = BorderFactory.createMatteBorder(2, 0, 2, 0, ColorScheme.DARK_GRAY_COLOR);
+	private static final Color PANEL_BACKGROUND_COLOR = ColorScheme.DARKER_GRAY_COLOR;
 
-	private static final Border CONTAINER_BORDER = new EmptyBorder(0, 15, 0, 15);
-	private static final Color CONTAINER_BACKGROUND_COLOR = ColorScheme.DARKER_GRAY_COLOR;
+	private static final Border CONTAINER_BORDER = BorderFactory.createMatteBorder(4, 15, 4, 15, PANEL_BACKGROUND_COLOR);
 
 	private LTItemEntry record;
 	private long total;
@@ -77,7 +77,7 @@ class ItemPanel extends JPanel
 		// Container for Info
 		JPanel uiInfo = new JPanel(new GridLayout(2, 1));
 		uiInfo.setBorder(new EmptyBorder(0, 5, 0, 0));
-		uiInfo.setBackground(CONTAINER_BACKGROUND_COLOR);
+		uiInfo.setBackground(PANEL_BACKGROUND_COLOR);
 
 		JShadowedLabel labelName = new JShadowedLabel(this.record.getName());
 		labelName.setForeground(Color.WHITE);
@@ -102,7 +102,6 @@ class ItemPanel extends JPanel
 		c.weightx = 1;
 		c.gridx = 0;
 		c.gridy = 0;
-		c.ipady = 20;
 
 		this.add(panel, c);
 		this.setToolTipText(buildToolTip(this.record));
@@ -124,7 +123,7 @@ class ItemPanel extends JPanel
 		JPanel panel = new JPanel();
 		panel.setLayout(new BorderLayout());
 		panel.setBorder(CONTAINER_BORDER);
-		panel.setBackground(CONTAINER_BACKGROUND_COLOR);
+		panel.setBackground(PANEL_BACKGROUND_COLOR);
 
 		return panel;
 	}
