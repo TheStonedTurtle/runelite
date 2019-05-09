@@ -34,7 +34,6 @@ import java.awt.Insets;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
-import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import javax.swing.ImageIcon;
@@ -103,10 +102,9 @@ public class SelectionPanel extends JPanel
 		}
 
 		// Add all other names
-		final Map<String, BossTab> nameMap = BossTab.getNameMap();
 		for (String name : this.names)
 		{
-			if (!configToggle || !nameMap.containsKey(name))
+			if (!configToggle || BossTab.getByName(name) == null)
 			{
 				this.add(createNamePanel(name), c);
 				c.gridy++;

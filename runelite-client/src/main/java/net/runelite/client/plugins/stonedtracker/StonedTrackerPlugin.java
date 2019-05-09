@@ -175,7 +175,7 @@ public class StonedTrackerPlugin extends Plugin
 			for (BossTab b : item.getBosses())
 			{
 				UniqueItemPrepared p = new UniqueItemPrepared(c.getName(), itemManager.getItemPrice(item.getItemID()), c.getLinkedNoteId(), item);
-				uniques.put(b.getName(), p);
+				uniques.put(b.getName().toUpperCase(), p);
 			}
 		}
 	}

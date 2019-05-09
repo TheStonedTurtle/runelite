@@ -24,6 +24,7 @@
  */
 package net.runelite.client.plugins.stonedtracker.data;
 
+import javax.annotation.Nullable;
 import lombok.Getter;
 import net.runelite.api.ItemID;
 
@@ -110,6 +111,12 @@ public enum BossTab
 		return byName;
 	}
 
+	@Nullable
+	public static BossTab getByName(final String name)
+	{
+		return getNameMap().get(name.toUpperCase());
+	}
+
 	public static Map<String, ArrayList<BossTab>> getCategoryMap()
 	{
 		Map<String, ArrayList<BossTab>> map = new HashMap<>();
@@ -121,12 +128,18 @@ public enum BossTab
 		return map;
 	}
 
+	@Nullable
+	public static ArrayList<BossTab> getByCategoryName(final String name)
+	{
+		return getCategoryMap().get(name.toUpperCase());
+	}
+
 	public static Set<String> getCategories()
 	{
 		Set<String> s = new TreeSet<String>();
 		for (BossTab tab : values())
 		{
-			s.add(tab.getCategory());
+			s.add(tab.getCategory().toUpperCase());
 		}
 		return s;
 	}
