@@ -295,7 +295,7 @@ public class LootTrackerPanel extends PluginPanel
 		{
 			showLootView(r.getName());
 		}
-		else if (currentView.equals(r.getName()))
+		else if (currentView.equalsIgnoreCase(r.getName()))
 		{
 			lootPanel.addedRecord(r);
 		}

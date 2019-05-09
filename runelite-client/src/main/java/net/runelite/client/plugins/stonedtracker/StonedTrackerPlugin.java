@@ -214,6 +214,12 @@ public class StonedTrackerPlugin extends Plugin
 
 	public Collection<LTRecord> getDataByName(String name)
 	{
+		final BossTab tab = BossTab.getByName(name);
+		if (tab != null)
+		{
+			name = tab.getName();
+		}
+
 		return lootRecordMultimap.get(name);
 	}
 
