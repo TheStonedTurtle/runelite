@@ -26,6 +26,7 @@ package net.runelite.client.plugins.stonedtracker.ui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.image.BufferedImage;
@@ -53,6 +54,7 @@ class UniqueItemPanel extends JPanel
 	private final float alphaMissing = 0.35f;
 	private final float alphaHas = 1.0f;
 
+	private static final Dimension panelSize = new Dimension(215, 50);
 	private static final Border panelBorder = new EmptyBorder(3, 0, 3, 0);
 	private static final Color panelBackgroundColor = ColorScheme.DARK_GRAY_COLOR;
 
@@ -68,6 +70,7 @@ class UniqueItemPanel extends JPanel
 		this.setLayout(new BorderLayout());
 		this.setBorder(panelBorder);
 		this.setBackground(panelBackgroundColor);
+		this.setPreferredSize(panelSize);
 
 		GridBagConstraints c = new GridBagConstraints();
 		c.fill = GridBagConstraints.BOTH;
