@@ -34,6 +34,7 @@ import java.awt.Insets;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import javax.swing.ImageIcon;
@@ -86,7 +87,7 @@ public class SelectionPanel extends JPanel
 		// Add the bosses tabs, by category, to tabGroup
 		if (configToggle)
 		{
-			Set<String> categories = BossTab.categories;
+			Set<String> categories = BossTab.getCategories();
 			JPanel container = new JPanel(new GridBagLayout());
 			container.setBorder(new EmptyBorder(0, 0, 10, 0));
 			int oldc = c.gridy;
@@ -102,9 +103,10 @@ public class SelectionPanel extends JPanel
 		}
 
 		// Add all other names
+		final Map<String, BossTab> nameMap = BossTab.getNameMap();
 		for (String name : this.names)
 		{
-			if (!configToggle || BossTab.getByName(name) == null)
+			if (!configToggle || !nameMap.containsKey(name))
 			{
 				this.add(createNamePanel(name), c);
 				c.gridy++;
@@ -163,7 +165,7 @@ public class SelectionPanel extends JPanel
 		name.setForeground(Color.WHITE);
 		name.setVerticalAlignment(SwingConstants.CENTER);
 
-		ArrayList<BossTab> categoryTabs = BossTab.getByCategoryName(categoryName);
+		final ArrayList<BossTab> categoryTabs = BossTab.getCategoryMap().get(categoryName);
 		for (BossTab tab : categoryTabs)
 		{
 			// Create tab (with hover effects/text)

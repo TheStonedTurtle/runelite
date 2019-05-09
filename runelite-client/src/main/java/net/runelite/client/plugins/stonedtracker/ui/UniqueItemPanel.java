@@ -124,7 +124,7 @@ class UniqueItemPanel extends JPanel
 
 	private static String buildToolTip(UniqueItemPrepared item, int qty)
 	{
-		String s = "<html>" + item.getUniqueItem().getName();
+		String s = "<html>" + item.getName();
 		if (qty > 0)
 		{
 			s += " x " + StackFormatter.formatNumber(qty);

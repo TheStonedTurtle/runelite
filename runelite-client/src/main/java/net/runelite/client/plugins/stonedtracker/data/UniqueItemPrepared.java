@@ -24,6 +24,10 @@
  */
 package net.runelite.client.plugins.stonedtracker.data;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import lombok.Value;
 
 @Value
@@ -33,4 +37,15 @@ public class UniqueItemPrepared
 	private int price;
 	private int linkedID;
 	private UniqueItem uniqueItem;
+
+	public static Map<Integer, Collection<UniqueItemPrepared>> createPositionMap(Collection<UniqueItemPrepared> items)
+	{
+		Map<Integer, Collection<UniqueItemPrepared>> m = new HashMap<>();
+		for (UniqueItemPrepared item : items)
+		{
+			m.computeIfAbsent(item.getUniqueItem().getPosition(), e -> new ArrayList<>()).add(item);
+		}
+
+		return m;
+	}
 }

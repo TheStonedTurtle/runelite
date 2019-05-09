@@ -105,9 +105,18 @@ class ItemPanel extends JPanel
 		c.ipady = 20;
 
 		this.add(panel, c);
-		this.setToolTipText("<html>" + this.record.getName() + " x " + StackFormatter.formatNumber(this.record.getQuantity())
-				+ "<br/>Price: " + StackFormatter.quantityToStackSize(this.record.getPrice())
-				+ "<br/>Total: " + StackFormatter.quantityToStackSize(total) +	"</html");
+		this.setToolTipText(buildToolTip(this.record));
+	}
+
+	private static String buildToolTip(LTItemEntry record)
+	{
+		final String name = record.getName();
+		final int quantity = record.getQuantity();
+		final long price = record.getPrice();
+
+		return "<html>" + name + " x " + StackFormatter.formatNumber(quantity)
+			+ "<br/>Price: " + StackFormatter.quantityToStackSize(price)
+			+ "<br/>Total: " + StackFormatter.quantityToStackSize(quantity * price) +	"</html>";
 	}
 
 	private JPanel createPanel()
@@ -121,7 +130,7 @@ class ItemPanel extends JPanel
 	}
 
 	// Color label to match RuneScape coloring
-	private void colorLabel(JLabel label, long val)
+	private static void colorLabel(JLabel label, long val)
 	{
 		Color labelColor = (val >= 10000000) ? Color.GREEN : (val >= 100000) ? Color.WHITE : Color.YELLOW;
 		label.setForeground(labelColor);
