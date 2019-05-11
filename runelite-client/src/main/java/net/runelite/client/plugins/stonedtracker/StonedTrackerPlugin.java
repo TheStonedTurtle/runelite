@@ -113,7 +113,9 @@ public class StonedTrackerPlugin extends Plugin
 	@Subscribe
 	public void onLTRecordStored(LTRecordStored s)
 	{
-		SwingUtilities.invokeLater(() -> panel.addLog(s.getRecord()));
+		final LTRecord record = s.getRecord();
+		lootRecordMultimap.put(record.getName(), record);
+		SwingUtilities.invokeLater(() -> panel.addLog(record));
 	}
 
 	@Subscribe
