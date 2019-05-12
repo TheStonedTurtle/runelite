@@ -86,7 +86,7 @@ public class SelectionPanel extends JPanel
 		// Add the bosses tabs, by category, to tabGroup
 		if (configToggle)
 		{
-			Set<String> categories = BossTab.categories;
+			Set<String> categories = BossTab.getCategories();
 			JPanel container = new JPanel(new GridBagLayout());
 			container.setBorder(new EmptyBorder(0, 0, 10, 0));
 			int oldc = c.gridy;
@@ -163,7 +163,7 @@ public class SelectionPanel extends JPanel
 		name.setForeground(Color.WHITE);
 		name.setVerticalAlignment(SwingConstants.CENTER);
 
-		ArrayList<BossTab> categoryTabs = BossTab.getByCategoryName(categoryName);
+		final ArrayList<BossTab> categoryTabs = BossTab.getCategoryMap().get(categoryName);
 		for (BossTab tab : categoryTabs)
 		{
 			// Create tab (with hover effects/text)

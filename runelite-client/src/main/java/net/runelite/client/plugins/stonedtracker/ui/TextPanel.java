@@ -24,29 +24,28 @@
  */
 package net.runelite.client.plugins.stonedtracker.ui;
 
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.SwingConstants;
-import javax.swing.border.Border;
-import javax.swing.border.EmptyBorder;
-import lombok.Getter;
-import net.runelite.client.ui.ColorScheme;
-import net.runelite.client.util.StackFormatter;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import javax.swing.BorderFactory;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.SwingConstants;
+import javax.swing.border.Border;
+import lombok.Getter;
+import net.runelite.client.ui.ColorScheme;
+import net.runelite.client.util.StackFormatter;
 
 @Getter
 class TextPanel extends JPanel
 {
 	private static final GridBagLayout LAYOUT = new GridBagLayout();
 
-	private static final Border PANEL_BORDER = new EmptyBorder(3, 0, 3, 0);
-	private static final Color PANEL_BACKGROUND_COLOR = ColorScheme.DARK_GRAY_COLOR;
+	private static final Border PANEL_BORDER = BorderFactory.createMatteBorder(3, 0, 3, 0, ColorScheme.DARK_GRAY_COLOR);
+	private static final Color PANEL_BACKGROUND_COLOR = ColorScheme.DARKER_GRAY_COLOR;
 
-	private static final Border CONTAINER_BORDER = new EmptyBorder(0, 15, 0, 15);
-	private static final Color CONTAINER_BACKGROUND_COLOR = ColorScheme.DARKER_GRAY_COLOR;
+	private static final Border CONTAINER_BORDER = BorderFactory.createMatteBorder(0, 15, 0, 15, PANEL_BACKGROUND_COLOR);
 
 	// Long value should be for Total Value
 	TextPanel(String text, long totalValue)
@@ -60,7 +59,7 @@ class TextPanel extends JPanel
 
 		// Item Values (Colored off Total Value of item)
 		JLabel total = new JLabel(StackFormatter.quantityToStackSize(totalValue) + " gp", SwingConstants.LEFT);
-		total.setBorder(new EmptyBorder(0, 5, 0, 0));
+		total.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 0));
 		colorLabel(total, totalValue);
 
 		JPanel panel = createPanel();
@@ -90,7 +89,7 @@ class TextPanel extends JPanel
 		textLabel.setForeground(Color.WHITE);
 
 		JLabel valueLabel = new JLabel(String.valueOf(value), SwingConstants.LEFT);
-		valueLabel.setBorder(new EmptyBorder(0, 5, 0, 0));
+		valueLabel.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 0));
 
 		JPanel panel = createPanel();
 		panel.add(textLabel, BorderLayout.LINE_START);
@@ -111,7 +110,7 @@ class TextPanel extends JPanel
 		JPanel panel = new JPanel();
 		panel.setLayout(new BorderLayout());
 		panel.setBorder(CONTAINER_BORDER);
-		panel.setBackground(CONTAINER_BACKGROUND_COLOR);
+		panel.setBackground(PANEL_BACKGROUND_COLOR);
 
 		return panel;
 	}
