@@ -33,19 +33,15 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.TreeSet;
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.swing.SwingUtilities;
-import lombok.AccessLevel;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
-import net.runelite.api.GameState;
 import net.runelite.api.ItemComposition;
 import net.runelite.api.NpcID;
 import net.runelite.api.events.ConfigChanged;
-import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.events.WidgetLoaded;
 import net.runelite.api.widgets.Widget;
@@ -57,9 +53,12 @@ import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
-import net.runelite.client.plugins.loottracker.localstorage.LootRecordWriter;
 import net.runelite.client.plugins.loottracker.localstorage.LTItemEntry;
 import net.runelite.client.plugins.loottracker.localstorage.LTRecord;
+import net.runelite.client.plugins.loottracker.localstorage.LootRecordWriter;
+import net.runelite.client.plugins.loottracker.localstorage.events.LTNameChange;
+import net.runelite.client.plugins.loottracker.localstorage.events.LTRecordStored;
+import net.runelite.client.plugins.stonedtracker.data.BossTab;
 import net.runelite.client.plugins.stonedtracker.data.UniqueItem;
 import net.runelite.client.plugins.stonedtracker.data.UniqueItemPrepared;
 import net.runelite.client.plugins.stonedtracker.ui.LootTrackerPanel;
@@ -75,7 +74,9 @@ import net.runelite.client.util.ImageUtil;
 @Slf4j
 public class StonedTrackerPlugin extends Plugin
 {
-	// Activity/Event loot handling
+	private static final String SIRE_FONT_TEXT = "you place the unsired into the font of consumption...";
+	private static final String SIRE_REWARD_TEXT = "the font consumes the unsired";
+
 	@Inject
 	private ClientToolbar clientToolbar;
 
@@ -91,24 +92,37 @@ public class StonedTrackerPlugin extends Plugin
 	@Inject
 	private ClientThread clientThread;
 
+	@Inject
+	private LootRecordWriter writer;
+
 	private LootTrackerPanel panel;
 	private NavigationButton navButton;
 
 	private Multimap<String, LTRecord> lootRecordMultimap = ArrayListMultimap.create();
-	private Multimap<String, LTRecord> sessionLootRecordMultimap = ArrayListMultimap.create();
 	private Multimap<String, UniqueItemPrepared> uniques = ArrayListMultimap.create();
 
-	// key = name, value=current killCount
 	private boolean loaded = false;
-	private String currentPlayer;
-
-	@Getter(AccessLevel.PACKAGE)
-	private LootRecordWriter writer;
+	private boolean unsiredReclaiming = false;
 
 	@Provides
 	StonedTrackerConfig provideConfig(ConfigManager configManager)
 	{
 		return configManager.getConfig(StonedTrackerConfig.class);
+	}
+
+	@Subscribe
+	public void onLTRecordStored(LTRecordStored s)
+	{
+		final LTRecord record = s.getRecord();
+		lootRecordMultimap.put(record.getName(), record);
+		SwingUtilities.invokeLater(() -> panel.addLog(record));
+	}
+
+	@Subscribe
+	public void onLTNameChange(LTNameChange c)
+	{
+		refreshData();
+		SwingUtilities.invokeLater(() -> panel.updateNames());
 	}
 
 	@Subscribe
@@ -136,8 +150,6 @@ public class StonedTrackerPlugin extends Plugin
 
 		clientToolbar.addNavigation(navButton);
 
-		writer = new LootRecordWriter();
-
 		if (!loaded)
 		{
 			clientThread.invokeLater(() ->
@@ -159,17 +171,19 @@ public class StonedTrackerPlugin extends Plugin
 	private void prepareUniqueItems()
 	{
 		loaded = true;
-		for (UniqueItem i : UniqueItem.values())
+		for (UniqueItem item : UniqueItem.values())
 		{
-			ItemComposition c = itemManager.getItemComposition(i.getItemID());
-			for (String s : i.getActivities())
+			final ItemComposition c = itemManager.getItemComposition(item.getItemID());
+			for (BossTab b : item.getBosses())
 			{
-				uniques.put(s.toUpperCase(), new UniqueItemPrepared(c.getLinkedNoteId(), itemManager.getItemPrice(i.getItemID()), i));
+				UniqueItemPrepared p = new UniqueItemPrepared(c.getName(), itemManager.getItemPrice(item.getItemID()), c.getLinkedNoteId(), item);
+				uniques.put(b.getName().toUpperCase(), p);
 			}
 		}
 	}
 
-	public Collection<UniqueItemPrepared> getUniques(String name)
+	@Nullable
+	public Collection<UniqueItemPrepared> getUniquesByName(String name)
 	{
 		return uniques.get(name.toUpperCase());
 	}
@@ -183,15 +197,15 @@ public class StonedTrackerPlugin extends Plugin
 	@Subscribe
 	public void onWidgetLoaded(WidgetLoaded event)
 	{
-		switch (event.getGroupId())
+		if (event.getGroupId() != WidgetID.DIALOG_SPRITE_GROUP_ID)
 		{
-			// Unsired redemption tracking
-			case (WidgetID.DIALOG_SPRITE_GROUP_ID):
-				Widget text = client.getWidget(WidgetInfo.DIALOG_SPRITE_TEXT);
-				if ("you place the unsired into the font of consumption...".equals(text.getText().toLowerCase()))
-				{
-					unsiredReclaiming = true;
-				}
+			return;
+		}
+
+		Widget text = client.getWidget(WidgetInfo.DIALOG_SPRITE_TEXT);
+		if (SIRE_FONT_TEXT.equals(text.getText().toLowerCase()))
+		{
+			unsiredReclaiming = true;
 		}
 	}
 
@@ -202,10 +216,16 @@ public class StonedTrackerPlugin extends Plugin
 
 	public Collection<LTRecord> getDataByName(String name)
 	{
+		final BossTab tab = BossTab.getByName(name);
+		if (tab != null)
+		{
+			name = tab.getName();
+		}
+
 		return lootRecordMultimap.get(name);
 	}
 
-	public void refreshData()
+	private void refreshData()
 	{
 		// Pull data from files
 		lootRecordMultimap.clear();
@@ -223,17 +243,6 @@ public class StonedTrackerPlugin extends Plugin
 		lootRecordMultimap.putAll(name, recs);
 	}
 
-	public Collection<LTRecord> getSessionData()
-	{
-		return sessionLootRecordMultimap.values();
-	}
-
-	// Clear all data from this session
-	public void clearData()
-	{
-		sessionLootRecordMultimap.clear();
-	}
-
 	public void clearStoredDataByName(String name)
 	{
 		lootRecordMultimap.removeAll(name);
@@ -244,56 +253,6 @@ public class StonedTrackerPlugin extends Plugin
 	{
 		return new TreeSet<>(lootRecordMultimap.keySet());
 	}
-
-	@Subscribe
-	public void onGameStateChanged(GameStateChanged c)
-	{
-		if (c.getGameState().equals(GameState.LOGGED_IN))
-		{
-			clientThread.invokeLater(() ->
-			{
-				switch (client.getGameState())
-				{
-					case LOGGED_IN:
-						break;
-					case LOGGING_IN:
-					case LOADING:
-						return false;
-					default:
-						// Quit running if any other state
-						return true;
-				}
-
-				String name = client.getLocalPlayer().getName();
-				if (name != null)
-				{
-					updatePlayerFolder(name);
-					return true;
-				}
-				else
-				{
-					return false;
-				}
-			});
-		}
-	}
-
-	private void updatePlayerFolder(String name)
-	{
-		if (Objects.equals(currentPlayer, name))
-		{
-			return;
-		}
-
-		currentPlayer = name;
-		writer.setPlayerUsername(name);
-
-		refreshData();
-
-		SwingUtilities.invokeLater(() -> panel.updateNames());
-	}
-
-	private boolean unsiredReclaiming = false;
 
 	@Subscribe
 	public void onGameTick(GameTick t)
@@ -309,7 +268,7 @@ public class StonedTrackerPlugin extends Plugin
 	{
 		log.info("Checking for text widget change...");
 		Widget text = client.getWidget(WidgetInfo.DIALOG_SPRITE_TEXT);
-		if (text.getText().toLowerCase().contains("the font consumes the unsired"))
+		if (text.getText().toLowerCase().contains(SIRE_REWARD_TEXT))
 		{
 			unsiredReclaiming = false;
 			log.info("Text widget changed, reclaimed an item");

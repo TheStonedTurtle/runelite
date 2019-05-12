@@ -49,7 +49,6 @@ import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.plugins.loottracker.localstorage.LTRecord;
 import net.runelite.client.plugins.stonedtracker.StonedTrackerPlugin;
-import net.runelite.client.plugins.stonedtracker.data.UniqueItem;
 import net.runelite.client.plugins.stonedtracker.data.UniqueItemPrepared;
 import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.PluginPanel;
@@ -140,14 +139,14 @@ public class LootTrackerPanel extends PluginPanel
 		Collection<LTRecord> data = plugin.getDataByName(name);
 
 		// Grab all Uniques for this NPC/Activity
-		Collection<UniqueItemPrepared> uniques = plugin.getUniques(name);
+		Collection<UniqueItemPrepared> uniques = plugin.getUniquesByName(name);
 		if (uniques == null)
 		{
 			uniques = new ArrayList<>();
 		}
 
 		JPanel title = createLootViewTitle(name);
-		lootPanel = new LootPanel(data, UniqueItem.createPositionSetMap(uniques), plugin.config.hideUniques(), plugin.config.itemSortType(), plugin.config.itemBreakdown(), itemManager);
+		lootPanel = new LootPanel(data, UniqueItemPrepared.createPositionMap(uniques), plugin.config.hideUniques(), plugin.config.itemSortType(), plugin.config.itemBreakdown(), itemManager);
 
 		this.add(title, BorderLayout.NORTH);
 		this.add(wrapContainer(lootPanel), BorderLayout.CENTER);
@@ -296,7 +295,7 @@ public class LootTrackerPanel extends PluginPanel
 		{
 			showLootView(r.getName());
 		}
-		else if (currentView.equals(r.getName()))
+		else if (currentView.equalsIgnoreCase(r.getName()))
 		{
 			lootPanel.addedRecord(r);
 		}
