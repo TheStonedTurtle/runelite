@@ -222,9 +222,8 @@ class LootPanel extends JPanel
 		}
 	}
 
-	void addedRecord(LTRecord record)
+	void addedRecord()
 	{
-		records.add(record);
 		// TODO: Smarter update system so it only repaints necessary Item and Text Panels
 		this.removeAll();
 

@@ -297,7 +297,7 @@ public class LootTrackerPanel extends PluginPanel
 		}
 		else if (currentView.equalsIgnoreCase(r.getName()))
 		{
-			lootPanel.addedRecord(r);
+			lootPanel.addedRecord();
 		}
 	}
 
