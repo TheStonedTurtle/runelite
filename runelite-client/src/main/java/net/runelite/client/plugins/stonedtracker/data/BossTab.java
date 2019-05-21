@@ -71,7 +71,7 @@ public enum BossTab
 	ABYSSAL_SIRE("Abyssal Sire", ItemID.ABYSSAL_ORPHAN, "Slayer"),
 	KRAKEN("Kraken", ItemID.PET_KRAKEN, "Slayer"),
 	CERBERUS("Cerberus", ItemID.HELLPUPPY, "Slayer"),
-	THERMONUCLEAR_SMOKE_DEVIL("Thermonuclear Smoke Devil", ItemID.PET_SMOKE_DEVIL, "Slayer"),
+	THERMONUCLEAR_SMOKE_DEVIL("Thermonuclear smoke devil", ItemID.PET_SMOKE_DEVIL, "Slayer"),
 
 	// Other Bosses
 	GIANT_MOLE("Giant Mole", ItemID.BABY_MOLE, "Other"),
