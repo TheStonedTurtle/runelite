@@ -614,6 +614,12 @@ public class LootTrackerPlugin extends Plugin
 				lootTrackerClient.submit(lootRecord);
 			}
 
+			if (config.saveLocalLoot())
+			{
+				LTRecord record = new LTRecord(-1, chestType, -1, -1, convertToLTItemEntries(items));
+				writer.addLootTrackerRecord(record);
+			}
+
 			inventorySnapshot = null;
 		}
 	}
