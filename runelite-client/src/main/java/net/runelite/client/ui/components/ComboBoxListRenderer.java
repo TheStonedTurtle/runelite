@@ -60,6 +60,7 @@ public final class ComboBoxListRenderer extends JLabel implements ListCellRender
 		}
 
 		setBorder(new EmptyBorder(5, 5, 5, 0));
+		setIcon(null);
 
 		String text;
 		// If using setSelectedItem(null) or setSelectedIndex(-1) show default text until a selection is made
@@ -70,6 +71,12 @@ public final class ComboBoxListRenderer extends JLabel implements ListCellRender
 		else if (o instanceof Enum)
 		{
 			text = Text.titleCase((Enum) o);
+		}
+		else if (o instanceof ComboBoxIconEntry)
+		{
+			ComboBoxIconEntry e = (ComboBoxIconEntry) o;
+			text = e.getText();
+			setIcon(e.getIcon());
 		}
 		else
 		{
