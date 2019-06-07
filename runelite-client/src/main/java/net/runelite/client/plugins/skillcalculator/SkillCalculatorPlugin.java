@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2018, Kruithne <kruithne@gmail.com>
+ * Copyright (c) 2019, TheStonedTurtle <https://github.com/TheStonedTurtle>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,14 +26,19 @@
 
 package net.runelite.client.plugins.skillcalculator;
 
+import com.google.inject.Provides;
 import java.awt.image.BufferedImage;
 import javax.inject.Inject;
 import net.runelite.api.Client;
+import net.runelite.api.events.ConfigChanged;
+import net.runelite.client.config.ConfigManager;
+import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.game.SkillIconManager;
 import net.runelite.client.game.SpriteManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
+import net.runelite.client.plugins.skillcalculator.banked.BankedCalculatorPanel;
 import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.util.ImageUtil;
@@ -59,7 +65,18 @@ public class SkillCalculatorPlugin extends Plugin
 	@Inject
 	private ClientToolbar clientToolbar;
 
+	@Inject
+	private SkillCalculatorConfig skillCalculatorConfig;
+
 	private NavigationButton uiNavigationButton;
+
+	private NavigationButton bankedUiNavigationButton;
+
+	@Provides
+	SkillCalculatorConfig getConfig(ConfigManager configManager)
+	{
+		return configManager.getConfig(SkillCalculatorConfig.class);
+	}
 
 	@Override
 	protected void startUp() throws Exception
@@ -75,11 +92,51 @@ public class SkillCalculatorPlugin extends Plugin
 			.build();
 
 		clientToolbar.addNavigation(uiNavigationButton);
+
+		toggleBankedXpPanel();
 	}
 
 	@Override
 	protected void shutDown() throws Exception
 	{
 		clientToolbar.removeNavigation(uiNavigationButton);
+	}
+
+	@Subscribe
+	public void onConfigChanged(ConfigChanged event)
+	{
+		if (event.getGroup().equals("skillCalculator") && event.getKey().equals("showBankedXp"))
+		{
+			toggleBankedXpPanel();
+		}
+	}
+
+	private void toggleBankedXpPanel()
+	{
+		if (skillCalculatorConfig.showBankedXp())
+		{
+			final BufferedImage icon = ImageUtil.getResourceStreamFromClass(getClass(), "banked.png");
+
+			final BankedCalculatorPanel bankedUiPanel = new BankedCalculatorPanel(client, skillIconManager, itemManager);
+			bankedUiNavigationButton = NavigationButton.builder()
+				.tooltip("Banked XP")
+				.icon(icon)
+				.priority(6)
+				.panel(bankedUiPanel)
+				.build();
+
+			clientToolbar.addNavigation(bankedUiNavigationButton);
+		}
+		else
+		{
+			if (bankedUiNavigationButton == null)
+			{
+				return;
+			}
+
+			clientToolbar.removeNavigation(bankedUiNavigationButton);
+
+			bankedUiNavigationButton = null;
+		}
 	}
 }
