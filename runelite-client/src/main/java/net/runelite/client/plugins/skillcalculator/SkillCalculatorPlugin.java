@@ -69,7 +69,6 @@ public class SkillCalculatorPlugin extends Plugin
 	private SkillCalculatorConfig skillCalculatorConfig;
 
 	private NavigationButton uiNavigationButton;
-
 	private NavigationButton bankedUiNavigationButton;
 
 	@Provides
@@ -100,6 +99,10 @@ public class SkillCalculatorPlugin extends Plugin
 	protected void shutDown() throws Exception
 	{
 		clientToolbar.removeNavigation(uiNavigationButton);
+		if (bankedUiNavigationButton != null)
+		{
+			clientToolbar.removeNavigation(bankedUiNavigationButton);
+		}
 	}
 
 	@Subscribe
