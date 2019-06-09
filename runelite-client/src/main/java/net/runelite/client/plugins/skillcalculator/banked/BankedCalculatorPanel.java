@@ -28,6 +28,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ItemEvent;
 import java.awt.image.BufferedImage;
+import java.util.Map;
 import javax.swing.ImageIcon;
 import javax.swing.JComboBox;
 import javax.swing.border.EmptyBorder;
@@ -36,6 +37,8 @@ import net.runelite.api.Client;
 import net.runelite.api.Skill;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.game.SkillIconManager;
+import net.runelite.client.plugins.skillcalculator.UICalculatorInputArea;
+import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.PluginPanel;
 import net.runelite.client.ui.components.ComboBoxIconEntry;
 import net.runelite.client.ui.components.ComboBoxListRenderer;
@@ -43,31 +46,25 @@ import net.runelite.client.ui.components.ComboBoxListRenderer;
 @Slf4j
 public class BankedCalculatorPanel extends PluginPanel
 {
-	private final Client client;
-	private final SkillIconManager skillIconManager;
-	private final ItemManager itemManager;
-
-	private GridBagConstraints c;
-	private Skill currentSkill;
+	private final BankedCalculator calculator;
 
 	public BankedCalculatorPanel(Client client, SkillIconManager skillIconManager, ItemManager itemManager)
 	{
 		super();
 
-		this.client = client;
-		this.skillIconManager = skillIconManager;
-		this.itemManager = itemManager;
-
 		setBorder(new EmptyBorder(10, 10, 10, 10));
 		setLayout(new GridBagLayout());
 
-		c = new GridBagConstraints();
-		c.fill = GridBagConstraints.HORIZONTAL;
-		c.weightx = 1;
-		c.gridx = 0;
-		c.gridy = 0;
+		final UICalculatorInputArea inputs = new UICalculatorInputArea();
+		inputs.setBorder(new EmptyBorder(15, 0, 15, 0));
+		inputs.setBackground(ColorScheme.DARK_GRAY_COLOR);
 
-		// Create the Skill dropdown
+		inputs.getUiFieldTargetXP().setEditable(false);
+		inputs.getUiFieldTargetLevel().setEditable(false);
+
+		calculator = new BankedCalculator(inputs, client, itemManager);
+
+		// Create the Skill dropdown with icons
 		final JComboBox<ComboBoxIconEntry> dropdown = new JComboBox<>();
 
 		final ComboBoxListRenderer renderer = new ComboBoxListRenderer();
@@ -91,19 +88,28 @@ public class BankedCalculatorPanel extends PluginPanel
 				if (source.getData() instanceof Skill)
 				{
 					final Skill skill = (Skill) source.getData();
-					this.selectSkill(skill);
+					this.calculator.open(skill);
 				}
 			}
 		});
 
 		dropdown.setSelectedIndex(-1);
 
+		GridBagConstraints c = new GridBagConstraints();
+		c.fill = GridBagConstraints.HORIZONTAL;
+		c.weightx = 1;
+		c.gridx = 0;
+		c.gridy = 0;
+
 		add(dropdown, c);
 		c.gridy++;
+		add(inputs, c);
+		c.gridy++;
+		add(calculator, c);
 	}
 
-	private void selectSkill(final Skill skill)
+	public void setBankMap(final Map<Integer, Integer> bankMap)
 	{
-		this.currentSkill = skill;
+		calculator.setBankMap(bankMap);
 	}
 }
