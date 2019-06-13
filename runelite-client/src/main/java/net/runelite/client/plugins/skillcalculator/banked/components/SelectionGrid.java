@@ -50,6 +50,9 @@ public class SelectionGrid extends JPanel
 	@Getter
 	private BankedItem selectedItem;
 
+	@Getter
+	private BankedItem lastIgnoredItem;
+
 	/* To be executed when this element is clicked */
 	@Setter
 	private BooleanSupplier onSelectEvent;
@@ -73,7 +76,7 @@ public class SelectionGrid extends JPanel
 			final GridItem gridItem = new GridItem(item, img);
 
 			gridItem.setOnSelectEvent(() -> selected(item));
-			gridItem.setOnIgnoreEvent(this::ignoreEvent);
+			gridItem.setOnIgnoreEvent(() -> ignore(item));
 			panelMap.put(item, gridItem);
 
 			// Select the first option
@@ -111,8 +114,9 @@ public class SelectionGrid extends JPanel
 		return true;
 	}
 
-	private boolean ignoreEvent()
+	private boolean ignore(final BankedItem item)
 	{
+		this.lastIgnoredItem = item;
 		return onIgnoreEvent.getAsBoolean();
 	}
 }
