@@ -370,6 +370,11 @@ public enum CriticalItem
 	{
 		for (CriticalItem i : values())
 		{
+			if (i.composition != null)
+			{
+				return;
+			}
+
 			i.composition = m.getItemComposition(i.getItemID());
 		}
 	}

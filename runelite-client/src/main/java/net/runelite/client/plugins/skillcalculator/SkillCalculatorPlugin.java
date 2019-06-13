@@ -31,6 +31,7 @@ import java.awt.image.BufferedImage;
 import javax.inject.Inject;
 import net.runelite.api.Client;
 import net.runelite.api.events.ConfigChanged;
+import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.game.ItemManager;
@@ -39,6 +40,7 @@ import net.runelite.client.game.SpriteManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.plugins.skillcalculator.banked.BankedCalculatorPanel;
+import net.runelite.client.plugins.skillcalculator.banked.beans.CriticalItem;
 import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.util.ImageUtil;
@@ -52,6 +54,9 @@ public class SkillCalculatorPlugin extends Plugin
 {
 	@Inject
 	private Client client;
+
+	@Inject
+	private ClientThread clientThread;
 
 	@Inject
 	private SkillIconManager skillIconManager;
@@ -129,6 +134,24 @@ public class SkillCalculatorPlugin extends Plugin
 				.build();
 
 			clientToolbar.addNavigation(bankedUiNavigationButton);
+
+			clientThread.invoke(() ->
+			{
+				switch (client.getGameState())
+				{
+					case LOGIN_SCREEN:
+					case LOGIN_SCREEN_AUTHENTICATOR:
+					case LOGGING_IN:
+					case LOADING:
+					case LOGGED_IN:
+					case CONNECTION_LOST:
+					case HOPPING:
+						CriticalItem.prepareItemCompositions(itemManager);
+						return true;
+					default:
+						return false;
+				}
+			});
 		}
 		else
 		{
