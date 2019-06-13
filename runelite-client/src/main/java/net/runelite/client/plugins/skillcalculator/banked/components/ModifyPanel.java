@@ -44,7 +44,6 @@ import javax.swing.SwingUtilities;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.game.AsyncBufferedImage;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.plugins.skillcalculator.banked.BankedCalculator;
@@ -57,7 +56,6 @@ import net.runelite.client.ui.components.ComboBoxIconEntry;
 import net.runelite.client.ui.components.ComboBoxListRenderer;
 import net.runelite.client.ui.components.shadowlabel.JShadowedLabel;
 
-@Slf4j
 public class ModifyPanel extends JPanel
 {
 	private static final Dimension ICON_SIZE = new Dimension(36, 36);
@@ -155,14 +153,29 @@ public class ModifyPanel extends JPanel
 		this.xp = this.calc.getItemXpRate(bankedItem);
 		this.linkedMap = this.calc.createLinksMap(bankedItem.getItem());
 
-		this.amount = 0;
+		this.amount = bankedItem.getQty();
 		for (int i : linkedMap.values())
 		{
 			this.amount += i;
 		}
 
+		updateImageTooltip();
 		updateLabelContainer();
 		updateAdjustContainer();
+	}
+
+	private void updateImageTooltip()
+	{
+		final StringBuilder b = new StringBuilder("<html>");
+		b.append(bankedItem.getQty()).append(" x ").append(bankedItem.getItem().getComposition().getName());
+
+		for (final Map.Entry<CriticalItem, Integer> e : this.linkedMap.entrySet())
+		{
+			b.append("<br/>").append(e.getValue()).append(" x ").append(e.getKey().getComposition().getName());
+		}
+
+		b.append("</html>");
+		this.image.setToolTipText(b.toString());
 	}
 
 	private void updateLabelContainer()
@@ -266,7 +279,6 @@ public class ModifyPanel extends JPanel
 				if (source.getData() instanceof Activity)
 				{
 					final Activity selectedActivity = ((Activity) source.getData());
-					log.info("Changed to option: {}", selectedActivity);
 					calc.activitySelected(bankedItem, selectedActivity);
 					updateLabelContainer();
 				}
