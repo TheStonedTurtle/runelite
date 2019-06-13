@@ -37,6 +37,7 @@ import javax.swing.border.EmptyBorder;
 import lombok.Getter;
 import lombok.Setter;
 import net.runelite.client.game.AsyncBufferedImage;
+import net.runelite.client.plugins.skillcalculator.banked.BankedCalculator;
 import net.runelite.client.plugins.skillcalculator.banked.beans.Activity;
 import net.runelite.client.plugins.skillcalculator.banked.beans.BankedItem;
 import net.runelite.client.ui.ColorScheme;
@@ -99,8 +100,8 @@ public class GridItem extends JLabel
 		this.setVerticalAlignment(SwingConstants.CENTER);
 		this.setHorizontalAlignment(SwingConstants.CENTER);
 
-		updateToolTip();
 		updateIcon(icon, amount);
+		updateToolTip();
 
 		this.addMouseListener(new MouseAdapter()
 		{
@@ -197,8 +198,13 @@ public class GridItem extends JLabel
 		final Activity a = bankedItem.getSelectedActivity();
 		if (a != null)
 		{
-			tip += "<br/>Making: " +  a.getName();
-			tip += "<br/>Xp/Action: " + a.getXp();
+			tip += "<br/>Activity: " +  a.getName();
+			tip += "<br/>Xp/Action: " + BankedCalculator.XP_FORMAT_COMMA.format(a.getXp());
+			tip += "<br/>Total Xp: " + BankedCalculator.XP_FORMAT_COMMA.format(a.getXp() * amount);
+		}
+		else
+		{
+			tip += "<br/>Outputs: " + bankedItem.getForwardsLinkedItem().getComposition().getName();
 		}
 
 		return tip + "</html>";
