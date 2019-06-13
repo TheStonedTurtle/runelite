@@ -81,9 +81,12 @@ public class GridItem extends JLabel
 	@Getter
 	private final BankedItem bankedItem;
 
+	@Getter
+	private int amount;
+
 	private final JMenuItem ignoreOption = new JMenuItem(IGNORE);
 
-	public GridItem(final BankedItem item, final AsyncBufferedImage icon)
+	public GridItem(final BankedItem item, final AsyncBufferedImage icon, final int amount)
 	{
 		super("");
 
@@ -97,7 +100,7 @@ public class GridItem extends JLabel
 		this.setHorizontalAlignment(SwingConstants.CENTER);
 
 		updateToolTip();
-		updateIcon(icon);
+		updateIcon(icon, amount);
 
 		this.addMouseListener(new MouseAdapter()
 		{
@@ -181,9 +184,10 @@ public class GridItem extends JLabel
 		this.setToolTipText(buildToolTip());
 	}
 
-	public void updateIcon(final AsyncBufferedImage icon)
+	public void updateIcon(final AsyncBufferedImage icon, final int amount)
 	{
 		icon.addTo(this);
+		this.amount = amount;
 	}
 
 	private String buildToolTip()

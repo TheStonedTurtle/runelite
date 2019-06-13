@@ -151,14 +151,11 @@ public class BankedCalculator extends JPanel
 			final BankedItem banked = new BankedItem(item, bankMap.getOrDefault(item.getItemID(), 0));
 
 			final List<Activity> activities = Activity.getByCriticalItem(item);
-			if (activities.size() == 0)
+			if (activities.size() > 0)
 			{
-				log.warn("Every item should have an activity but `{}` has none", item);
-				continue;
+				// Default to the first activity
+				banked.setSelectedActivity(activities.get(0));
 			}
-
-			// Default to the first activity
-			banked.setSelectedActivity(activities.get(0));
 
 			bankedItemMap.put(item, banked);
 		}
@@ -305,12 +302,12 @@ public class BankedCalculator extends JPanel
 				break;
 			}
 
-			final GridItem gridItem = itemGrid.getPanelMap().get(bi);
-
 			final int qty = getItemQty(bi);
 			final boolean stackable = bi.getItem().getComposition().isStackable() || qty > 1;
 			final AsyncBufferedImage img = itemManager.getImage(bi.getItem().getItemID(), qty, stackable);
-			gridItem.updateIcon(img);
+
+			final GridItem gridItem = itemGrid.getPanelMap().get(bi);
+			gridItem.updateIcon(img, qty);
 
 			foundSelected = foundSelected || itemGrid.getSelectedItem().equals(bi);
 
@@ -371,7 +368,11 @@ public class BankedCalculator extends JPanel
 				}
 			}
 
-			map.put(i, bi.getQty());
+			final int qty = bi.getQty();
+			if (qty > 0)
+			{
+				map.put(i, qty);
+			}
 		}
 
 		return map;
