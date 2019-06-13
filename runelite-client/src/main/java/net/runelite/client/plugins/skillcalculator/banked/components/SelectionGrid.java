@@ -73,6 +73,7 @@ public class SelectionGrid extends JPanel
 			final GridItem gridItem = new GridItem(item, img);
 
 			gridItem.setOnSelectEvent(() -> selected(item));
+			gridItem.setOnIgnoreEvent(this::ignoreEvent);
 			panelMap.put(item, gridItem);
 
 			// Select the first option
@@ -108,5 +109,10 @@ public class SelectionGrid extends JPanel
 		}
 
 		return true;
+	}
+
+	private boolean ignoreEvent()
+	{
+		return onIgnoreEvent.getAsBoolean();
 	}
 }
