@@ -67,16 +67,16 @@ public class GridItem extends JLabel
 	private Color unselectedHoverBackground = ColorScheme.DARKER_GRAY_HOVER_COLOR;
 
 	@Setter
-	private Color selectedBackground = ColorScheme.GRAND_EXCHANGE_PRICE;
+	private Color selectedBackground = new Color(0, 70, 0);
 
 	@Setter
-	private Color selectedHoverBackground =  new Color(110, 175, 110);
+	private Color selectedHoverBackground =  new Color(0, 100, 0);
 
 	@Setter
-	private Color ignoredBackground = ColorScheme.PROGRESS_ERROR_COLOR;
+	private Color ignoredBackground = new Color(90, 0, 0);
 
 	@Setter
-	private Color ignoredHoverBackground = new Color(120, 30, 30);
+	private Color ignoredHoverBackground = new Color(120, 0, 0);
 
 	@Getter
 	private final BankedItem bankedItem;
@@ -161,14 +161,15 @@ public class GridItem extends JLabel
 			return false;
 		}
 
-		setBackground(selectedBackground);
-		return selected = true;
+		selected = true;
+		setBackground(getBackgroundColor());
+		return true;
 	}
 
 	public void unselect()
 	{
-		setBackground(unselectedBackground);
 		selected = false;
+		setBackground(getBackgroundColor());
 	}
 
 	public void updateToolTip()
