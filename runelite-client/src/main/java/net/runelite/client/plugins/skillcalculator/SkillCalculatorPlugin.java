@@ -28,9 +28,16 @@ package net.runelite.client.plugins.skillcalculator;
 
 import com.google.inject.Provides;
 import java.awt.image.BufferedImage;
+import java.util.HashMap;
+import java.util.Map;
 import javax.inject.Inject;
+import javax.swing.SwingUtilities;
 import net.runelite.api.Client;
+import net.runelite.api.InventoryID;
+import net.runelite.api.Item;
+import net.runelite.api.ItemContainer;
 import net.runelite.api.events.ConfigChanged;
+import net.runelite.api.events.ScriptCallbackEvent;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
@@ -76,6 +83,9 @@ public class SkillCalculatorPlugin extends Plugin
 	private NavigationButton uiNavigationButton;
 	private NavigationButton bankedUiNavigationButton;
 
+	private BankedCalculatorPanel bankedUiPanel;
+	private int bankHash = -1;
+
 	@Provides
 	SkillCalculatorConfig getConfig(ConfigManager configManager)
 	{
@@ -118,6 +128,16 @@ public class SkillCalculatorPlugin extends Plugin
 			toggleBankedXpPanel();
 		}
 	}
+	@Subscribe
+	public void onScriptCallbackEvent(ScriptCallbackEvent event)
+	{
+		if (!event.getEventName().equals("setBankTitle") || !skillCalculatorConfig.showBankedXp())
+		{
+			return;
+		}
+
+		updateBankItems();
+	}
 
 	private void toggleBankedXpPanel()
 	{
@@ -125,7 +145,7 @@ public class SkillCalculatorPlugin extends Plugin
 		{
 			final BufferedImage icon = ImageUtil.getResourceStreamFromClass(getClass(), "banked.png");
 
-			final BankedCalculatorPanel bankedUiPanel = new BankedCalculatorPanel(client, skillIconManager, itemManager);
+			bankedUiPanel = new BankedCalculatorPanel(client, skillIconManager, itemManager);
 			bankedUiNavigationButton = NavigationButton.builder()
 				.tooltip("Banked XP")
 				.icon(icon)
@@ -163,6 +183,35 @@ public class SkillCalculatorPlugin extends Plugin
 			clientToolbar.removeNavigation(bankedUiNavigationButton);
 
 			bankedUiNavigationButton = null;
+		}
+	}
+
+	// Check if bank contents changed and if so send to UI
+	private void updateBankItems()
+	{
+		final ItemContainer c = client.getItemContainer(InventoryID.BANK);
+		if (c == null)
+		{
+			return;
+		}
+
+		final Item[] widgetItems = c.getItems();
+		if (widgetItems == null || widgetItems.length == 0)
+		{
+			return;
+		}
+
+		final Map<Integer, Integer> m = new HashMap<>();
+		for (Item widgetItem : widgetItems)
+		{
+			m.put(widgetItem.getId(), widgetItem.getQuantity());
+		}
+
+		final int curHash = m.hashCode();
+		if (bankHash != curHash)
+		{
+			bankHash = curHash;
+			SwingUtilities.invokeLater(() -> bankedUiPanel.setBankMap(m));
 		}
 	}
 }
