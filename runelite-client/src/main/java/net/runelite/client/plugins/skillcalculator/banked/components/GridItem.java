@@ -64,13 +64,24 @@ public class GridItem extends JLabel
 	private Color unselectedBackground = ColorScheme.DARKER_GRAY_COLOR;
 
 	@Setter
+	private Color unselectedHoverBackground = ColorScheme.DARKER_GRAY_HOVER_COLOR;
+
+	@Setter
 	private Color selectedBackground = ColorScheme.GRAND_EXCHANGE_PRICE;
+
+	@Setter
+	private Color selectedHoverBackground =  new Color(110, 175, 110);
 
 	@Setter
 	private Color ignoredBackground = ColorScheme.PROGRESS_ERROR_COLOR;
 
-	private final JMenuItem ignoreOption = new JMenuItem(IGNORE);
+	@Setter
+	private Color ignoredHoverBackground = new Color(120, 30, 30);
+
+	@Getter
 	private final BankedItem bankedItem;
+
+	private final JMenuItem ignoreOption = new JMenuItem(IGNORE);
 
 	public GridItem(final BankedItem item, final AsyncBufferedImage icon)
 	{
@@ -93,21 +104,24 @@ public class GridItem extends JLabel
 			@Override
 			public void mousePressed(MouseEvent mouseEvent)
 			{
-				select();
+				if (mouseEvent.getButton() == MouseEvent.BUTTON1)
+				{
+					select();
+				}
 			}
 
 			@Override
 			public void mouseEntered(MouseEvent e)
 			{
-				GridItem item = (GridItem) e.getSource();
-				item.setBackground(ColorScheme.DARKER_GRAY_HOVER_COLOR);
+				final GridItem item = (GridItem) e.getSource();
+				item.setBackground(getHoverBackgroundColor());
 			}
 
 			@Override
 			public void mouseExited(MouseEvent e)
 			{
-				GridItem item = (GridItem) e.getSource();
-				item.setBackground(selected ? selectedBackground : unselectedBackground);
+				final GridItem item = (GridItem) e.getSource();
+				item.setBackground(getBackgroundColor());
 			}
 		});
 
@@ -120,12 +134,24 @@ public class GridItem extends JLabel
 
 			this.ignored = !this.ignored;
 			this.ignoreOption.setText(this.ignored ? INCLUDE : IGNORE);
-			this.setBackground(this.ignored ? ignoredBackground : (selected ? selectedBackground : unselectedBackground));
+			this.setBackground(getBackgroundColor());
 		});
 
 		final JPopupMenu popupMenu = new JPopupMenu();
 		popupMenu.setBorder(new EmptyBorder(5, 5, 5, 5));
 		popupMenu.add(ignoreOption);
+
+		this.setComponentPopupMenu(popupMenu);
+	}
+
+	private Color getBackgroundColor()
+	{
+		return ignored ? ignoredBackground : (selected ? selectedBackground : unselectedBackground);
+	}
+
+	private Color getHoverBackgroundColor()
+	{
+		return ignored ? ignoredHoverBackground : (selected ? selectedHoverBackground : unselectedHoverBackground);
 	}
 
 	public boolean select()
