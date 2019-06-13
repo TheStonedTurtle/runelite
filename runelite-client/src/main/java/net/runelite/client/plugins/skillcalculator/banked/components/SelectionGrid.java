@@ -34,6 +34,7 @@ import lombok.Getter;
 import lombok.Setter;
 import net.runelite.client.game.AsyncBufferedImage;
 import net.runelite.client.game.ItemManager;
+import net.runelite.client.plugins.skillcalculator.banked.BankedCalculator;
 import net.runelite.client.plugins.skillcalculator.banked.beans.BankedItem;
 
 /**
@@ -43,6 +44,7 @@ public class SelectionGrid extends JPanel
 {
 	private static final int ITEMS_PER_ROW = 5;
 
+	@Getter
 	private final Map<BankedItem, GridItem> panelMap = new HashMap<>();
 
 	@Getter
@@ -56,7 +58,7 @@ public class SelectionGrid extends JPanel
 	@Setter
 	private BooleanSupplier onIgnoreEvent;
 
-	public SelectionGrid(final Collection<BankedItem> items, final ItemManager itemManager)
+	public SelectionGrid(final BankedCalculator calc, final Collection<BankedItem> items, final ItemManager itemManager)
 	{
 		// Calculates how many rows need to be display to fit all items
 		final int rowSize = ((items.size() % ITEMS_PER_ROW == 0) ? 0 : 1) + items.size() / ITEMS_PER_ROW;
@@ -64,7 +66,7 @@ public class SelectionGrid extends JPanel
 
 		for (final BankedItem item : items)
 		{
-			final int qty = item.getQty();
+			final int qty = calc.getItemQty(item);
 			final boolean stackable = item.getItem().getComposition().isStackable() || qty > 1;
 			final AsyncBufferedImage img = itemManager.getImage(item.getItem().getItemID(), qty, stackable);
 
@@ -76,7 +78,7 @@ public class SelectionGrid extends JPanel
 			// Select the first option
 			if (selectedItem == null)
 			{
-				selected(item);
+				gridItem.select();
 			}
 
 			this.add(gridItem);
