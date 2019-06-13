@@ -33,7 +33,7 @@ import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.event.ItemEvent;
 import java.text.DecimalFormat;
-import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import javax.swing.ImageIcon;
 import javax.swing.JComboBox;
@@ -210,38 +210,63 @@ public class ModifyPanel extends JPanel
 	{
 		adjustContainer.removeAll();
 
-		final JLabel label = new JLabel("Producing:");
+		final JLabel label = new JLabel("Output:");
 		label.setVerticalAlignment(JLabel.CENTER);
 		label.setHorizontalAlignment(JLabel.CENTER);
 
+		GridBagConstraints c = new GridBagConstraints();
+		c.fill = GridBagConstraints.HORIZONTAL;
+		c.weightx = 1;
+		c.gridx = 0;
+		c.gridy = 0;
+		c.ipady = 0;
+
+		adjustContainer.add(label, c);
+		c.gridy++;
+
 		final Activity selected = bankedItem.getSelectedActivity();
-		final JComboBox<ComboBoxIconEntry> dropdown = new JComboBox<>();
 
-		final ComboBoxListRenderer renderer = new ComboBoxListRenderer();
-		dropdown.setRenderer(renderer);
-
-		final Collection<Activity> activities = Activity.getByCriticalItem(bankedItem.getItem(), calc.getSkillLevel());
+		final List<Activity> activities = Activity.getByCriticalItem(bankedItem.getItem(), calc.getSkillLevel());
 		if (activities == null || activities.size() == 0)
 		{
 			if (bankedItem.getForwardsLinkedItem() != null)
 			{
 				final CriticalItem linked = bankedItem.getForwardsLinkedItem();
 				final AsyncBufferedImage img = itemManager.getImage(linked.getItemID());
-				final ImageIcon icon = new ImageIcon(img.getScaledInstance(24, 24, Image.SCALE_SMOOTH));
-				final ComboBoxIconEntry entry = new ComboBoxIconEntry(icon, linked.getComposition().getName(), null);
-				dropdown.addItem(entry);
-				dropdown.setSelectedItem(entry);
+				final ImageIcon icon = new ImageIcon(img);
 
+				final JPanel container = createShadowedLabel(icon, linked.getComposition().getName(), "0.0xp");
 				img.onChanged(() ->
 				{
 					icon.setImage(img);
-					dropdown.revalidate();
-					dropdown.repaint();
+					container.repaint();
 				});
+
+				adjustContainer.add(container, c);
 			}
+		}
+		else if (activities.size() == 1)
+		{
+			final Activity a = activities.get(0);
+
+			final AsyncBufferedImage img = itemManager.getImage(a.getIcon());
+			final ImageIcon icon = new ImageIcon(img);
+			final JPanel container = createShadowedLabel(icon, a.getName(), a.getXp() + "xp");
+
+			img.onChanged(() ->
+			{
+				icon.setImage(img);
+				container.repaint();
+			});
+
+			adjustContainer.add(container, c);
 		}
 		else
 		{
+			final JComboBox<ComboBoxIconEntry> dropdown = new JComboBox<>();
+			final ComboBoxListRenderer renderer = new ComboBoxListRenderer();
+			dropdown.setRenderer(renderer);
+
 			for (final Activity option : activities)
 			{
 				final double xp = option.getXp();
@@ -252,7 +277,7 @@ public class ModifyPanel extends JPanel
 				}
 
 				final AsyncBufferedImage img = itemManager.getImage(option.getIcon());
-				final ImageIcon icon = new ImageIcon(img.getScaledInstance(24, 24, Image.SCALE_SMOOTH));
+				final ImageIcon icon = new ImageIcon(img);
 				final ComboBoxIconEntry entry = new ComboBoxIconEntry(icon, name, option);
 				dropdown.addItem(entry);
 
@@ -268,32 +293,61 @@ public class ModifyPanel extends JPanel
 					dropdown.setSelectedItem(entry);
 				}
 			}
-		}
 
-		// Add click event handler now to prevent above code from triggering it.
-		dropdown.addItemListener(e ->
-		{
-			if (e.getStateChange() == ItemEvent.SELECTED && e.getItem() instanceof ComboBoxIconEntry)
+			// Add click event handler now to prevent above code from triggering it.
+			dropdown.addItemListener(e ->
 			{
-				final ComboBoxIconEntry source = (ComboBoxIconEntry) e.getItem();
-				if (source.getData() instanceof Activity)
+				if (e.getStateChange() == ItemEvent.SELECTED && e.getItem() instanceof ComboBoxIconEntry)
 				{
-					final Activity selectedActivity = ((Activity) source.getData());
-					calc.activitySelected(bankedItem, selectedActivity);
-					updateLabelContainer();
+					final ComboBoxIconEntry source = (ComboBoxIconEntry) e.getItem();
+					if (source.getData() instanceof Activity)
+					{
+						final Activity selectedActivity = ((Activity) source.getData());
+						calc.activitySelected(bankedItem, selectedActivity);
+						updateLabelContainer();
+					}
 				}
-			}
-		});
+			});
 
-		GridBagConstraints c = new GridBagConstraints();
-		c.fill = GridBagConstraints.HORIZONTAL;
-		c.weightx = 1;
-		c.gridx = 0;
-		c.gridy = 0;
-		c.ipady = 0;
+			adjustContainer.add(dropdown, c);
+		}
+	}
 
-		adjustContainer.add(label, c);
-		c.gridy++;
-		adjustContainer.add(dropdown, c);
+	private JPanel createShadowedLabel(final ImageIcon icon, final String name, final String value)
+	{
+		// Wrapper panel for the shadowed labels
+		final JPanel wrapper = new JPanel(new GridLayout(2, 1));
+		wrapper.setBorder(new EmptyBorder(0, 5, 0, 0));
+		wrapper.setBackground(BACKGROUND_COLOR);
+
+		final JShadowedLabel nameLabel = new JShadowedLabel(name);
+		nameLabel.setForeground(Color.WHITE);
+		nameLabel.setVerticalAlignment(SwingUtilities.BOTTOM);
+
+		final JShadowedLabel valueLabel = new JShadowedLabel(value);
+		valueLabel.setFont(FontManager.getRunescapeSmallFont());
+		valueLabel.setVerticalAlignment(SwingUtilities.TOP);
+
+		wrapper.add(nameLabel);
+		wrapper.add(valueLabel);
+
+		final JPanel container = new JPanel();
+		container.setLayout(new BorderLayout());
+		container.setBackground(BACKGROUND_COLOR);
+		container.setBorder(new EmptyBorder(5, 0, 5, 0));
+
+		final JLabel image = new JLabel();
+		image.setMinimumSize(ICON_SIZE);
+		image.setMaximumSize(ICON_SIZE);
+		image.setPreferredSize(ICON_SIZE);
+		image.setHorizontalAlignment(SwingConstants.CENTER);
+		image.setBorder(new EmptyBorder(0, 8, 0, 0));
+
+		image.setIcon(icon);
+
+		container.add(image, BorderLayout.LINE_START);
+		container.add(wrapper, BorderLayout.CENTER);
+
+		return container;
 	}
 }
