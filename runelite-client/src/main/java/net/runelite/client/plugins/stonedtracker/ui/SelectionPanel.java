@@ -40,7 +40,6 @@ import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
-import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import net.runelite.client.game.AsyncBufferedImage;
 import net.runelite.client.game.ItemManager;
@@ -134,7 +133,7 @@ public class SelectionPanel extends JPanel
 			@Override
 			public void mouseClicked(MouseEvent e)
 			{
-				SwingUtilities.invokeLater(() -> parent.showLootView(name));
+				parent.showLootView(name);
 			}
 		});
 
@@ -184,12 +183,12 @@ public class SelectionPanel extends JPanel
 				{
 					materialTab.setBackground(BUTTON_COLOR);
 				}
+			});
 
-				@Override
-				public void mouseClicked(MouseEvent e)
-				{
-					SwingUtilities.invokeLater(() -> parent.showLootView(tab.getName()));
-				}
+			materialTab.setOnSelectEvent(() ->
+			{
+				parent.showLootView(tab.getName());
+				return true;
 			});
 
 			// Attach Icon to the Tab
