@@ -28,6 +28,7 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.stream.Collectors;
 import lombok.Getter;
 import net.runelite.api.ItemID;
@@ -374,15 +375,15 @@ public enum Activity
 	 * @param item CriticalItem to check for
 	 * @return an empty Collection if no activities
 	 */
-	public static Collection<Activity> getByCriticalItem(CriticalItem item)
+	public static List<Activity> getByCriticalItem(CriticalItem item)
 	{
-		Collection<Activity> activities = CRITICAL_MAP.get(item);
+		final Collection<Activity> activities = CRITICAL_MAP.get(item);
 		if (activities == null)
 		{
 			return new ArrayList<>();
 		}
 
-		return activities;
+		return new ArrayList<>(activities);
 	}
 
 	/**
@@ -391,10 +392,10 @@ public enum Activity
 	 * @param limitLevel Level to check Activitiy requirements against. -1/0 value disables limits
 	 * @return an empty Collection if no activities
 	 */
-	public static Collection<Activity> getByCriticalItem(final CriticalItem item, final int limitLevel)
+	public static List<Activity> getByCriticalItem(final CriticalItem item, final int limitLevel)
 	{
 		// Return as list to allow getting by index
-		final Collection<Activity> l = getByCriticalItem(item);
+		final List<Activity> l = getByCriticalItem(item);
 		if (limitLevel <= 0)
 		{
 			return l;
