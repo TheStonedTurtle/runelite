@@ -26,9 +26,11 @@ package net.runelite.client.plugins.skillcalculator.banked.components;
 
 import java.awt.GridLayout;
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.BooleanSupplier;
+import java.util.stream.Collectors;
 import javax.swing.JPanel;
 import lombok.Getter;
 import lombok.Setter;
@@ -45,7 +47,7 @@ public class SelectionGrid extends JPanel
 	private static final int ITEMS_PER_ROW = 5;
 
 	@Getter
-	private final Map<BankedItem, GridItem> panelMap = new HashMap<>();
+	private final Map<BankedItem, GridItem> panelMap = new LinkedHashMap<>();
 
 	@Getter
 	private BankedItem selectedItem;
@@ -63,22 +65,35 @@ public class SelectionGrid extends JPanel
 
 	public SelectionGrid(final BankedCalculator calc, final Collection<BankedItem> items, final ItemManager itemManager)
 	{
-		// Calculates how many rows need to be display to fit all items
-		final int rowSize = ((items.size() % ITEMS_PER_ROW == 0) ? 0 : 1) + items.size() / ITEMS_PER_ROW;
-		setLayout(new GridLayout(rowSize, ITEMS_PER_ROW, 1, 1));
-
+		// Create a panel for every item
 		for (final BankedItem item : items)
 		{
 			final int qty = calc.getItemQty(item);
 			final boolean stackable = item.getItem().getComposition().isStackable() || qty > 1;
 			final AsyncBufferedImage img = itemManager.getImage(item.getItem().getItemID(), qty, stackable);
 
-			final GridItem gridItem = new GridItem(item, img);
+			final GridItem gridItem = new GridItem(item, img, qty);
 
 			gridItem.setOnSelectEvent(() -> selected(item));
 			gridItem.setOnIgnoreEvent(() -> ignore(item));
 			panelMap.put(item, gridItem);
+		}
 
+		refreshGridDisplay();
+	}
+
+	public void refreshGridDisplay()
+	{
+		this.removeAll();
+
+		final List<GridItem> items = panelMap.values().stream().filter(gi -> gi.getAmount() > 0).collect(Collectors.toList());
+
+		// Calculates how many rows need to be display to fit all items
+		final int rowSize = ((items.size() % ITEMS_PER_ROW == 0) ? 0 : 1) + items.size() / ITEMS_PER_ROW;
+		setLayout(new GridLayout(rowSize, ITEMS_PER_ROW, 1, 1));
+
+		for (final GridItem gridItem : items)
+		{
 			// Select the first option
 			if (selectedItem == null)
 			{

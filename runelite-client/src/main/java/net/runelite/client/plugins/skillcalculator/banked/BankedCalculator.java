@@ -30,7 +30,6 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import lombok.Getter;
@@ -53,7 +52,7 @@ import net.runelite.client.ui.DynamicGridLayout;
 @Slf4j
 public class BankedCalculator extends JPanel
 {
-	private static final DecimalFormat XP_FORMAT_COMMA = new DecimalFormat("#,###.#");
+	public static final DecimalFormat XP_FORMAT_COMMA = new DecimalFormat("#,###.#");
 
 	private final Client client;
 	private final UICalculatorInputArea uiInput;
@@ -169,7 +168,7 @@ public class BankedCalculator extends JPanel
 	private void recreateItemGrid()
 	{
 		// Filter items to display based on quantity.
-		itemGrid = new SelectionGrid(this, bankedItemMap.values().stream().filter(e -> e.getQty() > 0).collect(Collectors.toList()), itemManager);
+		itemGrid = new SelectionGrid(this, bankedItemMap.values(), itemManager);
 		itemGrid.setOnSelectEvent(() ->
 		{
 			modifyPanel.setBankedItem(itemGrid.getSelectedItem());
@@ -281,6 +280,7 @@ public class BankedCalculator extends JPanel
 		}
 
 		modifyPanel.setBankedItem(i);
+		itemGrid.getPanelMap().get(i).updateToolTip();
 
 		// recalculate total xp
 		calculateBankedXpTotal();
@@ -294,6 +294,7 @@ public class BankedCalculator extends JPanel
 	{
 		CriticalItem i = item.getItem();
 		boolean foundSelected = false;
+		boolean panelAmountChange = false;
 		while ((i = CriticalItem.getByItemId(i.getLinkedItemId())) != null)
 		{
 			final BankedItem bi = bankedItemMap.get(i);
@@ -307,7 +308,10 @@ public class BankedCalculator extends JPanel
 			final AsyncBufferedImage img = itemManager.getImage(bi.getItem().getItemID(), qty, stackable);
 
 			final GridItem gridItem = itemGrid.getPanelMap().get(bi);
+			final int oldQty = gridItem.getAmount();
+			panelAmountChange = panelAmountChange || ( (oldQty == 0 && qty > 0) || (oldQty > 0 && qty == 0) );
 			gridItem.updateIcon(img, qty);
+			gridItem.updateToolTip();
 
 			foundSelected = foundSelected || itemGrid.getSelectedItem().equals(bi);
 
@@ -316,6 +320,11 @@ public class BankedCalculator extends JPanel
 			{
 				break;
 			}
+		}
+
+		if (panelAmountChange)
+		{
+			itemGrid.refreshGridDisplay();
 		}
 
 		if (foundSelected)
