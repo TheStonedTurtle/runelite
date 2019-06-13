@@ -127,12 +127,16 @@ public class GridItem extends JLabel
 
 		ignoreOption.addActionListener(e ->
 		{
+			// Update ignored flag now so event knows new state
+			this.ignored = !this.ignored;
+
 			if (onIgnoreEvent != null && !onIgnoreEvent.getAsBoolean())
 			{
+				// Reset state
+				this.ignored = !this.ignored;
 				return;
 			}
 
-			this.ignored = !this.ignored;
 			this.ignoreOption.setText(this.ignored ? INCLUDE : IGNORE);
 			this.setBackground(getBackgroundColor());
 		});
