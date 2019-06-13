@@ -44,8 +44,7 @@ public class BankedItem
 		this.item = item;
 		this.qty = qty;
 		this.backwardsLinkedItem = CriticalItem.getLinkedItem(item);
-		final int linkedId = item.getLinkedItemId();
-		this.forwardsLinkedItem = linkedId == -1 ? null : CriticalItem.getByItemId(linkedId);
+		this.forwardsLinkedItem = CriticalItem.getByItemId(item.getLinkedItemId());
 	}
 
 	public double getXpRate()
