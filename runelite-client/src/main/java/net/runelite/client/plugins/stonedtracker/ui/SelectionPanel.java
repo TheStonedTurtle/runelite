@@ -183,12 +183,12 @@ public class SelectionPanel extends JPanel
 				{
 					materialTab.setBackground(BUTTON_COLOR);
 				}
+			});
 
-				@Override
-				public void mouseClicked(MouseEvent e)
-				{
-					parent.showLootView(tab.getName());
-				}
+			materialTab.setOnSelectEvent(() ->
+			{
+				parent.showLootView(tab.getName());
+				return true;
 			});
 
 			// Attach Icon to the Tab
