@@ -45,6 +45,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 import lombok.Getter;
+import net.runelite.api.Constants;
 import net.runelite.client.game.AsyncBufferedImage;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.plugins.skillcalculator.banked.BankedCalculator;
@@ -59,7 +60,7 @@ import net.runelite.client.ui.components.shadowlabel.JShadowedLabel;
 
 public class ModifyPanel extends JPanel
 {
-	private static final Dimension ICON_SIZE = new Dimension(36, 36);
+	private static final Dimension ICON_SIZE = new Dimension(Constants.ITEM_SPRITE_WIDTH, Constants.ITEM_SPRITE_HEIGHT);
 	private static final DecimalFormat FORMAT_COMMA = new DecimalFormat("#,###.#");
 
 	private static final Border PANEL_BORDER = new EmptyBorder(3, 0, 3, 0);
