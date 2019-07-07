@@ -57,8 +57,6 @@ public class GridItem extends JLabel
 	private static final Color IGNORED_BACKGROUND = new Color(90, 0, 0);
 	private static final Color IGNORED_HOVER_BACKGROUND = new Color(120, 0, 0);
 
-	private static final JMenuItem IGNORE_OPTION = new JMenuItem(IGNORE);
-
 	/* To be executed when this element is clicked */
 	@Setter
 	private BooleanSupplier onSelectEvent;
@@ -73,6 +71,8 @@ public class GridItem extends JLabel
 
 	private boolean selected = false;
 	private boolean ignored = false;
+
+	private final JMenuItem IGNORE_OPTION = new JMenuItem(IGNORE);
 
 	GridItem(final SelectionGrid parent, final BankedItem item, final AsyncBufferedImage icon, final int amount)
 	{
