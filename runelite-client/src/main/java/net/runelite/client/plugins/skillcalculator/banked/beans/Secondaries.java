@@ -26,7 +26,6 @@ package net.runelite.client.plugins.skillcalculator.banked.beans;
 
 import lombok.Getter;
 import net.runelite.api.ItemID;
-import net.runelite.http.api.loottracker.GameItem;
 
 @Getter
 public enum Secondaries
@@ -34,85 +33,85 @@ public enum Secondaries
 	/**
 	 * Herblore
 	 */
-	UNFINISHED_POTION(new GameItem(ItemID.VIAL_OF_WATER, 1)),
-	SWAMP_TAR(new GameItem(ItemID.SWAMP_TAR, 15)),
+	UNFINISHED_POTION(new ItemStack(ItemID.VIAL_OF_WATER, 1)),
+	SWAMP_TAR(new ItemStack(ItemID.SWAMP_TAR, 15)),
 	// Guam
-	ATTACK_POTION(new GameItem(ItemID.EYE_OF_NEWT, 1)),
+	ATTACK_POTION(new ItemStack(ItemID.EYE_OF_NEWT, 1)),
 	// Marrentil
-	ANTIPOISON(new GameItem(ItemID.UNICORN_HORN_DUST, 1)),
+	ANTIPOISON(new ItemStack(ItemID.UNICORN_HORN_DUST, 1)),
 	// Tarromin
-	STRENGTH_POTION(new GameItem(ItemID.LIMPWURT_ROOT, 1)),
-	SERUM_207(new GameItem(ItemID.ASHES, 1)),
+	STRENGTH_POTION(new ItemStack(ItemID.LIMPWURT_ROOT, 1)),
+	SERUM_207(new ItemStack(ItemID.ASHES, 1)),
 	// Harralander
-	COMPOST_POTION(new GameItem(ItemID.VOLCANIC_ASH, 1)),
-	RESTORE_POTION(new GameItem(ItemID.RED_SPIDERS_EGGS, 1)),
-	ENERGY_POTION(new GameItem(ItemID.CHOCOLATE_DUST, 1)),
-	COMBAT_POTION(new GameItem(ItemID.GOAT_HORN_DUST, 1)),
+	COMPOST_POTION(new ItemStack(ItemID.VOLCANIC_ASH, 1)),
+	RESTORE_POTION(new ItemStack(ItemID.RED_SPIDERS_EGGS, 1)),
+	ENERGY_POTION(new ItemStack(ItemID.CHOCOLATE_DUST, 1)),
+	COMBAT_POTION(new ItemStack(ItemID.GOAT_HORN_DUST, 1)),
 	// Ranarr Weed
-	DEFENCE_POTION(new GameItem(ItemID.WHITE_BERRIES, 1)),
-	PRAYER_POTION(new GameItem(ItemID.SNAPE_GRASS, 1)),
+	DEFENCE_POTION(new ItemStack(ItemID.WHITE_BERRIES, 1)),
+	PRAYER_POTION(new ItemStack(ItemID.SNAPE_GRASS, 1)),
 	// Toadflax
-	AGILITY_POTION(new GameItem(ItemID.TOADS_LEGS, 1)),
-	SARADOMIN_BREW(new GameItem(ItemID.CRUSHED_NEST, 1)),
+	AGILITY_POTION(new ItemStack(ItemID.TOADS_LEGS, 1)),
+	SARADOMIN_BREW(new ItemStack(ItemID.CRUSHED_NEST, 1)),
 	// Irit
-	SUPER_ATTACK(new GameItem(ItemID.EYE_OF_NEWT, 1)),
-	SUPERANTIPOISON(new GameItem(ItemID.UNICORN_HORN_DUST, 1)),
+	SUPER_ATTACK(new ItemStack(ItemID.EYE_OF_NEWT, 1)),
+	SUPERANTIPOISON(new ItemStack(ItemID.UNICORN_HORN_DUST, 1)),
 	// Avantoe
-	FISHING_POTION(new GameItem(ItemID.SNAPE_GRASS, 1)),
-	SUPER_ENERGY_POTION(new GameItem(ItemID.MORT_MYRE_FUNGUS, 1)),
-	HUNTER_POTION(new GameItem(ItemID.KEBBIT_TEETH_DUST, 1)),
+	FISHING_POTION(new ItemStack(ItemID.SNAPE_GRASS, 1)),
+	SUPER_ENERGY_POTION(new ItemStack(ItemID.MORT_MYRE_FUNGUS, 1)),
+	HUNTER_POTION(new ItemStack(ItemID.KEBBIT_TEETH_DUST, 1)),
 	// Kwuarm
-	SUPER_STRENGTH(new GameItem(ItemID.LIMPWURT_ROOT, 1)),
+	SUPER_STRENGTH(new ItemStack(ItemID.LIMPWURT_ROOT, 1)),
 	// Snapdragon
-	SUPER_RESTORE(new GameItem(ItemID.RED_SPIDERS_EGGS, 1)),
-	SANFEW_SERUM(new GameItem(ItemID.SNAKE_WEED, 1), new GameItem(ItemID.UNICORN_HORN_DUST, 1), new GameItem(ItemID.SUPER_RESTORE4, 1), new GameItem(ItemID.NAIL_BEAST_NAILS, 1)),
+	SUPER_RESTORE(new ItemStack(ItemID.RED_SPIDERS_EGGS, 1)),
+	SANFEW_SERUM(new ItemStack(ItemID.SNAKE_WEED, 1), new ItemStack(ItemID.UNICORN_HORN_DUST, 1), new ItemStack(ItemID.SUPER_RESTORE4, 1), new ItemStack(ItemID.NAIL_BEAST_NAILS, 1)),
 	// Cadantine
-	SUPER_DEFENCE_POTION(new GameItem(ItemID.WHITE_BERRIES, 1)),
+	SUPER_DEFENCE_POTION(new ItemStack(ItemID.WHITE_BERRIES, 1)),
 	// Lantadyme
-	ANTIFIRE_POTION(new GameItem(ItemID.DRAGON_SCALE_DUST, 1)),
-	MAGIC_POTION(new GameItem(ItemID.POTATO_CACTUS, 1)),
+	ANTIFIRE_POTION(new ItemStack(ItemID.DRAGON_SCALE_DUST, 1)),
+	MAGIC_POTION(new ItemStack(ItemID.POTATO_CACTUS, 1)),
 	// Dwarf Weed
-	RANGING_POTION(new GameItem(ItemID.WINE_OF_ZAMORAK, 1)),
+	RANGING_POTION(new ItemStack(ItemID.WINE_OF_ZAMORAK, 1)),
 	// Torstol
-	ZAMORAK_BREW(new GameItem(ItemID.JANGERBERRIES, 1)),
-	SUPER_COMBAT_POTION(new GameItem(ItemID.SUPER_ATTACK4, 1), new GameItem(ItemID.SUPER_STRENGTH4, 1), new GameItem(ItemID.SUPER_DEFENCE4, 1)),
-	ANTIVENOM_PLUS(new GameItem(ItemID.ANTIVENOM4, 1)),
+	ZAMORAK_BREW(new ItemStack(ItemID.JANGERBERRIES, 1)),
+	SUPER_COMBAT_POTION(new ItemStack(ItemID.SUPER_ATTACK4, 1), new ItemStack(ItemID.SUPER_STRENGTH4, 1), new ItemStack(ItemID.SUPER_DEFENCE4, 1)),
+	ANTIVENOM_PLUS(new ItemStack(ItemID.ANTIVENOM4, 1)),
 
 	/**
 	 * Smithing
 	 */
-	COAL_ORE(new GameItem(ItemID.COAL, 1)),
-	COAL_ORE_2(new GameItem(ItemID.COAL, 2)),
-	COAL_ORE_4(new GameItem(ItemID.COAL, 4)),
-	COAL_ORE_6(new GameItem(ItemID.COAL, 6)),
-	COAL_ORE_8(new GameItem(ItemID.COAL, 8)),
+	COAL_ORE(new ItemStack(ItemID.COAL, 1)),
+	COAL_ORE_2(new ItemStack(ItemID.COAL, 2)),
+	COAL_ORE_4(new ItemStack(ItemID.COAL, 4)),
+	COAL_ORE_6(new ItemStack(ItemID.COAL, 6)),
+	COAL_ORE_8(new ItemStack(ItemID.COAL, 8)),
 
 	/**
 	 * Crafting
 	 */
-	GOLD_BAR(new GameItem(ItemID.GOLD_BAR, 1)),
-	SILVER_BAR(new GameItem(ItemID.SILVER_BAR, 1)),
-	WATER_ORB(new GameItem(ItemID.WATER_ORB, 1)),
-	EARTH_ORB(new GameItem(ItemID.EARTH_ORB, 1)),
-	FIRE_ORB(new GameItem(ItemID.FIRE_ORB, 1)),
-	AIR_ORB(new GameItem(ItemID.AIR_ORB, 1)),
+	GOLD_BAR(new ItemStack(ItemID.GOLD_BAR, 1)),
+	SILVER_BAR(new ItemStack(ItemID.SILVER_BAR, 1)),
+	WATER_ORB(new ItemStack(ItemID.WATER_ORB, 1)),
+	EARTH_ORB(new ItemStack(ItemID.EARTH_ORB, 1)),
+	FIRE_ORB(new ItemStack(ItemID.FIRE_ORB, 1)),
+	AIR_ORB(new ItemStack(ItemID.AIR_ORB, 1)),
 
 	/**
 	 * Construction
 	 */
-	COINS_100(new GameItem(ItemID.COINS_995, 100)),
-	COINS_250(new GameItem(ItemID.COINS_995, 250)),
-	COINS_500(new GameItem(ItemID.COINS_995, 500)),
-	COINS_1500(new GameItem(ItemID.COINS_995, 1500)),
+	COINS_100(new ItemStack(ItemID.COINS_995, 100)),
+	COINS_250(new ItemStack(ItemID.COINS_995, 250)),
+	COINS_500(new ItemStack(ItemID.COINS_995, 500)),
+	COINS_1500(new ItemStack(ItemID.COINS_995, 1500)),
 
 	/**
 	 * Cooking
 	 */
-	JUG_OF_WATER(new GameItem(ItemID.JUG_OF_WATER, 1)),
+	JUG_OF_WATER(new ItemStack(ItemID.JUG_OF_WATER, 1)),
 	;
-	private final GameItem[] items;
+	private final ItemStack[] items;
 
-	Secondaries(GameItem... items)
+	Secondaries(ItemStack... items)
 	{
 		this.items = items;
 	}
