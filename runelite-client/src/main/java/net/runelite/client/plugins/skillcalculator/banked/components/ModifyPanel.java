@@ -156,8 +156,7 @@ public class ModifyPanel extends JPanel
 		}
 
 		this.bankedItem = bankedItem;
-
-		this.xp = this.calc.getItemXpRate(bankedItem);
+;
 		if (this.calc.getConfig().cascadeBankedXp())
 		{
 			this.linkedMap = this.calc.createLinksMap(bankedItem);
@@ -239,6 +238,8 @@ public class ModifyPanel extends JPanel
 		adjustContainer.add(label, c);
 		c.gridy++;
 
+		final float xpFactor = (bankedItem.getItem().isIgnoreBonus() ? 1.0f : this.calc.getXpFactor());
+
 		final List<Activity> activities = Activity.getByCriticalItem(bankedItem.getItem(), calc.getSkillLevel());
 		if (activities == null || activities.size() == 0)
 		{
@@ -250,7 +251,7 @@ public class ModifyPanel extends JPanel
 
 			final AsyncBufferedImage img = itemManager.getImage(a.getIcon());
 			final ImageIcon icon = new ImageIcon(img);
-			final double xp = a.getXp() * this.calc.getXpFactor();
+			final double xp = a.getXp() * xpFactor;
 			final JPanel container = createShadowedLabel(icon, a.getName(), xp + "xp");
 
 			img.onChanged(() ->
@@ -269,7 +270,7 @@ public class ModifyPanel extends JPanel
 
 			for (final Activity option : activities)
 			{
-				final double xp = option.getXp() * this.calc.getXpFactor();
+				final double xp = option.getXp() * xpFactor;
 				String name = option.getName();
 				if (xp > 0)
 				{
