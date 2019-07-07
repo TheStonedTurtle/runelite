@@ -63,8 +63,12 @@ public class SelectionGrid extends JPanel
 	@Setter
 	private BooleanSupplier onIgnoreEvent;
 
+	@Getter
+	private final BankedCalculator calc;
+
 	public SelectionGrid(final BankedCalculator calc, final Collection<BankedItem> items, final ItemManager itemManager)
 	{
+		this.calc = calc;
 		// Create a panel for every item
 		for (final BankedItem item : items)
 		{
@@ -72,7 +76,7 @@ public class SelectionGrid extends JPanel
 			final boolean stackable = item.getItem().getItemInfo().isStackable() || qty > 1;
 			final AsyncBufferedImage img = itemManager.getImage(item.getItem().getItemID(), qty, stackable);
 
-			final GridItem gridItem = new GridItem(item, img, qty);
+			final GridItem gridItem = new GridItem(this, item, img, qty);
 
 			gridItem.setOnSelectEvent(() -> selected(item));
 			gridItem.setOnIgnoreEvent(() -> ignore(item));

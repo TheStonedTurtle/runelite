@@ -26,14 +26,20 @@ package net.runelite.client.plugins.skillcalculator.banked;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
+import java.awt.BorderLayout;
+import java.awt.Color;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import javax.swing.BorderFactory;
+import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.SwingConstants;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -47,10 +53,13 @@ import net.runelite.client.plugins.skillcalculator.UICalculatorInputArea;
 import net.runelite.client.plugins.skillcalculator.banked.beans.Activity;
 import net.runelite.client.plugins.skillcalculator.banked.beans.BankedItem;
 import net.runelite.client.plugins.skillcalculator.banked.beans.CriticalItem;
+import net.runelite.client.plugins.skillcalculator.banked.beans.XpModifiers;
 import net.runelite.client.plugins.skillcalculator.banked.components.GridItem;
 import net.runelite.client.plugins.skillcalculator.banked.components.ModifyPanel;
 import net.runelite.client.plugins.skillcalculator.banked.components.SelectionGrid;
+import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.DynamicGridLayout;
+import net.runelite.client.ui.FontManager;
 
 @Slf4j
 public class BankedCalculator extends JPanel
@@ -81,7 +90,8 @@ public class BankedCalculator extends JPanel
 	@Getter
 	private int skillLevel, skillExp, endLevel, endExp;
 
-	// TODO: Add support for xp modifiers (prayer altars, outfit, etc)
+	private final Collection<JCheckBox> xpModifierButtons = new ArrayList<>();
+	@Getter
 	private float xpFactor = 1.0f;
 
 	BankedCalculator(UICalculatorInputArea uiInput, Client client, SkillCalculatorConfig config, ItemManager itemManager)
@@ -109,6 +119,7 @@ public class BankedCalculator extends JPanel
 
 		this.currentSkill = newSkill;
 		removeAll();
+		xpFactor = 1.0f;
 
 		if (bankMap.size() <= 0)
 		{
@@ -129,6 +140,40 @@ public class BankedCalculator extends JPanel
 		uiInput.setTargetXPInput(endExp);
 
 		recreateBankedItemMap();
+
+		final Collection<XpModifiers> modifiers = XpModifiers.getModifiersBySkill(this.currentSkill);
+		for (final XpModifiers modifier : modifiers)
+		{
+			JPanel uiOption = new JPanel(new BorderLayout());
+			JLabel uiLabel = new JLabel(modifier.getName());
+			JCheckBox btn = new JCheckBox();
+
+			uiLabel.setForeground(Color.WHITE);
+			uiLabel.setFont(FontManager.getRunescapeSmallFont());
+			uiLabel.setHorizontalAlignment(SwingConstants.CENTER);
+
+			uiOption.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 0));
+			uiOption.setBackground(ColorScheme.DARKER_GRAY_COLOR);
+
+			btn.addActionListener((event) ->
+			{
+				final JCheckBox box = (JCheckBox) event.getSource();
+				if (!box.isSelected())
+				{
+					xpFactor = 1.0f;
+					modifierUpdated();
+					return;
+				}
+				// Deselects all but the current box
+				xpModifierButtons.forEach(b -> box.setSelected(b == box));
+				this.selectModifier(modifier);
+			});
+			xpModifierButtons.add(btn);
+
+			uiOption.add(uiLabel, BorderLayout.WEST);
+			uiOption.add(btn, BorderLayout.EAST);
+			add(uiOption);
+		}
 
 		recreateItemGrid();
 
@@ -394,5 +439,18 @@ public class BankedCalculator extends JPanel
 		}
 
 		return qtyMap;
+	}
+
+	private void selectModifier(final XpModifiers modifier)
+	{
+		xpFactor = modifier.getModifier();
+		modifierUpdated();
+	}
+
+	private void modifierUpdated()
+	{
+		itemGrid.getPanelMap().values().forEach(GridItem::updateToolTip);
+		modifyPanel.setBankedItem(modifyPanel.getBankedItem());
+		calculateBankedXpTotal();
 	}
 }

@@ -149,6 +149,11 @@ public class ModifyPanel extends JPanel
 	// Updates the UI for the selected item
 	public void setBankedItem(final BankedItem bankedItem)
 	{
+		if (bankedItem == null)
+		{
+			return;
+		}
+
 		this.bankedItem = bankedItem;
 
 		this.xp = this.calc.getItemXpRate(bankedItem);
@@ -201,7 +206,7 @@ public class ModifyPanel extends JPanel
 		final String itemName = item.getItemInfo().getName();
 		labelName.setText(itemName);
 
-		xp = bankedItem.getXpRate();
+		xp = calc.getItemXpRate(bankedItem);
 		total = amount * xp;
 
 		final String value = FORMAT_COMMA.format(total) + "xp";
@@ -244,7 +249,8 @@ public class ModifyPanel extends JPanel
 
 			final AsyncBufferedImage img = itemManager.getImage(a.getIcon());
 			final ImageIcon icon = new ImageIcon(img);
-			final JPanel container = createShadowedLabel(icon, a.getName(), a.getXp() + "xp");
+			final double xp = a.getXp() * this.calc.getXpFactor();
+			final JPanel container = createShadowedLabel(icon, a.getName(), xp + "xp");
 
 			img.onChanged(() ->
 			{
@@ -262,7 +268,7 @@ public class ModifyPanel extends JPanel
 
 			for (final Activity option : activities)
 			{
-				final double xp = option.getXp();
+				final double xp = option.getXp() * this.calc.getXpFactor();
 				String name = option.getName();
 				if (xp > 0)
 				{

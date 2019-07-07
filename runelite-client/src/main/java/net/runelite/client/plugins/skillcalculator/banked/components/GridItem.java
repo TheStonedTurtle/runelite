@@ -67,16 +67,18 @@ public class GridItem extends JLabel
 	@Setter
 	private BooleanSupplier onIgnoreEvent;
 
+	private final SelectionGrid parent;
 	private final BankedItem bankedItem;
 	private int amount;
 
 	private boolean selected = false;
 	private boolean ignored = false;
 
-	GridItem(final BankedItem item, final AsyncBufferedImage icon, final int amount)
+	GridItem(final SelectionGrid parent, final BankedItem item, final AsyncBufferedImage icon, final int amount)
 	{
 		super("");
 
+		this.parent = parent;
 		this.bankedItem = item;
 
 		this.setOpaque(true);
@@ -183,7 +185,7 @@ public class GridItem extends JLabel
 		final Activity a = bankedItem.getItem().getSelectedActivity();
 		if (a != null)
 		{
-			final double xp = a.getXp();
+			final double xp = parent.getCalc().getItemXpRate(bankedItem);
 			tip += "<br/>Activity: " +  a.getName();
 			tip += "<br/>Xp/Action: " + BankedCalculator.XP_FORMAT_COMMA.format(xp);
 			tip += "<br/>Total Xp: " + BankedCalculator.XP_FORMAT_COMMA.format(xp * amount);
