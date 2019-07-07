@@ -42,6 +42,7 @@ import net.runelite.api.Experience;
 import net.runelite.api.Skill;
 import net.runelite.client.game.AsyncBufferedImage;
 import net.runelite.client.game.ItemManager;
+import net.runelite.client.plugins.skillcalculator.SkillCalculatorConfig;
 import net.runelite.client.plugins.skillcalculator.UICalculatorInputArea;
 import net.runelite.client.plugins.skillcalculator.banked.beans.Activity;
 import net.runelite.client.plugins.skillcalculator.banked.beans.BankedItem;
@@ -57,6 +58,8 @@ public class BankedCalculator extends JPanel
 	public static final DecimalFormat XP_FORMAT_COMMA = new DecimalFormat("#,###.#");
 
 	private final Client client;
+	@Getter
+	private final SkillCalculatorConfig config;
 	private final UICalculatorInputArea uiInput;
 	private final ItemManager itemManager;
 
@@ -81,10 +84,11 @@ public class BankedCalculator extends JPanel
 	// TODO: Add support for xp modifiers (prayer altars, outfit, etc)
 	private float xpFactor = 1.0f;
 
-	BankedCalculator(UICalculatorInputArea uiInput, Client client, ItemManager itemManager)
+	BankedCalculator(UICalculatorInputArea uiInput, Client client, SkillCalculatorConfig config, ItemManager itemManager)
 	{
 		this.uiInput = uiInput;
 		this.client = client;
+		this.config = config;
 		this.itemManager = itemManager;
 
 		setLayout(new DynamicGridLayout(0, 1, 0, 5));
@@ -184,7 +188,7 @@ public class BankedCalculator extends JPanel
 	 */
 	private void recreateItemGrid()
 	{
-		// TODO: Filter items to display based on quantity.
+		// Selection grid will only display values with > 0 items
 		itemGrid = new SelectionGrid(this, bankedItemMap.values(), itemManager);
 		itemGrid.setOnSelectEvent(() ->
 		{
@@ -220,8 +224,7 @@ public class BankedCalculator extends JPanel
 	{
 		int qty = item.getQty();
 
-		// TODO: Add config check
-		if (false)
+		if (!config.cascadeBankedXp())
 		{
 			return qty;
 		}
@@ -274,9 +277,8 @@ public class BankedCalculator extends JPanel
 
 		item.setSelectedActivity(a);
 
-		// TODO: Add config check
 		// Cascade activity changes if necessary.
-		if (true && (old.getLinkedItem() != a.getLinkedItem()))
+		if (!config.cascadeBankedXp() && (old.getLinkedItem() != a.getLinkedItem()))
 		{
 			// Update Linked Map
 			linkedMap.remove(old.getLinkedItem(), i);

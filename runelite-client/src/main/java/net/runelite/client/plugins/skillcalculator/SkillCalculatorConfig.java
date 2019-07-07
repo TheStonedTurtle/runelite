@@ -41,4 +41,15 @@ public interface  SkillCalculatorConfig extends Config
 	{
 		return false;
 	}
+
+	@ConfigItem(
+		keyName = "cascadeBankedXp",
+		name = "Include output items",
+		description = "Includes output items in the item quantity calculations",
+		position = 1
+	)
+	default boolean cascadeBankedXp()
+	{
+		return true;
+	}
 }

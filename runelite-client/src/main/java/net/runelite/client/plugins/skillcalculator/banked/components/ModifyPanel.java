@@ -33,6 +33,7 @@ import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.event.ItemEvent;
 import java.text.DecimalFormat;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.swing.ImageIcon;
@@ -151,12 +152,20 @@ public class ModifyPanel extends JPanel
 		this.bankedItem = bankedItem;
 
 		this.xp = this.calc.getItemXpRate(bankedItem);
-		this.linkedMap = this.calc.createLinksMap(bankedItem);
-
-		this.amount = bankedItem.getQty();
-		for (int i : linkedMap.values())
+		if (this.calc.getConfig().cascadeBankedXp())
 		{
-			this.amount += i;
+			this.linkedMap = this.calc.createLinksMap(bankedItem);
+
+			this.amount = bankedItem.getQty();
+			for (int i : linkedMap.values())
+			{
+				this.amount += i;
+			}
+		}
+		else
+		{
+			this.linkedMap = new HashMap<>();
+			this.amount = this.calc.getItemQty(bankedItem);
 		}
 
 		updateImageTooltip();

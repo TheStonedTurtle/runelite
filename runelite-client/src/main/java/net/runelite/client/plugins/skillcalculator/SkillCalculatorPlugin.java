@@ -146,7 +146,7 @@ public class SkillCalculatorPlugin extends Plugin
 		{
 			final BufferedImage icon = ImageUtil.getResourceStreamFromClass(getClass(), "banked.png");
 
-			bankedUiPanel = new BankedCalculatorPanel(client, skillIconManager, itemManager);
+			bankedUiPanel = new BankedCalculatorPanel(client, skillCalculatorConfig, skillIconManager, itemManager);
 			bankedUiNavigationButton = NavigationButton.builder()
 				.tooltip("Banked XP")
 				.icon(icon)

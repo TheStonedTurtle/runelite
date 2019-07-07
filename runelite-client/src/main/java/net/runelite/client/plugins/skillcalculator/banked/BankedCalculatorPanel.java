@@ -38,6 +38,7 @@ import net.runelite.api.Client;
 import net.runelite.api.Skill;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.game.SkillIconManager;
+import net.runelite.client.plugins.skillcalculator.SkillCalculatorConfig;
 import net.runelite.client.plugins.skillcalculator.UICalculatorInputArea;
 import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.PluginPanel;
@@ -53,7 +54,7 @@ public class BankedCalculatorPanel extends PluginPanel
 
 	private final BankedCalculator calculator;
 
-	public BankedCalculatorPanel(Client client, SkillIconManager skillIconManager, ItemManager itemManager)
+	public BankedCalculatorPanel(Client client, SkillCalculatorConfig config, SkillIconManager skillIconManager, ItemManager itemManager)
 	{
 		super();
 
@@ -67,7 +68,7 @@ public class BankedCalculatorPanel extends PluginPanel
 		inputs.getUiFieldTargetXP().setEditable(false);
 		inputs.getUiFieldTargetLevel().setEditable(false);
 
-		calculator = new BankedCalculator(inputs, client, itemManager);
+		calculator = new BankedCalculator(inputs, client, config, itemManager);
 
 		// Create the Skill dropdown with icons
 		final JComboBox<ComboBoxIconEntry> dropdown = new JComboBox<>();
