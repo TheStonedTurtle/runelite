@@ -207,7 +207,7 @@ public class BankedCalculator extends JPanel
 		linkedMap.clear();
 
 		final Collection<CriticalItem> items = CriticalItem.getBySkill(currentSkill);
-		log.info("Critical Items for the {} Skill: {}", currentSkill.getName(), items);
+		log.debug("Critical Items for the {} Skill: {}", currentSkill.getName(), items);
 
 		for (final CriticalItem item : items)
 		{
@@ -232,8 +232,8 @@ public class BankedCalculator extends JPanel
 				linkedMap.put(a.getLinkedItem(), banked);
 			}
 		}
-		log.info("Banked Item Map: {}", bankedItemMap);
-		log.info("Linked Map: {}", linkedMap);
+		log.debug("Banked Item Map: {}", bankedItemMap);
+		log.debug("Linked Map: {}", linkedMap);
 	}
 
 	/**
@@ -284,7 +284,6 @@ public class BankedCalculator extends JPanel
 
 		final Map<CriticalItem, Integer> linked = createLinksMap(item);
 		final int linkedQty = linked.values().stream().mapToInt(Integer::intValue).sum();
-		log.info("{} : {}", item, linkedQty);
 
 		return qty + linkedQty;
 	}
