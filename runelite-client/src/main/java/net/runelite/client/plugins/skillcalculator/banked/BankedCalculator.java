@@ -28,6 +28,7 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.event.ItemEvent;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -155,18 +156,25 @@ public class BankedCalculator extends JPanel
 			uiOption.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 0));
 			uiOption.setBackground(ColorScheme.DARKER_GRAY_COLOR);
 
-			btn.addActionListener((event) ->
+			btn.addItemListener((event) ->
 			{
-				final JCheckBox box = (JCheckBox) event.getSource();
-				if (!box.isSelected())
+				switch (event.getStateChange())
 				{
-					xpFactor = 1.0f;
-					modifierUpdated();
-					return;
+					case ItemEvent.DESELECTED:
+						xpFactor = 1.0f;
+						break;
+					case ItemEvent.SELECTED:
+						xpFactor = modifier.getModifier();
+						// Deselects all but the current item
+						final JCheckBox box = (JCheckBox) event.getItem();
+						xpModifierButtons.forEach(b -> b.setSelected(b == box));
+						break;
+					default:
+						return;
+
 				}
-				// Deselects all but the current box
-				xpModifierButtons.forEach(b -> box.setSelected(b == box));
-				this.selectModifier(modifier);
+
+				modifierUpdated();
 			});
 			xpModifierButtons.add(btn);
 
@@ -439,12 +447,6 @@ public class BankedCalculator extends JPanel
 		}
 
 		return qtyMap;
-	}
-
-	private void selectModifier(final XpModifiers modifier)
-	{
-		xpFactor = modifier.getModifier();
-		modifierUpdated();
 	}
 
 	private void modifierUpdated()
