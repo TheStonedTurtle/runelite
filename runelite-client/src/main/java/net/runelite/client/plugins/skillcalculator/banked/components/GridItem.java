@@ -42,10 +42,22 @@ import net.runelite.client.plugins.skillcalculator.banked.beans.Activity;
 import net.runelite.client.plugins.skillcalculator.banked.beans.BankedItem;
 import net.runelite.client.ui.ColorScheme;
 
+@Getter
 public class GridItem extends JLabel
 {
 	private final static String IGNORE = "Ignore Item";
 	private final static String INCLUDE = "Include Item";
+
+	private static final Color UNSELECTED_BACKGROUND = ColorScheme.DARKER_GRAY_COLOR;
+	private static final Color UNSELECTED_HOVER_BACKGROUND = ColorScheme.DARKER_GRAY_HOVER_COLOR;
+
+	private static final Color SELECTED_BACKGROUND = new Color(0, 70, 0);
+	private static final Color SELECTED_HOVER_BACKGROUND =  new Color(0, 100, 0);
+
+	private static final Color IGNORED_BACKGROUND = new Color(90, 0, 0);
+	private static final Color IGNORED_HOVER_BACKGROUND = new Color(120, 0, 0);
+
+	private static final JMenuItem IGNORE_OPTION = new JMenuItem(IGNORE);
 
 	/* To be executed when this element is clicked */
 	@Setter
@@ -55,39 +67,13 @@ public class GridItem extends JLabel
 	@Setter
 	private BooleanSupplier onIgnoreEvent;
 
-	@Getter
-	private boolean selected = false;
-
-	@Getter
-	private boolean ignored = false;
-
-	@Setter
-	private Color unselectedBackground = ColorScheme.DARKER_GRAY_COLOR;
-
-	@Setter
-	private Color unselectedHoverBackground = ColorScheme.DARKER_GRAY_HOVER_COLOR;
-
-	@Setter
-	private Color selectedBackground = new Color(0, 70, 0);
-
-	@Setter
-	private Color selectedHoverBackground =  new Color(0, 100, 0);
-
-	@Setter
-	private Color ignoredBackground = new Color(90, 0, 0);
-
-	@Setter
-	private Color ignoredHoverBackground = new Color(120, 0, 0);
-
-	@Getter
 	private final BankedItem bankedItem;
-
-	@Getter
 	private int amount;
 
-	private final JMenuItem ignoreOption = new JMenuItem(IGNORE);
+	private boolean selected = false;
+	private boolean ignored = false;
 
-	public GridItem(final BankedItem item, final AsyncBufferedImage icon, final int amount)
+	GridItem(final BankedItem item, final AsyncBufferedImage icon, final int amount)
 	{
 		super("");
 
@@ -129,7 +115,7 @@ public class GridItem extends JLabel
 			}
 		});
 
-		ignoreOption.addActionListener(e ->
+		IGNORE_OPTION.addActionListener(e ->
 		{
 			// Update ignored flag now so event knows new state
 			this.ignored = !this.ignored;
@@ -141,54 +127,53 @@ public class GridItem extends JLabel
 				return;
 			}
 
-			this.ignoreOption.setText(this.ignored ? INCLUDE : IGNORE);
+			IGNORE_OPTION.setText(this.ignored ? INCLUDE : IGNORE);
 			this.setBackground(getBackgroundColor());
 		});
 
 		final JPopupMenu popupMenu = new JPopupMenu();
 		popupMenu.setBorder(new EmptyBorder(5, 5, 5, 5));
-		popupMenu.add(ignoreOption);
+		popupMenu.add(IGNORE_OPTION);
 
 		this.setComponentPopupMenu(popupMenu);
 	}
 
 	private Color getBackgroundColor()
 	{
-		return ignored ? ignoredBackground : (selected ? selectedBackground : unselectedBackground);
+		return ignored ? IGNORED_BACKGROUND : (selected ? SELECTED_BACKGROUND : UNSELECTED_BACKGROUND);
 	}
 
 	private Color getHoverBackgroundColor()
 	{
-		return ignored ? ignoredHoverBackground : (selected ? selectedHoverBackground : unselectedHoverBackground);
+		return ignored ? IGNORED_HOVER_BACKGROUND : (selected ? SELECTED_HOVER_BACKGROUND : UNSELECTED_HOVER_BACKGROUND);
 	}
 
-	public boolean select()
+	public void select()
 	{
 		if (onSelectEvent != null && !onSelectEvent.getAsBoolean())
 		{
-			return false;
+			return;
 		}
 
 		selected = true;
 		setBackground(getBackgroundColor());
-		return true;
 	}
 
-	public void unselect()
+	void unselect()
 	{
 		selected = false;
 		setBackground(getBackgroundColor());
-	}
-
-	public void updateToolTip()
-	{
-		this.setToolTipText(buildToolTip());
 	}
 
 	public void updateIcon(final AsyncBufferedImage icon, final int amount)
 	{
 		icon.addTo(this);
 		this.amount = amount;
+	}
+
+	public void updateToolTip()
+	{
+		this.setToolTipText(buildToolTip());
 	}
 
 	private String buildToolTip()
@@ -198,9 +183,10 @@ public class GridItem extends JLabel
 		final Activity a = bankedItem.getItem().getSelectedActivity();
 		if (a != null)
 		{
+			final double xp = a.getXp();
 			tip += "<br/>Activity: " +  a.getName();
-			tip += "<br/>Xp/Action: " + BankedCalculator.XP_FORMAT_COMMA.format(a.getXp());
-			tip += "<br/>Total Xp: " + BankedCalculator.XP_FORMAT_COMMA.format(a.getXp() * amount);
+			tip += "<br/>Xp/Action: " + BankedCalculator.XP_FORMAT_COMMA.format(xp);
+			tip += "<br/>Total Xp: " + BankedCalculator.XP_FORMAT_COMMA.format(xp * amount);
 		}
 		else
 		{
