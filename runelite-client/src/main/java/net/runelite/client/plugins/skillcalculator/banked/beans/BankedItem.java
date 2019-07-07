@@ -24,19 +24,15 @@
  */
 package net.runelite.client.plugins.skillcalculator.banked.beans;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+@AllArgsConstructor
 @Getter
 public class BankedItem
 {
 	private final CriticalItem item;
 	private final int qty;
-
-	public BankedItem(final CriticalItem item, final int qty)
-	{
-		this.item = item;
-		this.qty = qty;
-	}
 
 	public double getXpRate()
 	{

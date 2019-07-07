@@ -286,7 +286,7 @@ public enum CriticalItem
 	private boolean ignoreBonus;
 
 	@Setter
-	// Store the item composition since we don't operate on the game thread
+	// Stores the item composition info we use since we don't operate on the game thread
 	private ItemInfo itemInfo = null;
 
 	@Setter
