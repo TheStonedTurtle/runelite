@@ -252,7 +252,7 @@ public class ModifyPanel extends JPanel
 			final AsyncBufferedImage img = itemManager.getImage(a.getIcon());
 			final ImageIcon icon = new ImageIcon(img);
 			final double xp = a.getXp() * xpFactor;
-			final JPanel container = createShadowedLabel(icon, a.getName(), xp + "xp");
+			final JPanel container = createShadowedLabel(icon, a.getName(), FORMAT_COMMA.format(xp) + "xp");
 
 			img.onChanged(() ->
 			{
@@ -274,7 +274,7 @@ public class ModifyPanel extends JPanel
 				String name = option.getName();
 				if (xp > 0)
 				{
-					name += " (" + xp + "xp)";
+					name += " (" + FORMAT_COMMA.format(xp) + "xp)";
 				}
 
 				final AsyncBufferedImage img = itemManager.getImage(option.getIcon());
