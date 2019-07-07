@@ -98,6 +98,14 @@ public enum Secondaries
 	AIR_ORB(new GameItem(ItemID.AIR_ORB, 1)),
 
 	/**
+	 * Construction
+	 */
+	COINS_100(new GameItem(ItemID.COINS_995, 100)),
+	COINS_250(new GameItem(ItemID.COINS_995, 250)),
+	COINS_500(new GameItem(ItemID.COINS_995, 500)),
+	COINS_1500(new GameItem(ItemID.COINS_995, 1500)),
+
+	/**
 	 * Cooking
 	 */
 	JUG_OF_WATER(new GameItem(ItemID.JUG_OF_WATER, 1)),
