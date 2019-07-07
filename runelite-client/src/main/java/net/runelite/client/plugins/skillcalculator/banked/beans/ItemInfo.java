@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, TheStonedTurtle <https://github.com/TheStonedTurtle>
+ * Copyright (c) 2019, TheStonedTurtle <https://github.com/TheStonedTurtle>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -24,34 +24,13 @@
  */
 package net.runelite.client.plugins.skillcalculator.banked.beans;
 
-import lombok.Getter;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 
-@Getter
-public class BankedItem
+@Data
+@AllArgsConstructor
+public class ItemInfo
 {
-	private final CriticalItem item;
-	private final int qty;
-
-	public BankedItem(final CriticalItem item, final int qty)
-	{
-		this.item = item;
-		this.qty = qty;
-	}
-
-	public double getXpRate()
-	{
-		final Activity selectedActivity = item.getSelectedActivity();
-		if (selectedActivity == null)
-		{
-			return 0;
-		}
-
-		return selectedActivity.getXp();
-	}
-
-	@Override
-	public String toString()
-	{
-		return item.name() + " x " + qty;
-	}
+	private String name;
+	private boolean stackable;
 }

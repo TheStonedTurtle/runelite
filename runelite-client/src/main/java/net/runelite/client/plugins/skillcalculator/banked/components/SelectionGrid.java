@@ -69,7 +69,7 @@ public class SelectionGrid extends JPanel
 		for (final BankedItem item : items)
 		{
 			final int qty = calc.getItemQty(item);
-			final boolean stackable = item.getItem().getComposition().isStackable() || qty > 1;
+			final boolean stackable = item.getItem().getItemInfo().isStackable() || qty > 1;
 			final AsyncBufferedImage img = itemManager.getImage(item.getItem().getItemID(), qty, stackable);
 
 			final GridItem gridItem = new GridItem(item, img, qty);

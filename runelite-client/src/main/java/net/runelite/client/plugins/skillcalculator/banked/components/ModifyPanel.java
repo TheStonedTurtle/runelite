@@ -151,7 +151,7 @@ public class ModifyPanel extends JPanel
 		this.bankedItem = bankedItem;
 
 		this.xp = this.calc.getItemXpRate(bankedItem);
-		this.linkedMap = this.calc.createLinksMap(bankedItem.getItem());
+		this.linkedMap = this.calc.createLinksMap(bankedItem);
 
 		this.amount = bankedItem.getQty();
 		for (int i : linkedMap.values())
@@ -167,11 +167,11 @@ public class ModifyPanel extends JPanel
 	private void updateImageTooltip()
 	{
 		final StringBuilder b = new StringBuilder("<html>");
-		b.append(bankedItem.getQty()).append(" x ").append(bankedItem.getItem().getComposition().getName());
+		b.append(bankedItem.getQty()).append(" x ").append(bankedItem.getItem().getItemInfo().getName());
 
 		for (final Map.Entry<CriticalItem, Integer> e : this.linkedMap.entrySet())
 		{
-			b.append("<br/>").append(e.getValue()).append(" x ").append(e.getKey().getComposition().getName());
+			b.append("<br/>").append(e.getValue()).append(" x ").append(e.getKey().getItemInfo().getName());
 		}
 
 		b.append("</html>");
@@ -183,13 +183,13 @@ public class ModifyPanel extends JPanel
 		final CriticalItem item = bankedItem.getItem();
 
 		// Update image icon
-		final boolean stackable = item.getComposition().isStackable() || amount > 1;
+		final boolean stackable = item.getItemInfo().isStackable() || amount > 1;
 		final AsyncBufferedImage icon = itemManager.getImage(item.getItemID(), amount, stackable);
 		final Runnable resize = () -> image.setIcon(new ImageIcon(icon.getScaledInstance(ICON_SIZE.width, ICON_SIZE.height, Image.SCALE_SMOOTH)));
 		icon.onChanged(resize);
 		resize.run();
 
-		final String itemName = item.getComposition().getName();
+		final String itemName = item.getItemInfo().getName();
 		labelName.setText(itemName);
 
 		xp = bankedItem.getXpRate();
@@ -224,26 +224,10 @@ public class ModifyPanel extends JPanel
 		adjustContainer.add(label, c);
 		c.gridy++;
 
-		final Activity selected = bankedItem.getSelectedActivity();
-
 		final List<Activity> activities = Activity.getByCriticalItem(bankedItem.getItem(), calc.getSkillLevel());
 		if (activities == null || activities.size() == 0)
 		{
-			if (bankedItem.getForwardsLinkedItem() != null)
-			{
-				final CriticalItem linked = bankedItem.getForwardsLinkedItem();
-				final AsyncBufferedImage img = itemManager.getImage(linked.getItemID());
-				final ImageIcon icon = new ImageIcon(img);
-
-				final JPanel container = createShadowedLabel(icon, linked.getComposition().getName(), "0.0xp");
-				img.onChanged(() ->
-				{
-					icon.setImage(img);
-					container.repaint();
-				});
-
-				adjustContainer.add(container, c);
-			}
+			adjustContainer.add(new JLabel("Unknown"));
 		}
 		else if (activities.size() == 1)
 		{
@@ -288,6 +272,7 @@ public class ModifyPanel extends JPanel
 					dropdown.repaint();
 				});
 
+				final Activity selected = bankedItem.getItem().getSelectedActivity();
 				if (option.equals(selected))
 				{
 					dropdown.setSelectedItem(entry);

@@ -44,10 +44,10 @@ public enum CriticalItem
 	 * Construction Items
 	 */
 	// Logs
-	LOGS(ItemID.LOGS, Skill.CONSTRUCTION, "Logs", ItemID.PLANK),
-	OAK_LOGS(ItemID.OAK_LOGS, Skill.CONSTRUCTION, "Logs", ItemID.OAK_PLANK),
-	TEAK_LOGS(ItemID.TEAK_LOGS, Skill.CONSTRUCTION, "Logs", ItemID.TEAK_PLANK),
-	MAHOGANY_LOGS(ItemID.MAHOGANY_LOGS, Skill.CONSTRUCTION, "Logs", ItemID.MAHOGANY_PLANK),
+	LOGS(ItemID.LOGS, Skill.CONSTRUCTION, "Logs"),
+	OAK_LOGS(ItemID.OAK_LOGS, Skill.CONSTRUCTION, "Logs"),
+	TEAK_LOGS(ItemID.TEAK_LOGS, Skill.CONSTRUCTION, "Logs"),
+	MAHOGANY_LOGS(ItemID.MAHOGANY_LOGS, Skill.CONSTRUCTION, "Logs"),
 	// Planks
 	PLANK(ItemID.PLANK, Skill.CONSTRUCTION, "Planks"),
 	OAK_PLANK(ItemID.OAK_PLANK, Skill.CONSTRUCTION, "Planks"),
@@ -58,35 +58,35 @@ public enum CriticalItem
 	 * Herblore Items
 	 */
 	// Grimy Herbs
-	GRIMY_GUAM_LEAF(ItemID.GRIMY_GUAM_LEAF, Skill.HERBLORE, "Grimy Herbs", ItemID.GUAM_LEAF),
-	GRIMY_MARRENTILL(ItemID.GRIMY_MARRENTILL, Skill.HERBLORE, "Grimy Herbs", ItemID.MARRENTILL),
-	GRIMY_TARROMIN(ItemID.GRIMY_TARROMIN, Skill.HERBLORE, "Grimy Herbs", ItemID.TARROMIN),
-	GRIMY_HARRALANDER(ItemID.GRIMY_HARRALANDER, Skill.HERBLORE, "Grimy Herbs", ItemID.HARRALANDER),
-	GRIMY_RANARR_WEED(ItemID.GRIMY_RANARR_WEED, Skill.HERBLORE, "Grimy Herbs", ItemID.RANARR_WEED),
-	GRIMY_TOADFLAX(ItemID.GRIMY_TOADFLAX, Skill.HERBLORE, "Grimy Herbs", ItemID.TOADFLAX),
-	GRIMY_IRIT_LEAF(ItemID.GRIMY_IRIT_LEAF, Skill.HERBLORE, "Grimy Herbs", ItemID.IRIT_LEAF),
-	GRIMY_AVANTOE(ItemID.GRIMY_AVANTOE, Skill.HERBLORE, "Grimy Herbs", ItemID.AVANTOE),
-	GRIMY_KWUARM(ItemID.GRIMY_KWUARM, Skill.HERBLORE, "Grimy Herbs", ItemID.KWUARM),
-	GRIMY_SNAPDRAGON(ItemID.GRIMY_SNAPDRAGON, Skill.HERBLORE, "Grimy Herbs", ItemID.SNAPDRAGON),
-	GRIMY_CADANTINE(ItemID.GRIMY_CADANTINE, Skill.HERBLORE, "Grimy Herbs", ItemID.CADANTINE),
-	GRIMY_LANTADYME(ItemID.GRIMY_LANTADYME, Skill.HERBLORE, "Grimy Herbs", ItemID.LANTADYME),
-	GRIMY_DWARF_WEED(ItemID.GRIMY_DWARF_WEED, Skill.HERBLORE, "Grimy Herbs", ItemID.DWARF_WEED),
-	GRIMY_TORSTOL(ItemID.GRIMY_TORSTOL, Skill.HERBLORE, "Grimy Herbs", ItemID.TORSTOL),
+	GRIMY_GUAM_LEAF(ItemID.GRIMY_GUAM_LEAF, Skill.HERBLORE, "Grimy Herbs"),
+	GRIMY_MARRENTILL(ItemID.GRIMY_MARRENTILL, Skill.HERBLORE, "Grimy Herbs"),
+	GRIMY_TARROMIN(ItemID.GRIMY_TARROMIN, Skill.HERBLORE, "Grimy Herbs"),
+	GRIMY_HARRALANDER(ItemID.GRIMY_HARRALANDER, Skill.HERBLORE, "Grimy Herbs"),
+	GRIMY_RANARR_WEED(ItemID.GRIMY_RANARR_WEED, Skill.HERBLORE, "Grimy Herbs"),
+	GRIMY_TOADFLAX(ItemID.GRIMY_TOADFLAX, Skill.HERBLORE, "Grimy Herbs"),
+	GRIMY_IRIT_LEAF(ItemID.GRIMY_IRIT_LEAF, Skill.HERBLORE, "Grimy Herbs"),
+	GRIMY_AVANTOE(ItemID.GRIMY_AVANTOE, Skill.HERBLORE, "Grimy Herbs"),
+	GRIMY_KWUARM(ItemID.GRIMY_KWUARM, Skill.HERBLORE, "Grimy Herbs"),
+	GRIMY_SNAPDRAGON(ItemID.GRIMY_SNAPDRAGON, Skill.HERBLORE, "Grimy Herbs"),
+	GRIMY_CADANTINE(ItemID.GRIMY_CADANTINE, Skill.HERBLORE, "Grimy Herbs"),
+	GRIMY_LANTADYME(ItemID.GRIMY_LANTADYME, Skill.HERBLORE, "Grimy Herbs"),
+	GRIMY_DWARF_WEED(ItemID.GRIMY_DWARF_WEED, Skill.HERBLORE, "Grimy Herbs"),
+	GRIMY_TORSTOL(ItemID.GRIMY_TORSTOL, Skill.HERBLORE, "Grimy Herbs"),
 	// Clean Herbs
-	GUAM_LEAF(ItemID.GUAM_LEAF, Skill.HERBLORE, "Cleaned Herbs", ItemID.GUAM_POTION_UNF),
-	MARRENTILL(ItemID.MARRENTILL, Skill.HERBLORE, "Cleaned Herbs", ItemID.MARRENTILL_POTION_UNF),
-	TARROMIN(ItemID.TARROMIN, Skill.HERBLORE, "Cleaned Herbs", ItemID.TARROMIN_POTION_UNF),
-	HARRALANDER(ItemID.HARRALANDER, Skill.HERBLORE, "Cleaned Herbs", ItemID.HARRALANDER_POTION_UNF),
-	RANARR_WEED(ItemID.RANARR_WEED, Skill.HERBLORE, "Cleaned Herbs", ItemID.RANARR_POTION_UNF),
-	TOADFLAX(ItemID.TOADFLAX, Skill.HERBLORE, "Cleaned Herbs", ItemID.TOADFLAX_POTION_UNF),
-	IRIT_LEAF(ItemID.IRIT_LEAF, Skill.HERBLORE, "Cleaned Herbs", ItemID.IRIT_POTION_UNF),
-	AVANTOE(ItemID.AVANTOE, Skill.HERBLORE, "Cleaned Herbs", ItemID.AVANTOE_POTION_UNF),
-	KWUARM(ItemID.KWUARM, Skill.HERBLORE, "Cleaned Herbs", ItemID.KWUARM_POTION_UNF),
-	SNAPDRAGON(ItemID.SNAPDRAGON, Skill.HERBLORE, "Cleaned Herbs", ItemID.SNAPDRAGON_POTION_UNF),
-	CADANTINE(ItemID.CADANTINE, Skill.HERBLORE, "Cleaned Herbs", ItemID.CADANTINE_POTION_UNF),
-	LANTADYME(ItemID.LANTADYME, Skill.HERBLORE, "Cleaned Herbs", ItemID.LANTADYME_POTION_UNF),
-	DWARF_WEED(ItemID.DWARF_WEED, Skill.HERBLORE, "Cleaned Herbs", ItemID.DWARF_WEED_POTION_UNF),
-	TORSTOL(ItemID.TORSTOL, Skill.HERBLORE, "Cleaned Herbs", ItemID.TORSTOL_POTION_UNF),
+	GUAM_LEAF(ItemID.GUAM_LEAF, Skill.HERBLORE, "Cleaned Herbs"),
+	MARRENTILL(ItemID.MARRENTILL, Skill.HERBLORE, "Cleaned Herbs"),
+	TARROMIN(ItemID.TARROMIN, Skill.HERBLORE, "Cleaned Herbs"),
+	HARRALANDER(ItemID.HARRALANDER, Skill.HERBLORE, "Cleaned Herbs"),
+	RANARR_WEED(ItemID.RANARR_WEED, Skill.HERBLORE, "Cleaned Herbs"),
+	TOADFLAX(ItemID.TOADFLAX, Skill.HERBLORE, "Cleaned Herbs"),
+	IRIT_LEAF(ItemID.IRIT_LEAF, Skill.HERBLORE, "Cleaned Herbs"),
+	AVANTOE(ItemID.AVANTOE, Skill.HERBLORE, "Cleaned Herbs"),
+	KWUARM(ItemID.KWUARM, Skill.HERBLORE, "Cleaned Herbs"),
+	SNAPDRAGON(ItemID.SNAPDRAGON, Skill.HERBLORE, "Cleaned Herbs"),
+	CADANTINE(ItemID.CADANTINE, Skill.HERBLORE, "Cleaned Herbs"),
+	LANTADYME(ItemID.LANTADYME, Skill.HERBLORE, "Cleaned Herbs"),
+	DWARF_WEED(ItemID.DWARF_WEED, Skill.HERBLORE, "Cleaned Herbs"),
+	TORSTOL(ItemID.TORSTOL, Skill.HERBLORE, "Cleaned Herbs"),
 	// Unfinished Potions
 	GUAM_LEAF_POTION_UNF(ItemID.GUAM_POTION_UNF, Skill.HERBLORE, "Unfinished Potions"),
 	MARRENTILL_POTION_UNF(ItemID.MARRENTILL_POTION_UNF, Skill.HERBLORE, "Unfinished Potions"),
@@ -187,26 +187,26 @@ public enum CriticalItem
 	BATTLESTAFF(ItemID.BATTLESTAFF, Skill.CRAFTING, "Misc"),
 
 	// D'hide/Dragon Leather
-	GREEN_DRAGONHIDE(ItemID.GREEN_DRAGONHIDE, Skill.CRAFTING, "D'hide", ItemID.GREEN_DRAGON_LEATHER),
+	GREEN_DRAGONHIDE(ItemID.GREEN_DRAGONHIDE, Skill.CRAFTING, "D'hide"),
 	GREEN_DRAGON_LEATHER(ItemID.GREEN_DRAGON_LEATHER, Skill.CRAFTING, "D'hide"),
-	BLUE_DRAGONHIDE(ItemID.BLUE_DRAGONHIDE, Skill.CRAFTING, "D'hide", ItemID.BLUE_DRAGON_LEATHER),
+	BLUE_DRAGONHIDE(ItemID.BLUE_DRAGONHIDE, Skill.CRAFTING, "D'hide"),
 	BLUE_DRAGON_LEATHER(ItemID.BLUE_DRAGON_LEATHER, Skill.CRAFTING, "D'hide"),
-	RED_DRAGONHIDE(ItemID.RED_DRAGONHIDE, Skill.CRAFTING, "D'hide", ItemID.RED_DRAGON_LEATHER),
+	RED_DRAGONHIDE(ItemID.RED_DRAGONHIDE, Skill.CRAFTING, "D'hide"),
 	RED_DRAGON_LEATHER(ItemID.RED_DRAGON_LEATHER, Skill.CRAFTING, "D'hide"),
-	BLACK_DRAGONHIDE(ItemID.BLACK_DRAGONHIDE, Skill.CRAFTING, "D'hide", ItemID.BLACK_DRAGON_LEATHER),
+	BLACK_DRAGONHIDE(ItemID.BLACK_DRAGONHIDE, Skill.CRAFTING, "D'hide"),
 	BLACK_DRAGON_LEATHER(ItemID.BLACK_DRAGON_LEATHER, Skill.CRAFTING, "D'hide"),
 
 	// Uncut Gems
-	UNCUT_OPAL(ItemID.UNCUT_OPAL, Skill.CRAFTING, "Gems", ItemID.OPAL),
-	UNCUT_JADE(ItemID.UNCUT_JADE, Skill.CRAFTING, "Gems", ItemID.JADE),
-	UNCUT_RED_TOPAZ(ItemID.UNCUT_RED_TOPAZ, Skill.CRAFTING, "Gems", ItemID.RED_TOPAZ),
-	UNCUT_SAPPHIRE(ItemID.UNCUT_SAPPHIRE, Skill.CRAFTING, "Gems", ItemID.SAPPHIRE),
-	UNCUT_EMERALD(ItemID.UNCUT_EMERALD, Skill.CRAFTING, "Gems", ItemID.EMERALD),
-	UNCUT_RUBY(ItemID.UNCUT_RUBY, Skill.CRAFTING, "Gems", ItemID.RUBY),
-	UNCUT_DIAMOND(ItemID.UNCUT_DIAMOND, Skill.CRAFTING, "Gems", ItemID.DIAMOND),
-	UNCUT_DRAGONSTONE(ItemID.UNCUT_DRAGONSTONE, Skill.CRAFTING, "Gems", ItemID.DRAGONSTONE),
-	UNCUT_ONYX(ItemID.UNCUT_ONYX, Skill.CRAFTING, "Gems", ItemID.ONYX),
-	UNCUT_ZENYTE(ItemID.UNCUT_ZENYTE, Skill.CRAFTING, "Gems", ItemID.ZENYTE),
+	UNCUT_OPAL(ItemID.UNCUT_OPAL, Skill.CRAFTING, "Gems"),
+	UNCUT_JADE(ItemID.UNCUT_JADE, Skill.CRAFTING, "Gems"),
+	UNCUT_RED_TOPAZ(ItemID.UNCUT_RED_TOPAZ, Skill.CRAFTING, "Gems"),
+	UNCUT_SAPPHIRE(ItemID.UNCUT_SAPPHIRE, Skill.CRAFTING, "Gems"),
+	UNCUT_EMERALD(ItemID.UNCUT_EMERALD, Skill.CRAFTING, "Gems"),
+	UNCUT_RUBY(ItemID.UNCUT_RUBY, Skill.CRAFTING, "Gems"),
+	UNCUT_DIAMOND(ItemID.UNCUT_DIAMOND, Skill.CRAFTING, "Gems"),
+	UNCUT_DRAGONSTONE(ItemID.UNCUT_DRAGONSTONE, Skill.CRAFTING, "Gems"),
+	UNCUT_ONYX(ItemID.UNCUT_ONYX, Skill.CRAFTING, "Gems"),
+	UNCUT_ZENYTE(ItemID.UNCUT_ZENYTE, Skill.CRAFTING, "Gems"),
 
 	// Cut Gems
 	OPAL(ItemID.OPAL, Skill.CRAFTING, "Gems"),
@@ -262,41 +262,38 @@ public enum CriticalItem
 	SPIRIT_SEED(ItemID.SPIRIT_SEED, Skill.FARMING, "Seeds"),
 
 	// Saplings
-	OAK_SAPLING(ItemID.OAK_SAPLING, Skill.FARMING, "Saplings", ItemID.ACORN),
-	WILLOW_SAPLING(ItemID.WILLOW_SAPLING, Skill.FARMING, "Saplings", ItemID.WILLOW_SEED),
-	MAPLE_SAPLING(ItemID.MAPLE_SAPLING, Skill.FARMING, "Saplings", ItemID.MAPLE_SEED),
-	YEW_SAPLING(ItemID.YEW_SAPLING, Skill.FARMING, "Saplings", ItemID.YEW_SEED),
-	MAGIC_SAPLING(ItemID.MAGIC_SAPLING, Skill.FARMING, "Saplings", ItemID.MAGIC_SEED),
-	APPLE_TREE_SAPLING(ItemID.APPLE_SAPLING, Skill.FARMING, "Saplings", ItemID.APPLE_TREE_SEED),
-	BANANA_TREE_SAPLING(ItemID.BANANA_SAPLING, Skill.FARMING, "Saplings", ItemID.BANANA_TREE_SEED),
-	ORANGE_TREE_SAPLING(ItemID.ORANGE_SAPLING, Skill.FARMING, "Saplings", ItemID.ORANGE_TREE_SEED),
-	CURRY_TREE_SAPLING(ItemID.CURRY_SAPLING, Skill.FARMING, "Saplings", ItemID.CURRY_TREE_SEED),
-	PINEAPPLE_SAPLING(ItemID.PINEAPPLE_SAPLING, Skill.FARMING, "Saplings", ItemID.PINEAPPLE_SEED),
-	PAPAYA_TREE_SAPLING(ItemID.PAPAYA_SAPLING, Skill.FARMING, "Saplings", ItemID.PAPAYA_TREE_SEED),
-	PALM_TREE_SAPLING(ItemID.PALM_SAPLING, Skill.FARMING, "Saplings", ItemID.PALM_TREE_SEED),
-	CALQUAT_TREE_SAPLING(ItemID.CALQUAT_SAPLING, Skill.FARMING, "Saplings", ItemID.CALQUAT_TREE_SEED),
-	TEAK_SAPLING(ItemID.TEAK_SAPLING, Skill.FARMING, "Saplings", ItemID.TEAK_SEED),
-	MAHOGANY_SAPLING(ItemID.MAHOGANY_SAPLING, Skill.FARMING, "Saplings", ItemID.MAHOGANY_SEED),
-	SPIRIT_SAPLING(ItemID.SPIRIT_SAPLING, Skill.FARMING, "Saplings", ItemID.SPIRIT_SEED),
+	OAK_SAPLING(ItemID.OAK_SAPLING, Skill.FARMING, "Saplings"),
+	WILLOW_SAPLING(ItemID.WILLOW_SAPLING, Skill.FARMING, "Saplings"),
+	MAPLE_SAPLING(ItemID.MAPLE_SAPLING, Skill.FARMING, "Saplings"),
+	YEW_SAPLING(ItemID.YEW_SAPLING, Skill.FARMING, "Saplings"),
+	MAGIC_SAPLING(ItemID.MAGIC_SAPLING, Skill.FARMING, "Saplings"),
+	APPLE_TREE_SAPLING(ItemID.APPLE_SAPLING, Skill.FARMING, "Saplings"),
+	BANANA_TREE_SAPLING(ItemID.BANANA_SAPLING, Skill.FARMING, "Saplings"),
+	ORANGE_TREE_SAPLING(ItemID.ORANGE_SAPLING, Skill.FARMING, "Saplings"),
+	CURRY_TREE_SAPLING(ItemID.CURRY_SAPLING, Skill.FARMING, "Saplings"),
+	PINEAPPLE_SAPLING(ItemID.PINEAPPLE_SAPLING, Skill.FARMING, "Saplings"),
+	PAPAYA_TREE_SAPLING(ItemID.PAPAYA_SAPLING, Skill.FARMING, "Saplings"),
+	PALM_TREE_SAPLING(ItemID.PALM_SAPLING, Skill.FARMING, "Saplings"),
+	CALQUAT_TREE_SAPLING(ItemID.CALQUAT_SAPLING, Skill.FARMING, "Saplings"),
+	TEAK_SAPLING(ItemID.TEAK_SAPLING, Skill.FARMING, "Saplings"),
+	MAHOGANY_SAPLING(ItemID.MAHOGANY_SAPLING, Skill.FARMING, "Saplings"),
+	SPIRIT_SAPLING(ItemID.SPIRIT_SAPLING, Skill.FARMING, "Saplings"),
 	;
 
 	private final int itemID;
 	private final Skill skill;
 	private final String category;
 	private boolean ignoreBonus;
-	/**
-	 * Set if turns into another CriticalItem which can reward even more experience
-	 * I.E. for Herb you'd link Grimy -> Clean -> UNF potion, so the UNF count includes the previous
-	 */
-	private final int linkedItemId;
 
 	@Setter
 	// Store the item composition since we don't operate on the game thread
-	private ItemComposition composition = null;
+	private ItemInfo itemInfo = null;
+
+	@Setter
+	private Activity selectedActivity;
 
 	private static final Multimap<Skill, CriticalItem> SKILL_MAP = ArrayListMultimap.create();
 	private static final Map<Integer, CriticalItem> ITEM_ID_MAP = new HashMap<>();
-	private static final Map<Integer, CriticalItem> LINKED_MAP = new HashMap<>();
 	static
 	{
 		for (CriticalItem i : values())
@@ -304,36 +301,20 @@ public enum CriticalItem
 			Skill s = i.getSkill();
 			SKILL_MAP.put(s, i);
 			ITEM_ID_MAP.put(i.getItemID(), i);
-			int linked = i.getLinkedItemId();
-			if (linked != -1)
-			{
-				LINKED_MAP.put(linked, i);
-			}
 		}
-	}
-
-	CriticalItem(int itemID, Skill skill, String category, int linkedItem, boolean ignoreBonus)
-	{
-		this.itemID = itemID;
-		this.category = category;
-		this.skill = skill;
-		this.linkedItemId = linkedItem;
-		this.ignoreBonus = ignoreBonus;
-	}
-
-	CriticalItem(int itemID, Skill skill, String category, int linkedItemId)
-	{
-		this(itemID, skill, category, linkedItemId, false);
-	}
-
-	CriticalItem(int itemID, Skill skill, String category)
-	{
-		this(itemID, skill, category, -1, false);
 	}
 
 	CriticalItem(int itemID, Skill skill, String category, boolean ignoreBonus)
 	{
-		this(itemID, skill, category, -1, ignoreBonus);
+		this.itemID = itemID;
+		this.category = category;
+		this.skill = skill;
+		this.ignoreBonus = ignoreBonus;
+	}
+
+	CriticalItem(int itemID, Skill skill, String category)
+	{
+		this(itemID, skill, category, false);
 	}
 
 	public static Collection<CriticalItem> getBySkill(Skill skill)
@@ -351,17 +332,7 @@ public enum CriticalItem
 	{
 		return ITEM_ID_MAP.get(id);
 	}
-
-	/**
-	 * Returns the CriticalItem that can turn into this one
-	 * @param item CriticalItem to check links for
-	 * @return
-	 */
-	public static CriticalItem getLinkedItem(CriticalItem item)
-	{
-		return LINKED_MAP.get(item.getItemID());
-	}
-
+	
 	/**
 	 * Attaches the Item Composition to each CriticalItem on client initial load
 	 * @param m ItemManager
@@ -370,12 +341,13 @@ public enum CriticalItem
 	{
 		for (CriticalItem i : values())
 		{
-			if (i.composition != null)
+			if (i.itemInfo != null)
 			{
 				return;
 			}
 
-			i.composition = m.getItemComposition(i.getItemID());
+			final ItemComposition c = m.getItemComposition(i.getItemID());
+			i.itemInfo = new ItemInfo(c.getName(), c.isStackable());
 		}
 	}
 }

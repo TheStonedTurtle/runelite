@@ -24,6 +24,8 @@
  */
 package net.runelite.client.plugins.skillcalculator.banked;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import java.text.DecimalFormat;
 import java.util.Collection;
 import java.util.HashMap;
@@ -57,6 +59,10 @@ public class BankedCalculator extends JPanel
 	private final Client client;
 	private final UICalculatorInputArea uiInput;
 	private final ItemManager itemManager;
+
+	// Some activities output a CriticalItem and may need to be included in the calculable qty
+	// Using multimap for cases where there are multiple items linked directly to one item, use recursion for otherwise
+	private final Multimap<CriticalItem, BankedItem> linkedMap = ArrayListMultimap.create();
 
 	private final Map<CriticalItem, BankedItem> bankedItemMap = new LinkedHashMap<>();
 	private final JLabel totalXpLabel = new JLabel();
@@ -118,7 +124,7 @@ public class BankedCalculator extends JPanel
 		uiInput.setTargetLevelInput(endLevel);
 		uiInput.setTargetXPInput(endExp);
 
-		updateBankedItemMap();
+		recreateBankedItemMap();
 
 		recreateItemGrid();
 
@@ -138,28 +144,39 @@ public class BankedCalculator extends JPanel
 		repaint();
 	}
 
-	private void updateBankedItemMap()
+	private void recreateBankedItemMap()
 	{
 		bankedItemMap.clear();
+		linkedMap.clear();
 
 		final Collection<CriticalItem> items = CriticalItem.getBySkill(currentSkill);
-		log.debug("Critical Items for the {} Skill: {}", currentSkill.getName(), items);
+		log.info("Critical Items for the {} Skill: {}", currentSkill.getName(), items);
 
-		for (CriticalItem item : items)
+		for (final CriticalItem item : items)
 		{
 			final BankedItem banked = new BankedItem(item, bankMap.getOrDefault(item.getItemID(), 0));
+			bankedItemMap.put(item, banked);
 
-			final List<Activity> activities = Activity.getByCriticalItem(item);
-			if (activities.size() > 0)
+			Activity a = item.getSelectedActivity();
+			if (a == null)
 			{
-				// Default to the first activity
-				banked.setSelectedActivity(activities.get(0));
+				final List<Activity> activities = Activity.getByCriticalItem(item);
+				if (activities.size() == 0)
+				{
+					continue;
+				}
+
+				item.setSelectedActivity(activities.get(0));
+				a = activities.get(0);
 			}
 
-			bankedItemMap.put(item, banked);
+			if (a.getLinkedItem() != null)
+			{
+				linkedMap.put(a.getLinkedItem(), banked);
+			}
 		}
-
-		log.debug("Banked Item Map: {}", bankedItemMap);
+		log.info("Banked Item Map: {}", bankedItemMap);
+		log.info("Linked Map: {}", linkedMap);
 	}
 
 	/**
@@ -167,7 +184,7 @@ public class BankedCalculator extends JPanel
 	 */
 	private void recreateItemGrid()
 	{
-		// Filter items to display based on quantity.
+		// TODO: Filter items to display based on quantity.
 		itemGrid = new SelectionGrid(this, bankedItemMap.values(), itemManager);
 		itemGrid.setOnSelectEvent(() ->
 		{
@@ -177,7 +194,8 @@ public class BankedCalculator extends JPanel
 
 		itemGrid.setOnIgnoreEvent(() ->
 		{
-			updateForwardLinkedItems(itemGrid.getLastIgnoredItem());
+			CriticalItem item = itemGrid.getLastIgnoredItem().getItem();
+			updateLinkedItems(item.getSelectedActivity());
 			calculateBankedXpTotal();
 			return true;
 		});
@@ -202,35 +220,17 @@ public class BankedCalculator extends JPanel
 	{
 		int qty = item.getQty();
 
-		CriticalItem i = item.getItem();
-		while ((i = CriticalItem.getLinkedItem(i)) != null)
+		// TODO: Add config check
+		if (false)
 		{
-			final BankedItem bi = bankedItemMap.get(i);
-			if (bi == null)
-			{
-				break;
-			}
-
-			final Activity a = bi.getSelectedActivity();
-			if (a != null && a.isPreventLinked())
-			{
-				break;
-			}
-
-			// Check if the item is ignored in the grid
-			if (itemGrid != null)
-			{
-				final GridItem grid = itemGrid.getPanelMap().get(bi);
-				if (grid != null && grid.isIgnored())
-				{
-					break;
-				}
-			}
-
-			qty += bi.getQty();
+			return qty;
 		}
 
-		return qty;
+		final Map<CriticalItem, Integer> linked = createLinksMap(item);
+		final int linkedQty = linked.values().stream().mapToInt(Integer::intValue).sum();
+		log.info("{} : {}", item, linkedQty);
+
+		return qty + linkedQty;
 	}
 
 	private void calculateBankedXpTotal()
@@ -265,18 +265,26 @@ public class BankedCalculator extends JPanel
 	 */
 	public void activitySelected(final BankedItem i, final Activity a)
 	{
-		final Activity old = i.getSelectedActivity();
+		final CriticalItem item = i.getItem();
+		final Activity old = item.getSelectedActivity();
 		if (a.equals(old))
 		{
 			return;
 		}
 
-		i.setSelectedActivity(a);
+		item.setSelectedActivity(a);
 
+		// TODO: Add config check
 		// Cascade activity changes if necessary.
-		if (i.getForwardsLinkedItem() != null && old.isPreventLinked() != a.isPreventLinked())
+		if (true && (old.getLinkedItem() != a.getLinkedItem()))
 		{
-			updateForwardLinkedItems(i);
+			// Update Linked Map
+			linkedMap.remove(old.getLinkedItem(), i);
+			linkedMap.put(a.getLinkedItem(), i);
+			// Update all items the old activity effects
+			updateLinkedItems(old);
+			// Update all the items the new activity effects
+			updateLinkedItems(a);
 		}
 
 		modifyPanel.setBankedItem(i);
@@ -288,14 +296,20 @@ public class BankedCalculator extends JPanel
 
 	/**
 	 * Updates the item quantities of all forward linked items
-	 * @param item
+	 * @param activity the starting {@link Activity} to start the cascade from
 	 */
-	private void updateForwardLinkedItems(final BankedItem item)
+	private void updateLinkedItems(final Activity activity)
 	{
-		CriticalItem i = item.getItem();
+		if (activity == null)
+		{
+			return;
+		}
+
 		boolean foundSelected = false;
 		boolean panelAmountChange = false;
-		while ((i = CriticalItem.getByItemId(i.getLinkedItemId())) != null)
+
+		CriticalItem i = activity.getLinkedItem();
+		while (i != null)
 		{
 			final BankedItem bi = bankedItemMap.get(i);
 			if (bi == null)
@@ -304,7 +318,7 @@ public class BankedCalculator extends JPanel
 			}
 
 			final int qty = getItemQty(bi);
-			final boolean stackable = bi.getItem().getComposition().isStackable() || qty > 1;
+			final boolean stackable = bi.getItem().getItemInfo().isStackable() || qty > 1;
 			final AsyncBufferedImage img = itemManager.getImage(bi.getItem().getItemID(), qty, stackable);
 
 			final GridItem gridItem = itemGrid.getPanelMap().get(bi);
@@ -315,11 +329,13 @@ public class BankedCalculator extends JPanel
 
 			foundSelected = foundSelected || itemGrid.getSelectedItem().equals(bi);
 
-			final Activity a = bi.getSelectedActivity();
-			if (a != null && a.isPreventLinked())
+			final Activity a = bi.getItem().getSelectedActivity();
+			if (a == null)
 			{
 				break;
 			}
+
+			i = a.getLinkedItem();
 		}
 
 		if (panelAmountChange)
@@ -339,51 +355,42 @@ public class BankedCalculator extends JPanel
 	 * @param item starting item
 	 * @return Map of CriticalItem to bank qty
 	 */
-	public Map<CriticalItem, Integer> createLinksMap(final CriticalItem item)
+	public Map<CriticalItem, Integer> createLinksMap(final BankedItem item)
 	{
-		final Map<CriticalItem, Integer> map = new HashMap<>();
-		if (item == null)
+		final Map<CriticalItem, Integer> qtyMap = new HashMap<>();
+
+		final Activity a = item.getItem().getSelectedActivity();
+		if (a == null)
 		{
-			return map;
+			return qtyMap;
 		}
 
-		final BankedItem banked = bankedItemMap.get(item);
-		if (banked == null)
+		final Collection<BankedItem> linkedBank = linkedMap.get(item.getItem());
+		if (linkedBank == null || linkedBank.size() == 0)
 		{
-			return map;
+			return qtyMap;
 		}
 
-		CriticalItem i = item;
-		while ((i = CriticalItem.getLinkedItem(i)) != null)
+		for (final BankedItem linked : linkedBank)
 		{
-			final BankedItem bi = bankedItemMap.get(i);
-			if (bi == null)
-			{
-				break;
-			}
-
-			final Activity a = bi.getSelectedActivity();
-			if (a != null && a.isPreventLinked())
-			{
-				break;
-			}
-
+			// Check if the item is ignored in the grid
 			if (itemGrid != null)
 			{
-				final GridItem grid = itemGrid.getPanelMap().get(bi);
+				final GridItem grid = itemGrid.getPanelMap().get(linked);
 				if (grid != null && grid.isIgnored())
 				{
-					break;
+					continue;
 				}
 			}
 
-			final int qty = bi.getQty();
+			final int qty = linked.getQty();
 			if (qty > 0)
 			{
-				map.put(i, qty);
+				qtyMap.put(linked.getItem(), qty);
 			}
+			qtyMap.putAll(createLinksMap(linked));
 		}
 
-		return map;
+		return qtyMap;
 	}
 }

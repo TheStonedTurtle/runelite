@@ -193,9 +193,9 @@ public class GridItem extends JLabel
 
 	private String buildToolTip()
 	{
-		String tip = "<html>" + bankedItem.getItem().getComposition().getName();
+		String tip = "<html>" + bankedItem.getItem().getItemInfo().getName();
 
-		final Activity a = bankedItem.getSelectedActivity();
+		final Activity a = bankedItem.getItem().getSelectedActivity();
 		if (a != null)
 		{
 			tip += "<br/>Activity: " +  a.getName();
@@ -204,7 +204,7 @@ public class GridItem extends JLabel
 		}
 		else
 		{
-			tip += "<br/>Outputs: " + bankedItem.getForwardsLinkedItem().getComposition().getName();
+			tip += "<br/>Outputs: " + bankedItem.getItem().getItemInfo().getName();
 		}
 
 		return tip + "</html>";

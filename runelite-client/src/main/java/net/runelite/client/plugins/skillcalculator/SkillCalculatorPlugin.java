@@ -47,6 +47,7 @@ import net.runelite.client.game.SpriteManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.plugins.skillcalculator.banked.BankedCalculatorPanel;
+import net.runelite.client.plugins.skillcalculator.banked.beans.Activity;
 import net.runelite.client.plugins.skillcalculator.banked.beans.CriticalItem;
 import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
@@ -167,6 +168,7 @@ public class SkillCalculatorPlugin extends Plugin
 					case CONNECTION_LOST:
 					case HOPPING:
 						CriticalItem.prepareItemCompositions(itemManager);
+						Activity.prepareItemCompositions(itemManager);
 						return true;
 					default:
 						return false;

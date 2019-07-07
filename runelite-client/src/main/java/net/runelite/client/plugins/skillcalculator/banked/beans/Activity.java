@@ -31,8 +31,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import lombok.Getter;
+import net.runelite.api.ItemComposition;
 import net.runelite.api.ItemID;
 import net.runelite.api.Skill;
+import net.runelite.client.game.ItemManager;
 
 @Getter
 public enum Activity
@@ -306,39 +308,39 @@ public enum Activity
 	/*
 	 * Cooking Items
 	 */
-	RAW_HERRING(ItemID.RAW_HERRING, "Raw herring", Skill.COOKING, 5, 50.0,
+	COOK_HERRING(ItemID.HERRING, "Herring", Skill.COOKING, 5, 50.0,
 		CriticalItem.RAW_HERRING, null, new ItemStack(ItemID.HERRING, 1)),
-	RAW_MACKEREL(ItemID.RAW_MACKEREL, "Raw mackerel", Skill.COOKING, 10, 60.0,
+	COOK_MACKEREL(ItemID.MACKEREL, "Mackerel", Skill.COOKING, 10, 60.0,
 		CriticalItem.RAW_MACKEREL, null, new ItemStack(ItemID.MACKEREL, 1)),
-	RAW_TROUT(ItemID.RAW_TROUT, "Raw trout", Skill.COOKING, 15, 70.0,
+	COOK_TROUT(ItemID.TROUT, "Trout", Skill.COOKING, 15, 70.0,
 		CriticalItem.RAW_TROUT, null, new ItemStack(ItemID.TROUT, 1)),
-	RAW_COD(ItemID.RAW_COD, "Raw cod", Skill.COOKING, 18, 75.0,
+	COOK_COD(ItemID.COD, "Cod", Skill.COOKING, 18, 75.0,
 		CriticalItem.RAW_COD, null, new ItemStack(ItemID.COD, 1)),
-	RAW_PIKE(ItemID.RAW_PIKE, "Raw pike", Skill.COOKING, 20, 80.0,
+	COOK_PIKE(ItemID.PIKE, "Pike", Skill.COOKING, 20, 80.0,
 		CriticalItem.RAW_PIKE, null, new ItemStack(ItemID.PIKE, 1)),
-	RAW_SALMON(ItemID.RAW_SALMON, "Raw salmon", Skill.COOKING, 25, 90.0,
+	COOK_SALMON(ItemID.SALMON, "Salmon", Skill.COOKING, 25, 90.0,
 		CriticalItem.RAW_SALMON, null, new ItemStack(ItemID.SALMON, 1)),
-	RAW_TUNA(ItemID.RAW_TUNA, "Raw tuna", Skill.COOKING, 30, 100.0,
+	COOK_TUNA(ItemID.TUNA, "Tuna", Skill.COOKING, 30, 100.0,
 		CriticalItem.RAW_TUNA, null, new ItemStack(ItemID.TUNA, 1)),
-	RAW_KARAMBWAN(ItemID.RAW_KARAMBWAN, "Raw karambwan", Skill.COOKING, 30, 190.0,
+	COOK_KARAMBWAN(ItemID.COOKED_KARAMBWAN, "Cooked Karambwan", Skill.COOKING, 30, 190.0,
 		CriticalItem.RAW_KARAMBWAN, null, new ItemStack(ItemID.COOKED_KARAMBWAN, 1)),
-	RAW_LOBSTER(ItemID.RAW_LOBSTER, "Raw lobster", Skill.COOKING, 40, 120.0,
+	COOK_LOBSTER(ItemID.LOBSTER, "Lobster", Skill.COOKING, 40, 120.0,
 		CriticalItem.RAW_LOBSTER, null, new ItemStack(ItemID.LOBSTER, 1)),
-	RAW_BASS(ItemID.RAW_BASS, "Raw bass", Skill.COOKING, 43, 130.0,
+	COOK_BASS(ItemID.BASS, "Bass", Skill.COOKING, 43, 130.0,
 		CriticalItem.RAW_BASS, null, new ItemStack(ItemID.BASS, 1)),
-	RAW_SWORDFISH(ItemID.RAW_SWORDFISH, "Raw swordfish", Skill.COOKING, 45, 140.0,
+	COOK_SWORDFISH(ItemID.SWORDFISH, "Swordfish", Skill.COOKING, 45, 140.0,
 		CriticalItem.RAW_SWORDFISH, null, new ItemStack(ItemID.SWORDFISH, 1)),
-	RAW_MONKFISH(ItemID.RAW_MONKFISH, "Raw monkfish", Skill.COOKING, 62, 150.0,
+	COOK_MONKFISH(ItemID.MONKFISH, "Monkfish", Skill.COOKING, 62, 150.0,
 		CriticalItem.RAW_MONKFISH, null, new ItemStack(ItemID.MONKFISH, 1)),
-	RAW_SHARK(ItemID.RAW_SHARK, "Raw shark", Skill.COOKING, 80, 210.0,
-		CriticalItem.RAW_SHARK, null, new ItemStack(ItemID.RAW_SHARK, 1)),
-	RAW_SEA_TURTLE(ItemID.RAW_SEA_TURTLE, "Raw sea turtle", Skill.COOKING, 82, 211.3,
+	COOK_SHARK(ItemID.SHARK, "Shark", Skill.COOKING, 80, 210.0,
+		CriticalItem.RAW_SHARK, null, new ItemStack(ItemID.SHARK, 1)),
+	COOK_SEA_TURTLE(ItemID.SEA_TURTLE, "Sea turtle", Skill.COOKING, 82, 211.3,
 		CriticalItem.RAW_SEA_TURTLE, null, new ItemStack(ItemID.SEA_TURTLE, 1)),
-	RAW_ANGLERFISH(ItemID.RAW_ANGLERFISH, "Raw anglerfish", Skill.COOKING, 84, 230.0,
+	COOK_ANGLERFISH(ItemID.ANGLERFISH, "Anglerfish", Skill.COOKING, 84, 230.0,
 		CriticalItem.RAW_ANGLERFISH, null, new ItemStack(ItemID.ANGLERFISH, 1)),
-	RAW_DARK_CRAB(ItemID.RAW_DARK_CRAB, "Raw dark crab", Skill.COOKING, 90, 215.0,
+	COOK_DARK_CRAB(ItemID.DARK_CRAB, "Dark crab", Skill.COOKING, 90, 215.0,
 		CriticalItem.RAW_DARK_CRAB, null, new ItemStack(ItemID.DARK_CRAB, 1)),
-	RAW_MANTA_RAY(ItemID.RAW_MANTA_RAY, "Raw manta ray", Skill.COOKING, 91, 216.2,
+	COOK_MANTA_RAY(ItemID.MANTA_RAY, "Manta ray", Skill.COOKING, 91, 216.2,
 		CriticalItem.RAW_MANTA_RAY, null, new ItemStack(ItemID.MANTA_RAY, 1)),
 
 	WINE(ItemID.JUG_OF_WINE, "Jug of wine", Skill.COOKING, 35, 200,
@@ -369,35 +371,46 @@ public enum Activity
 		CriticalItem.MOLTEN_GLASS, null, new ItemStack(ItemID.LANTERN_LENS, 1)),
 	LIGHT_ORB(ItemID.LIGHT_ORB, "Light orb", Skill.CRAFTING, 87, 70,
 		CriticalItem.MOLTEN_GLASS, null, new ItemStack(ItemID.LIGHT_ORB, 1)),
+
 	// D'hide/Dragon Leather
-	GREEN_DRAGON_LEATHER(ItemID.GREEN_DRAGON_LEATHER, "Green D'hide", Skill.CRAFTING, 57, 62.0,
+	GREEN_DRAGONHIDE(ItemID.GREEN_DRAGON_LEATHER, "Tan Green D'hide", Skill.CRAFTING, 57, 0,
+		CriticalItem.GREEN_DRAGONHIDE, null, new ItemStack(ItemID.GREEN_DRAGON_LEATHER, 1)),
+	BLUE_DRAGONHIDE(ItemID.BLUE_DRAGON_LEATHER, "Tan Blue D'hide", Skill.CRAFTING, 66, 0,
+		CriticalItem.BLUE_DRAGONHIDE, null, new ItemStack(ItemID.BLUE_DRAGON_LEATHER, 1)),
+	RED_DRAGONHIDE(ItemID.RED_DRAGON_LEATHER, "Tan Red D'hide", Skill.CRAFTING, 73, 0,
+		CriticalItem.RED_DRAGONHIDE, null, new ItemStack(ItemID.RED_DRAGON_LEATHER, 1)),
+	BLACK_DRAGONHIDE(ItemID.BLACK_DRAGON_LEATHER, "Tan Black D'hide", Skill.CRAFTING, 79, 0,
+		CriticalItem.BLACK_DRAGONHIDE, null, new ItemStack(ItemID.BLACK_DRAGON_LEATHER, 1)),
+
+	GREEN_DRAGON_LEATHER(ItemID.GREEN_DHIDE_VAMB, "Green D'hide product", Skill.CRAFTING, 57, 62.0,
 		CriticalItem.GREEN_DRAGON_LEATHER, null, null),
-	BLUE_DRAGON_LEATHER(ItemID.BLUE_DRAGON_LEATHER, "Blue D'hide", Skill.CRAFTING, 66, 70.0,
+	BLUE_DRAGON_LEATHER(ItemID.BLUE_DHIDE_VAMB, "Blue D'hide product", Skill.CRAFTING, 66, 70.0,
 		CriticalItem.BLUE_DRAGON_LEATHER, null, null),
-	RED_DRAGON_LEATHER(ItemID.RED_DRAGON_LEATHER, "Red D'hide", Skill.CRAFTING, 73, 78.0,
+	RED_DRAGON_LEATHER(ItemID.RED_DHIDE_VAMB, "Red D'hide product", Skill.CRAFTING, 73, 78.0,
 		CriticalItem.RED_DRAGON_LEATHER, null, null),
-	BLACK_DRAGON_LEATHER(ItemID.BLACK_DRAGON_LEATHER, "Black D'hide", Skill.CRAFTING, 79, 86.0,
+	BLACK_DRAGON_LEATHER(ItemID.BLACK_DHIDE_VAMB, "Black D'hide product", Skill.CRAFTING, 79, 86.0,
 		CriticalItem.BLACK_DRAGON_LEATHER, null, null),
+
 	// Uncut Gems
-	UNCUT_OPAL(ItemID.UNCUT_OPAL, "Cut opal", Skill.CRAFTING, 1, 15.0,
+	UNCUT_OPAL(ItemID.OPAL, "Cut opal", Skill.CRAFTING, 1, 15.0,
 		CriticalItem.UNCUT_OPAL, null, new ItemStack(ItemID.OPAL, 1)),
-	UNCUT_JADE(ItemID.UNCUT_JADE, "Cut jade", Skill.CRAFTING, 13, 20.0,
+	UNCUT_JADE(ItemID.JADE, "Cut jade", Skill.CRAFTING, 13, 20.0,
 		CriticalItem.UNCUT_JADE, null, new ItemStack(ItemID.JADE, 1)),
-	UNCUT_RED_TOPAZ(ItemID.UNCUT_RED_TOPAZ, "Cut red topaz", Skill.CRAFTING, 16, 25.0,
+	UNCUT_RED_TOPAZ(ItemID.RED_TOPAZ, "Cut red topaz", Skill.CRAFTING, 16, 25.0,
 		CriticalItem.UNCUT_RED_TOPAZ, null, new ItemStack(ItemID.RED_TOPAZ, 1)),
-	UNCUT_SAPPHIRE(ItemID.UNCUT_SAPPHIRE, "Cut sapphire", Skill.CRAFTING, 20, 50.0,
+	UNCUT_SAPPHIRE(ItemID.SAPPHIRE, "Cut sapphire", Skill.CRAFTING, 20, 50.0,
 		CriticalItem.UNCUT_SAPPHIRE, null, new ItemStack(ItemID.SAPPHIRE, 1)),
-	UNCUT_EMERALD(ItemID.UNCUT_EMERALD, "Cut emerald", Skill.CRAFTING, 27, 67.5,
+	UNCUT_EMERALD(ItemID.EMERALD, "Cut emerald", Skill.CRAFTING, 27, 67.5,
 		CriticalItem.UNCUT_EMERALD, null, new ItemStack(ItemID.EMERALD, 1)),
-	UNCUT_RUBY(ItemID.UNCUT_RUBY, "Cut ruby", Skill.CRAFTING, 34, 85,
+	UNCUT_RUBY(ItemID.RUBY, "Cut ruby", Skill.CRAFTING, 34, 85,
 		CriticalItem.UNCUT_RUBY, null, new ItemStack(ItemID.RUBY, 1)),
-	UNCUT_DIAMOND(ItemID.UNCUT_DIAMOND, "Cut diamond", Skill.CRAFTING, 43, 107.5,
+	UNCUT_DIAMOND(ItemID.DIAMOND, "Cut diamond", Skill.CRAFTING, 43, 107.5,
 		CriticalItem.UNCUT_DIAMOND, null, new ItemStack(ItemID.DIAMOND, 1)),
-	UNCUT_DRAGONSTONE(ItemID.UNCUT_DRAGONSTONE, "Cut dragonstone", Skill.CRAFTING, 55, 137.5,
+	UNCUT_DRAGONSTONE(ItemID.DRAGONSTONE, "Cut dragonstone", Skill.CRAFTING, 55, 137.5,
 		CriticalItem.UNCUT_DRAGONSTONE, null, new ItemStack(ItemID.DRAGONSTONE, 1)),
-	UNCUT_ONYX(ItemID.UNCUT_ONYX, "Cut onyx", Skill.CRAFTING, 67, 167.5,
+	UNCUT_ONYX(ItemID.ONYX, "Cut onyx", Skill.CRAFTING, 67, 167.5,
 		CriticalItem.UNCUT_ONYX, null, new ItemStack(ItemID.ONYX, 1)),
-	UNCUT_ZENYTE(ItemID.UNCUT_ZENYTE, "Cut zenyte", Skill.CRAFTING, 89, 200.0,
+	UNCUT_ZENYTE(ItemID.ZENYTE, "Cut zenyte", Skill.CRAFTING, 89, 200.0,
 		CriticalItem.UNCUT_ZENYTE, null, new ItemStack(ItemID.ZENYTE, 1)),
 	// Silver Jewelery
 	OPAL_RING(ItemID.OPAL_RING, "Opal ring", Skill.CRAFTING, 1 , 10,
@@ -501,7 +514,7 @@ public enum Activity
 	STEEL_ORE(ItemID.STEEL_BAR, "Steel bar", Skill.SMITHING, 30, 17.5,
 		CriticalItem.IRON_ORE, Secondaries.COAL_ORE_2, new ItemStack(ItemID.STEEL_BAR, 1)),
 	SILVER_ORE(ItemID.SILVER_BAR, "Silver Bar", Skill.SMITHING, 20, 13.67,
-		CriticalItem.SILVER_ORE, null, new ItemStack(ItemID.SILVER_ORE, 1)),
+		CriticalItem.SILVER_ORE, null, new ItemStack(ItemID.SILVER_BAR, 1)),
 	GOLD_ORE(ItemID.GOLD_BAR, "Gold bar", Skill.SMITHING, 40, 22.5,
 		CriticalItem.GOLD_ORE, null, new ItemStack(ItemID.GOLD_BAR, 1)),
 	GOLD_ORE_GAUNTLETS(ItemID.GOLDSMITH_GAUNTLETS, "Goldsmith gauntlets", Skill.SMITHING, 40, 56.2,
@@ -532,38 +545,71 @@ public enum Activity
 	/**
 	 * Farming Items
 	 */
-	ACORN(ItemID.ACORN, "Acorn", Skill.FARMING, 15, 481.3,
-		CriticalItem.ACORN, null, null),
-	WILLOW_SEED(ItemID.WILLOW_SEED, "Willow seed", Skill.FARMING, 30, 1481.5,
-		CriticalItem.WILLOW_SEED, null, null),
-	MAPLE_SEED(ItemID.MAPLE_SEED, "Maple seed", Skill.FARMING, 45, 3448.4,
-		CriticalItem.MAPLE_SEED, null, null),
-	YEW_SEED(ItemID.YEW_SEED, "Yew seed", Skill.FARMING, 60, 7150.9,
-		CriticalItem.YEW_SEED, null, null),
-	MAGIC_SEED(ItemID.MAGIC_SEED, "Magic seed", Skill.FARMING, 75, 13913.8,
-		CriticalItem.MAGIC_SEED, null, null),
-	APPLE_TREE_SEED(ItemID.APPLE_TREE_SEED, "Apple tree seed", Skill.FARMING, 27, 1272.5,
-		CriticalItem.APPLE_TREE_SEED, null, null),
-	BANANA_TREE_SEED(ItemID.BANANA_TREE_SEED, "Banana tree seed", Skill.FARMING, 33, 1841.5,
-		CriticalItem.BANANA_TREE_SEED, null, null),
-	ORANGE_TREE_SEED(ItemID.ORANGE_TREE_SEED, "Orange tree seed", Skill.FARMING, 39, 2586.7,
-		CriticalItem.ORANGE_TREE_SEED, null, null),
-	CURRY_TREE_SEED(ItemID.CURRY_TREE_SEED, "Curry tree seed", Skill.FARMING, 42, 3036.9,
-		CriticalItem.CURRY_TREE_SEED, null, null),
-	PINEAPPLE_SEED(ItemID.PINEAPPLE_SEED, "Pineapple seed", Skill.FARMING, 51, 4791.7,
-		CriticalItem.PINEAPPLE_SEED, null, null),
-	PAPAYA_TREE_SEED(ItemID.PAPAYA_TREE_SEED, "Papaya tree seed", Skill.FARMING, 57, 6380.4,
-		CriticalItem.PAPAYA_TREE_SEED, null, null),
-	PALM_TREE_SEED(ItemID.PALM_TREE_SEED, "Palm tree seed", Skill.FARMING, 68, 10509.6,
-		CriticalItem.PALM_TREE_SEED, null, null),
-	CALQUAT_TREE_SEED(ItemID.CALQUAT_TREE_SEED, "Calquat tree seed", Skill.FARMING, 72, 12516.5,
-		CriticalItem.CALQUAT_TREE_SEED, null, null),
-	TEAK_SEED(ItemID.TEAK_SEED, "Teak seed", Skill.FARMING, 35, 7325,
-		CriticalItem.TEAK_SEED, null, null),
-	MAHOGANY_SEED(ItemID.MAHOGANY_SEED, "Mahogany seed", Skill.FARMING, 55, 15783,
-		CriticalItem.MAHOGANY_SEED, null, null),
-	SPIRIT_SEED(ItemID.SPIRIT_SEED, "Spirit seed", Skill.FARMING, 83, 19500,
-		CriticalItem.SPIRIT_SEED, null, null),
+	ACORN(ItemID.ACORN, "Oak sapling", Skill.FARMING, 15, 0,
+		CriticalItem.ACORN, null, new ItemStack(ItemID.OAK_SAPLING, 1)),
+	WILLOW_SEED(ItemID.WILLOW_SEED, "Willow sapling", Skill.FARMING, 30, 0,
+		CriticalItem.WILLOW_SEED, null, new ItemStack(ItemID.WILLOW_SAPLING, 1)),
+	MAPLE_SEED(ItemID.MAPLE_SEED, "Maple sapling", Skill.FARMING, 45, 0,
+		CriticalItem.MAPLE_SEED, null, new ItemStack(ItemID.MAPLE_SAPLING, 1)),
+	YEW_SEED(ItemID.YEW_SEED, "Yew sapling", Skill.FARMING, 60, 0,
+		CriticalItem.YEW_SEED, null, new ItemStack(ItemID.YEW_SAPLING, 1)),
+	MAGIC_SEED(ItemID.MAGIC_SEED, "Magic sapling", Skill.FARMING, 75, 0,
+		CriticalItem.MAGIC_SEED, null, new ItemStack(ItemID.MAGIC_SAPLING, 1)),
+	APPLE_TREE_SEED(ItemID.APPLE_TREE_SEED, "Apple sapling", Skill.FARMING, 27, 0,
+		CriticalItem.APPLE_TREE_SEED, null, new ItemStack(ItemID.APPLE_SAPLING, 1)),
+	BANANA_TREE_SEED(ItemID.BANANA_TREE_SEED, "Banana sapling", Skill.FARMING, 33, 0,
+		CriticalItem.BANANA_TREE_SEED, null, new ItemStack(ItemID.BANANA_SAPLING, 1)),
+	ORANGE_TREE_SEED(ItemID.ORANGE_TREE_SEED, "Orange sapling", Skill.FARMING, 39, 0,
+		CriticalItem.ORANGE_TREE_SEED, null, new ItemStack(ItemID.ORANGE_SAPLING, 1)),
+	CURRY_TREE_SEED(ItemID.CURRY_TREE_SEED, "Curry sapling", Skill.FARMING, 42, 0,
+		CriticalItem.CURRY_TREE_SEED, null, new ItemStack(ItemID.CURRY_SAPLING, 1)),
+	PINEAPPLE_SEED(ItemID.PINEAPPLE_SEED, "Pineapple sapling", Skill.FARMING, 51, 0,
+		CriticalItem.PINEAPPLE_SEED, null, new ItemStack(ItemID.PINEAPPLE_SAPLING, 1)),
+	PAPAYA_TREE_SEED(ItemID.PAPAYA_TREE_SEED, "Papaya sapling", Skill.FARMING, 57, 0,
+		CriticalItem.PAPAYA_TREE_SEED, null, new ItemStack(ItemID.PAPAYA_SAPLING, 1)),
+	PALM_TREE_SEED(ItemID.PALM_TREE_SEED, "Palm sapling", Skill.FARMING, 68, 0,
+		CriticalItem.PALM_TREE_SEED, null, new ItemStack(ItemID.PALM_SAPLING, 1)),
+	CALQUAT_TREE_SEED(ItemID.CALQUAT_TREE_SEED, "Calquat sapling", Skill.FARMING, 72, 0,
+		CriticalItem.CALQUAT_TREE_SEED, null, new ItemStack(ItemID.CALQUAT_SAPLING, 1)),
+	TEAK_SEED(ItemID.TEAK_SEED, "Teak sapling", Skill.FARMING, 35, 0,
+		CriticalItem.TEAK_SEED, null, new ItemStack(ItemID.TEAK_SAPLING, 1)),
+	MAHOGANY_SEED(ItemID.MAHOGANY_SEED, "Mahogany sapling", Skill.FARMING, 55, 0,
+		CriticalItem.MAHOGANY_SEED, null, new ItemStack(ItemID.MAHOGANY_SAPLING, 1)),
+	SPIRIT_SEED(ItemID.SPIRIT_SEED, "Spirit sapling", Skill.FARMING, 83, 0,
+		CriticalItem.SPIRIT_SEED, null, new ItemStack(ItemID.SPIRIT_SAPLING, 1)),
+
+	OAK_SAPPLING(ItemID.OAK_SAPLING, "Oak tree", Skill.FARMING, 15, 481.3,
+		CriticalItem.OAK_SAPLING, null, null),
+	WILLOW_SAPLING(ItemID.WILLOW_SAPLING, "Willow tree", Skill.FARMING, 30, 1481.5,
+		CriticalItem.WILLOW_SAPLING, null, null),
+	MAPLE_SAPLING(ItemID.MAPLE_SAPLING, "Maple tree", Skill.FARMING, 45, 3448.4,
+		CriticalItem.MAPLE_SAPLING, null, null),
+	YEW_SAPLING(ItemID.YEW_SAPLING, "Yew tree", Skill.FARMING, 60, 7150.9,
+		CriticalItem.YEW_SAPLING, null, null),
+	MAGIC_SAPLING(ItemID.MAGIC_SAPLING, "Magic tree", Skill.FARMING, 75, 13913.8,
+		CriticalItem.MAGIC_SAPLING, null, null),
+	APPLE_TREE_SAPLING(ItemID.APPLE_SAPLING, "Apple tree", Skill.FARMING, 27, 1272.5,
+		CriticalItem.APPLE_TREE_SAPLING, null, null),
+	BANANA_TREE_SAPLING(ItemID.BANANA_SAPLING, "Banana tree", Skill.FARMING, 33, 1841.5,
+		CriticalItem.BANANA_TREE_SAPLING, null, null),
+	ORANGE_TREE_SAPLING(ItemID.ORANGE_SAPLING, "Orange tree", Skill.FARMING, 39, 2586.7,
+		CriticalItem.ORANGE_TREE_SAPLING, null, null),
+	CURRY_TREE_SAPLING(ItemID.CURRY_SAPLING, "Curry tree", Skill.FARMING, 42, 3036.9,
+		CriticalItem.CURRY_TREE_SAPLING, null, null),
+	PINEAPPLE_SAPLING(ItemID.PINEAPPLE_SAPLING, "Pineapple tree", Skill.FARMING, 51, 4791.7,
+		CriticalItem.PINEAPPLE_SAPLING, null, null),
+	PAPAYA_TREE_SAPLING(ItemID.PAPAYA_SAPLING, "Papaya tree", Skill.FARMING, 57, 6380.4,
+		CriticalItem.PAPAYA_TREE_SAPLING, null, null),
+	PALM_TREE_SAPLING(ItemID.PALM_SAPLING, "Palm tree", Skill.FARMING, 68, 10509.6,
+		CriticalItem.PALM_TREE_SAPLING, null, null),
+	CALQUAT_TREE_SAPLING(ItemID.CALQUAT_SAPLING, "Calquat tree", Skill.FARMING, 72, 12516.5,
+		CriticalItem.CALQUAT_TREE_SAPLING, null, null),
+	TEAK_SAPLING(ItemID.TEAK_SAPLING, "Teak tree", Skill.FARMING, 35, 7325,
+		CriticalItem.TEAK_SAPLING, null, null),
+	MAHOGANY_SAPLING(ItemID.MAHOGANY_SAPLING, "Mahogany tree", Skill.FARMING, 55, 15783,
+		CriticalItem.MAHOGANY_SAPLING, null, null),
+	SPIRIT_SAPLING(ItemID.SPIRIT_SAPLING, "Spirit tree", Skill.FARMING, 83, 19500,
+		CriticalItem.SPIRIT_SAPLING, null, null),
 	;
 
 	private final int icon;
@@ -575,6 +621,7 @@ public enum Activity
 	private final ItemStack[] secondaries;
 	@Nullable
 	private final ItemStack output;
+	private ItemInfo outputItemInfo = null;
 	@Nullable
 	private final CriticalItem linkedItem;
 
@@ -643,5 +690,29 @@ public enum Activity
 		}
 
 		return l.stream().filter(a -> a.getLevel() <= limitLevel).collect(Collectors.toList());
+	}
+
+	/**
+	 * Attaches the Item Composition to each CriticalItem on client initial load
+	 * @param m ItemManager
+	 */
+	public static void prepareItemCompositions(ItemManager m)
+	{
+		for (Activity a : values())
+		{
+			final ItemStack output = a.getOutput();
+			if (output == null)
+			{
+				continue;
+			}
+
+			if (a.getOutputItemInfo() != null)
+			{
+				return;
+			}
+
+			final ItemComposition c = m.getItemComposition(output.getId());
+			a.outputItemInfo = new ItemInfo(c.getName(), c.isStackable());
+		}
 	}
 }
