@@ -169,7 +169,7 @@ public class MenuEntrySwapperPlugin extends Plugin
 	@Subscribe
 	public void onConfigChanged(ConfigChanged event)
 	{
-		if (!CONFIG_GROUP.equals(event.getGroup()))
+		if (!event.getGroup().equals("menuentryswapper"))
 		{
 			return;
 		}
