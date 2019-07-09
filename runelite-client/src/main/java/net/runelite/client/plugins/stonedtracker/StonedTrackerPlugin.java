@@ -25,8 +25,6 @@
  */
 package net.runelite.client.plugins.stonedtracker;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
 import com.google.inject.Provides;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
@@ -34,9 +32,9 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.TreeSet;
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.swing.SwingUtilities;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.ItemComposition;
@@ -60,7 +58,6 @@ import net.runelite.client.plugins.loottracker.localstorage.events.LTNameChange;
 import net.runelite.client.plugins.loottracker.localstorage.events.LTRecordStored;
 import net.runelite.client.plugins.stonedtracker.data.BossTab;
 import net.runelite.client.plugins.stonedtracker.data.UniqueItem;
-import net.runelite.client.plugins.stonedtracker.data.UniqueItemPrepared;
 import net.runelite.client.plugins.stonedtracker.ui.LootTrackerPanel;
 import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
@@ -98,8 +95,8 @@ public class StonedTrackerPlugin extends Plugin
 	private LootTrackerPanel panel;
 	private NavigationButton navButton;
 
-	private Multimap<String, LTRecord> lootRecordMultimap = ArrayListMultimap.create();
-	private Multimap<String, UniqueItemPrepared> uniques = ArrayListMultimap.create();
+	@Getter
+	private TreeSet<String> lootNames = new TreeSet<>();
 
 	private boolean loaded = false;
 	private boolean unsiredReclaiming = false;
@@ -111,22 +108,22 @@ public class StonedTrackerPlugin extends Plugin
 	}
 
 	@Subscribe
-	public void onLTRecordStored(LTRecordStored s)
+	public void onLTRecordStored(final LTRecordStored s)
 	{
 		final LTRecord record = s.getRecord();
-		lootRecordMultimap.put(record.getName(), record);
+		lootNames.add(record.getName());
 		SwingUtilities.invokeLater(() -> panel.addLog(record));
 	}
 
 	@Subscribe
-	public void onLTNameChange(LTNameChange c)
+	public void onLTNameChange(final LTNameChange c)
 	{
-		refreshData();
+		lootNames = new TreeSet<>(writer.getKnownFileNames());
 		SwingUtilities.invokeLater(() -> panel.updateNames());
 	}
 
 	@Subscribe
-	public void onConfigChanged(ConfigChanged event)
+	public void onConfigChanged(final ConfigChanged event)
 	{
 		if (event.getGroup().equals("stonedtracker"))
 		{
@@ -150,42 +147,24 @@ public class StonedTrackerPlugin extends Plugin
 
 		clientToolbar.addNavigation(navButton);
 
+		// Attach necessary info from item manager on load
 		if (!loaded)
 		{
+			loaded = true;
 			clientThread.invokeLater(() ->
 			{
 				switch (client.getGameState())
 				{
 					case UNKNOWN:
 					case STARTING:
+						loaded = false;
 						return false;
 				}
 
-				prepareUniqueItems();
-
+				UniqueItem.prepareUniqueItems(itemManager);
 				return true;
 			});
 		}
-	}
-
-	private void prepareUniqueItems()
-	{
-		loaded = true;
-		for (UniqueItem item : UniqueItem.values())
-		{
-			final ItemComposition c = itemManager.getItemComposition(item.getItemID());
-			for (BossTab b : item.getBosses())
-			{
-				UniqueItemPrepared p = new UniqueItemPrepared(c.getName(), itemManager.getItemPrice(item.getItemID()), c.getLinkedNoteId(), item);
-				uniques.put(b.getName().toUpperCase(), p);
-			}
-		}
-	}
-
-	@Nullable
-	public Collection<UniqueItemPrepared> getUniquesByName(String name)
-	{
-		return uniques.get(name.toUpperCase());
 	}
 
 	@Override
@@ -207,51 +186,6 @@ public class StonedTrackerPlugin extends Plugin
 		{
 			unsiredReclaiming = true;
 		}
-	}
-
-	public Collection<LTRecord> getData()
-	{
-		return lootRecordMultimap.values();
-	}
-
-	public Collection<LTRecord> getDataByName(String name)
-	{
-		final BossTab tab = BossTab.getByName(name);
-		if (tab != null)
-		{
-			name = tab.getName();
-		}
-
-		return lootRecordMultimap.get(name);
-	}
-
-	private void refreshData()
-	{
-		// Pull data from files
-		lootRecordMultimap.clear();
-		Collection<LTRecord> recs = writer.loadAllLootTrackerRecords();
-		for (LTRecord r : recs)
-		{
-			lootRecordMultimap.put(r.getName(), r);
-		}
-	}
-
-	public void refreshDataByName(String name)
-	{
-		lootRecordMultimap.removeAll(name);
-		Collection<LTRecord> recs = writer.loadLootTrackerRecords(name);
-		lootRecordMultimap.putAll(name, recs);
-	}
-
-	public void clearStoredDataByName(String name)
-	{
-		lootRecordMultimap.removeAll(name);
-		writer.deleteLootTrackerRecords(name);
-	}
-
-	public TreeSet<String> getNames()
-	{
-		return new TreeSet<>(lootRecordMultimap.keySet());
 	}
 
 	@Subscribe
@@ -311,4 +245,19 @@ public class StonedTrackerPlugin extends Plugin
 		});
 	}
 
+	public Collection<LTRecord> getDataByName(String name)
+	{
+		final BossTab tab = BossTab.getByName(name);
+		if (tab != null)
+		{
+			name = tab.getName();
+		}
+
+		return writer.loadLootTrackerRecords(name);
+	}
+
+	public boolean clearStoredDataByName(final String name)
+	{
+		return writer.deleteLootTrackerRecords(name);
+	}
 }

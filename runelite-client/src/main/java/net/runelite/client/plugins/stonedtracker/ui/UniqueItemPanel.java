@@ -31,7 +31,6 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.image.BufferedImage;
 import java.util.Collection;
-import java.util.Map;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -41,7 +40,7 @@ import javax.swing.border.EmptyBorder;
 import lombok.Getter;
 import net.runelite.client.game.AsyncBufferedImage;
 import net.runelite.client.game.ItemManager;
-import net.runelite.client.plugins.stonedtracker.data.UniqueItemPrepared;
+import net.runelite.client.plugins.stonedtracker.data.UniqueItem;
 import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.util.ImageUtil;
 import net.runelite.client.util.StackFormatter;
@@ -58,7 +57,7 @@ class UniqueItemPanel extends JPanel
 	private static final Border panelBorder = new EmptyBorder(3, 0, 3, 0);
 	private static final Color panelBackgroundColor = ColorScheme.DARK_GRAY_COLOR;
 
-	UniqueItemPanel(Collection<UniqueItemPrepared> items, Map<UniqueItemPrepared, Integer> uniqueMap, ItemManager itemManager)
+	UniqueItemPanel(final Collection<UniqueItem> items, final ItemManager itemManager)
 	{
 		this.itemManager = itemManager;
 
@@ -80,11 +79,11 @@ class UniqueItemPanel extends JPanel
 		c.ipady = 5;
 
 		// Add each Unique Item icon to the panel
-		for (UniqueItemPrepared l : items)
+		for (UniqueItem l : items)
 		{
-			final int quantity = uniqueMap.getOrDefault(l, 0);
+			final int quantity = l.getQty();
 			final float alpha = (quantity > 0 ? alphaHas : alphaMissing);
-			AsyncBufferedImage image = itemManager.getImage(l.getUniqueItem().getItemID(), quantity, quantity > 1);
+			AsyncBufferedImage image = itemManager.getImage(l.getItemID(), quantity, quantity > 1);
 			BufferedImage opaque = ImageUtil.alphaOffset(image, alpha);
 
 			// Attach Image to Label and append label to Panel
@@ -103,7 +102,7 @@ class UniqueItemPanel extends JPanel
 	}
 
 	// Used to refresh the item icon if the image was still loading when attempting to create it earlier
-	private void refreshImage(JLabel label, AsyncBufferedImage image, float finalAlpha)
+	private void refreshImage(final JLabel label, final AsyncBufferedImage image, final float finalAlpha)
 	{
 		BufferedImage opaque = ImageUtil.alphaOffset(image, finalAlpha);
 		ImageIcon o = new ImageIcon(opaque);
@@ -113,7 +112,7 @@ class UniqueItemPanel extends JPanel
 		label.repaint();
 	}
 
-	private static String buildToolTip(UniqueItemPrepared item, int qty)
+	private static String buildToolTip(final UniqueItem item, final int qty)
 	{
 		String s = "<html>" + item.getName();
 		if (qty > 0)

@@ -33,9 +33,11 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
@@ -49,7 +51,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.plugins.loottracker.localstorage.LTRecord;
 import net.runelite.client.plugins.stonedtracker.StonedTrackerPlugin;
-import net.runelite.client.plugins.stonedtracker.data.UniqueItemPrepared;
+import net.runelite.client.plugins.stonedtracker.data.UniqueItem;
 import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.PluginPanel;
 import net.runelite.client.ui.components.PluginErrorPanel;
@@ -121,7 +123,7 @@ public class LootTrackerPanel extends PluginPanel
 		errorPanel.setBorder(new EmptyBorder(10, 25, 10, 25));
 		errorPanel.setContent("Loot Tracker", "Please select the Activity, Player, or NPC you wish to view loot for");
 
-		SelectionPanel selection = new SelectionPanel(plugin.config.bossButtons(), plugin.getNames(), this, itemManager);
+		SelectionPanel selection = new SelectionPanel(plugin.config.bossButtons(), plugin.getLootNames(), this, itemManager);
 
 		this.add(errorPanel, BorderLayout.NORTH);
 		this.add(wrapContainer(selection), BorderLayout.CENTER);
@@ -136,17 +138,19 @@ public class LootTrackerPanel extends PluginPanel
 		this.removeAll();
 		currentView = name;
 
-		Collection<LTRecord> data = plugin.getDataByName(name);
+		final Collection<LTRecord> data = plugin.getDataByName(name);
 
 		// Grab all Uniques for this NPC/Activity
-		Collection<UniqueItemPrepared> uniques = plugin.getUniquesByName(name);
+		Collection<UniqueItem> uniques = UniqueItem.getUniquesForBoss(name);
 		if (uniques == null)
 		{
 			uniques = new ArrayList<>();
 		}
 
+		uniques = uniques.stream().sorted(Comparator.comparingInt(UniqueItem::getPosition)).collect(Collectors.toList());
+
 		JPanel title = createLootViewTitle(name);
-		lootPanel = new LootPanel(data, UniqueItemPrepared.createPositionMap(uniques), plugin.config.hideUniques(), plugin.config.itemSortType(), plugin.config.itemBreakdown(), itemManager);
+		lootPanel = new LootPanel(data, uniques, plugin.config.hideUniques(), plugin.config.itemSortType(), plugin.config.itemBreakdown(), itemManager);
 
 		this.add(title, BorderLayout.NORTH);
 		this.add(wrapContainer(lootPanel), BorderLayout.CENTER);
@@ -331,7 +335,6 @@ public class LootTrackerPanel extends PluginPanel
 
 	private void refreshLootView(String name)
 	{
-		plugin.refreshDataByName(name);
 		showLootView(name); // Recreate the entire panel
 	}
 

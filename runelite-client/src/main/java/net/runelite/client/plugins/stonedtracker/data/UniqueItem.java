@@ -24,9 +24,14 @@
  */
 package net.runelite.client.plugins.stonedtracker.data;
 
+import com.google.common.collect.ImmutableMultimap;
+import java.util.Collection;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import net.runelite.api.ItemComposition;
 import net.runelite.api.ItemID;
+import net.runelite.client.game.ItemManager;
 
 @RequiredArgsConstructor
 @Getter
@@ -817,12 +822,30 @@ public enum UniqueItem
 	BOWL_WIG(ItemID.BOWL_WIG, BossTab.CLUE_SCROLL_MASTER, 9),
 	BLOODHOUND(ItemID.BLOODHOUND, BossTab.CLUE_SCROLL_MASTER, 9);
 
-	// Shared Unique Items
-	UniqueItem(int id, BossTab... bosses)
+	private final int itemID;
+	private final BossTab[] bosses;
+	private final int position;
+	private String name;
+	private int price;
+	private int linkedID;
+
+	@Setter
+	// Used to store the qty being displayed on the sprite
+	private int qty;
+
+	private static final ImmutableMultimap<String, UniqueItem> BOSS_MAP;
+	static
 	{
-		this.itemID = id;
-		this.bosses = bosses;
-		this.position = -1;
+		final ImmutableMultimap.Builder<String, UniqueItem> map = ImmutableMultimap.builder();
+		for (UniqueItem item : values())
+		{
+			for (BossTab b : item.getBosses())
+			{
+				map.put(b.getName(), item);
+			}
+		}
+
+		BOSS_MAP = map.build();
 	}
 
 	// Non-Shared Unique Items
@@ -833,7 +856,32 @@ public enum UniqueItem
 		this.position = position;
 	}
 
-	private final int itemID;
-	private final BossTab[] bosses;
-	private final int position;
+	// Shared Unique Items
+	UniqueItem(int id, BossTab... bosses)
+	{
+		this.itemID = id;
+		this.bosses = bosses;
+		this.position = -1;
+	}
+
+	public static void prepareUniqueItems(final ItemManager itemManager)
+	{
+		for (UniqueItem item : values())
+		{
+			if (item.getPrice() != -1)
+			{
+				return;
+			}
+
+			final ItemComposition c = itemManager.getItemComposition(item.getItemID());
+			item.name = c.getName();
+			item.price = c.getPrice();
+			item.linkedID = c.getLinkedNoteId();
+		}
+	}
+
+	public static Collection<UniqueItem> getUniquesForBoss(final String bossName)
+	{
+		return BOSS_MAP.get(bossName);
+	}
 }

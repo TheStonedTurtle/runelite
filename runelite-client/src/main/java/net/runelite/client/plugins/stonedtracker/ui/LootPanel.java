@@ -24,12 +24,13 @@
  */
 package net.runelite.client.plugins.stonedtracker.ui;
 
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Iterators;
+import com.google.common.collect.Multimap;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -44,14 +45,14 @@ import net.runelite.client.game.ItemManager;
 import net.runelite.client.plugins.loottracker.localstorage.LTItemEntry;
 import net.runelite.client.plugins.loottracker.localstorage.LTRecord;
 import net.runelite.client.plugins.stonedtracker.ItemSortTypes;
-import net.runelite.client.plugins.stonedtracker.data.UniqueItemPrepared;
+import net.runelite.client.plugins.stonedtracker.data.UniqueItem;
 import net.runelite.client.ui.ColorScheme;
 
 @Slf4j
 class LootPanel extends JPanel
 {
 	private Collection<LTRecord> records;
-	private Map<Integer, Collection<UniqueItemPrepared>> uniqueMap;
+	private Collection<UniqueItem> uniques;
 	private boolean hideUniques;
 	private ItemSortTypes sortType;
 	private boolean itemBreakdown;
@@ -63,10 +64,16 @@ class LootPanel extends JPanel
 	private boolean playbackPlaying = false;
 	private boolean cancelPlayback = false;
 
-	LootPanel(Collection<LTRecord> records, Map<Integer, Collection<UniqueItemPrepared>> uniqueMap, boolean hideUnqiues, ItemSortTypes sort, boolean itemBreakdown, ItemManager itemManager)
+	LootPanel(
+		final Collection<LTRecord> records,
+		final Collection<UniqueItem> uniques,
+		final boolean hideUnqiues,
+		final ItemSortTypes sort,
+		final boolean itemBreakdown,
+		final ItemManager itemManager)
 	{
-		this.records = (records == null ? new ArrayList<>() : records);
-		this.uniqueMap = (uniqueMap == null ? new HashMap<>() : uniqueMap);
+		this.records = records;
+		this.uniques = uniques;
 		this.hideUniques = hideUnqiues;
 		this.sortType = sort;
 		this.itemBreakdown = itemBreakdown;
@@ -129,38 +136,35 @@ class LootPanel extends JPanel
 		c.gridy = 0;
 
 		// Create necessary helpers for the unique toggles
-		final Map<UniqueItemPrepared, Integer> uniqueQtys = new HashMap<>();
+		final Multimap<Integer, UniqueItem> positionMap = ArrayListMultimap.create();
 		final Set<Integer> uniqueIds = new HashSet<>();
 
 		// Loop over all UniqueItems and check how many the player has received as a drop for each
 		// Also add all Item IDs for uniques to a Set for easy hiding later on.
-		for (Collection<UniqueItemPrepared> items : this.uniqueMap.values())
+		UniqueItemPanel panel;
+		for (UniqueItem item : this.uniques)
 		{
-			for (UniqueItemPrepared item : items)
-			{
-				int id = item.getUniqueItem().getItemID();
-				int linkedId = item.getLinkedID();
-				uniqueIds.add(id);
-				uniqueIds.add(linkedId);
 
-				LTItemEntry entry = this.consolidated.get(id);
-				LTItemEntry notedEntry = this.consolidated.get(linkedId);
-				int qty = (entry == null ? 0 : entry.getQuantity()) + (notedEntry == null ? 0 : notedEntry.getQuantity());
-				if (qty > 0)
-				{
-					uniqueQtys.put(item, qty);
-				}
-			}
+			final int id = item.getItemID();
+			final int linkedId = item.getLinkedID();
+			uniqueIds.add(id);
+			uniqueIds.add(linkedId);
+
+			final LTItemEntry entry = this.consolidated.get(id);
+			final LTItemEntry notedEntry = this.consolidated.get(linkedId);
+			final int qty = (entry == null ? 0 : entry.getQuantity()) + (notedEntry == null ? 0 : notedEntry.getQuantity());
+			item.setQty(qty);
+			positionMap.put(item.getPosition(), item);
 		}
 
-		// Attach all the Unique Items first
-		this.uniqueMap.forEach((setPosition, set) ->
+		for (final int position : positionMap.keySet())
 		{
-			UniqueItemPanel p = new UniqueItemPanel(set, uniqueQtys, this.itemManager);
+			final Collection<UniqueItem> uniques = positionMap.get(position);
+
+			final UniqueItemPanel p = new UniqueItemPanel(uniques, this.itemManager);
 			this.add(p, c);
 			c.gridy++;
-
-		});
+		}
 
 		// Attach Kill Count Panel(s)
 		if (records.size() > 0)
