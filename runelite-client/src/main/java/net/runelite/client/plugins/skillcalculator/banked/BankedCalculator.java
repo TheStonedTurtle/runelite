@@ -164,10 +164,11 @@ public class BankedCalculator extends JPanel
 						xpFactor = 1.0f;
 						break;
 					case ItemEvent.SELECTED:
-						xpFactor = modifier.getModifier();
 						// Deselects all but the current item
 						final JCheckBox box = (JCheckBox) event.getItem();
 						xpModifierButtons.forEach(b -> b.setSelected(b == box));
+
+						xpFactor = modifier.getModifier();
 						break;
 					default:
 						return;
