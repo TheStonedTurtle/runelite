@@ -866,17 +866,17 @@ public enum UniqueItem
 
 	public static void prepareUniqueItems(final ItemManager itemManager)
 	{
-		for (UniqueItem item : values())
+		for (final UniqueItem item : values())
 		{
-			if (item.getPrice() != -1)
+			if (item.getName() != null)
 			{
 				return;
 			}
 
 			final ItemComposition c = itemManager.getItemComposition(item.getItemID());
 			item.name = c.getName();
-			item.price = c.getPrice();
 			item.linkedID = c.getLinkedNoteId();
+			item.price = itemManager.getItemPrice(c.getId());
 		}
 	}
 

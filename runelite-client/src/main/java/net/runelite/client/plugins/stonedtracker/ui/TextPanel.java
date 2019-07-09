@@ -48,26 +48,26 @@ class TextPanel extends JPanel
 	private static final Border CONTAINER_BORDER = BorderFactory.createMatteBorder(0, 15, 0, 15, PANEL_BACKGROUND_COLOR);
 
 	// Long value should be for Total Value
-	TextPanel(String text, long totalValue)
+	TextPanel(final String text, final long totalValue)
 	{
 		this.setLayout(LAYOUT);
 		this.setBorder(PANEL_BORDER);
 		this.setBackground(PANEL_BACKGROUND_COLOR);
 
-		JLabel totalText = new JLabel(text, SwingConstants.LEFT);
+		final JLabel totalText = new JLabel(text, SwingConstants.LEFT);
 		totalText.setForeground(Color.WHITE);
 
 		// Item Values (Colored off Total Value of item)
-		JLabel total = new JLabel(StackFormatter.quantityToStackSize(totalValue) + " gp", SwingConstants.LEFT);
+		final JLabel total = new JLabel(StackFormatter.quantityToStackSize(totalValue) + " gp", SwingConstants.LEFT);
 		total.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 0));
-		colorLabel(total, totalValue);
+		total.setForeground(getRSValueColor(totalValue));
 
-		JPanel panel = createPanel();
+		final JPanel panel = createPanel();
 
 		panel.add(totalText, BorderLayout.LINE_START);
 		panel.add(total, BorderLayout.CENTER);
 
-		GridBagConstraints c = new GridBagConstraints();
+		final GridBagConstraints c = new GridBagConstraints();
 		c.fill = GridBagConstraints.BOTH;
 		c.weightx = 1;
 		c.gridx = 0;
@@ -79,23 +79,23 @@ class TextPanel extends JPanel
 		this.add(panel, c);
 	}
 
-	TextPanel(String text, int value)
+	TextPanel(final String text, final int value)
 	{
 		this.setLayout(LAYOUT);
 		this.setBorder(PANEL_BORDER);
 		this.setBackground(PANEL_BACKGROUND_COLOR);
 
-		JLabel textLabel = new JLabel(text, SwingConstants.LEFT);
+		final JLabel textLabel = new JLabel(text, SwingConstants.LEFT);
 		textLabel.setForeground(Color.WHITE);
 
-		JLabel valueLabel = new JLabel(String.valueOf(value), SwingConstants.LEFT);
+		final JLabel valueLabel = new JLabel(String.valueOf(value), SwingConstants.LEFT);
 		valueLabel.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 0));
 
-		JPanel panel = createPanel();
+		final JPanel panel = createPanel();
 		panel.add(textLabel, BorderLayout.LINE_START);
 		panel.add(valueLabel, BorderLayout.CENTER);
 
-		GridBagConstraints c = new GridBagConstraints();
+		final GridBagConstraints c = new GridBagConstraints();
 		c.fill = GridBagConstraints.BOTH;
 		c.weightx = 1;
 		c.gridx = 0;
@@ -105,9 +105,9 @@ class TextPanel extends JPanel
 		this.add(panel, c);
 	}
 
-	private JPanel createPanel()
+	private static JPanel createPanel()
 	{
-		JPanel panel = new JPanel();
+		final JPanel panel = new JPanel();
 		panel.setLayout(new BorderLayout());
 		panel.setBorder(CONTAINER_BORDER);
 		panel.setBackground(PANEL_BACKGROUND_COLOR);
@@ -115,10 +115,8 @@ class TextPanel extends JPanel
 		return panel;
 	}
 
-	// Color label to match RuneScape coloring
-	private void colorLabel(JLabel label, long val)
+	private static Color getRSValueColor(long val)
 	{
-		Color labelColor = (val >= 10000000) ? Color.GREEN : (val >= 100000) ? Color.WHITE : Color.YELLOW;
-		label.setForeground(labelColor);
+		return (val >= 10000000) ? Color.GREEN : (val >= 100000) ? Color.WHITE : Color.YELLOW;
 	}
 }

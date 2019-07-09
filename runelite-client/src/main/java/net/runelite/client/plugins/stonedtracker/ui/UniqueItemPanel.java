@@ -34,7 +34,6 @@ import java.util.Collection;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 import lombok.Getter;
@@ -48,8 +47,6 @@ import net.runelite.client.util.StackFormatter;
 @Getter
 class UniqueItemPanel extends JPanel
 {
-	private ItemManager itemManager;
-
 	private final float alphaMissing = 0.35f;
 	private final float alphaHas = 1.0f;
 
@@ -59,9 +56,7 @@ class UniqueItemPanel extends JPanel
 
 	UniqueItemPanel(final Collection<UniqueItem> items, final ItemManager itemManager)
 	{
-		this.itemManager = itemManager;
-
-		JPanel panel = new JPanel();
+		final JPanel panel = new JPanel();
 		panel.setLayout(new GridBagLayout());
 		panel.setBackground(ColorScheme.DARKER_GRAY_COLOR);
 		panel.setBorder(new EmptyBorder(3, 0, 3, 0));
@@ -79,37 +74,30 @@ class UniqueItemPanel extends JPanel
 		c.ipady = 5;
 
 		// Add each Unique Item icon to the panel
-		for (UniqueItem l : items)
+		for (final UniqueItem l : items)
 		{
 			final int quantity = l.getQty();
 			final float alpha = (quantity > 0 ? alphaHas : alphaMissing);
-			AsyncBufferedImage image = itemManager.getImage(l.getItemID(), quantity, quantity > 1);
-			BufferedImage opaque = ImageUtil.alphaOffset(image, alpha);
+			final AsyncBufferedImage image = itemManager.getImage(l.getItemID(), quantity, quantity > 1);
+			final BufferedImage opaque = ImageUtil.alphaOffset(image, alpha);
 
-			// Attach Image to Label and append label to Panel
-			ImageIcon o = new ImageIcon(opaque);
-			JLabel icon = new JLabel(o);
+			final JLabel icon = new JLabel();
 			icon.setToolTipText(buildToolTip(l, quantity));
+			icon.setIcon(new ImageIcon(opaque));
 			panel.add(icon, c);
 			c.gridx++;
 
 			// in case the image is blank we will refresh it upon load
 			// Should only trigger if image hasn't been added
-			image.onChanged(() -> SwingUtilities.invokeLater(() -> refreshImage(icon, image, alpha)));
+			image.onChanged(() ->
+			{
+				icon.setIcon(new ImageIcon(ImageUtil.alphaOffset(image, alpha)));
+				icon.revalidate();
+				icon.repaint();
+			});
 		}
 
 		this.add(panel, BorderLayout.NORTH);
-	}
-
-	// Used to refresh the item icon if the image was still loading when attempting to create it earlier
-	private void refreshImage(final JLabel label, final AsyncBufferedImage image, final float finalAlpha)
-	{
-		BufferedImage opaque = ImageUtil.alphaOffset(image, finalAlpha);
-		ImageIcon o = new ImageIcon(opaque);
-
-		label.setIcon(o);
-		label.revalidate();
-		label.repaint();
 	}
 
 	private static String buildToolTip(final UniqueItem item, final int qty)

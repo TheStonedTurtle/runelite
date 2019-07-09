@@ -39,31 +39,15 @@ class LootGrid extends JPanel
 {
 	private static final int ITEMS_PER_ROW = 5;
 	private static final Dimension ITEM_SIZE = new Dimension(40, 40);
-	private final LTItemEntry[] itemsToDisplay;
-	private ItemManager itemManager;
 
-	LootGrid(LTItemEntry[] itemsToDisplay, ItemManager itemManager)
+	LootGrid(final LTItemEntry[] itemsToDisplay, final ItemManager itemManager)
 	{
-		this.itemsToDisplay = itemsToDisplay;
-		this.itemManager = itemManager;
-
 		setBorder(new EmptyBorder(5, 0, 5, 0));
-
-		buildItems();
-	}
-
-	/**
-	 * This method creates stacked items from the item list, calculates total price and then
-	 * displays all the items in the UI.
-	 */
-	private void buildItems()
-	{
 		// Calculates how many rows need to be display to fit all items
 		final int rowSize = ((itemsToDisplay.length % ITEMS_PER_ROW == 0) ? 0 : 1) + itemsToDisplay.length / ITEMS_PER_ROW;
-
-		removeAll();
 		setLayout(new GridLayout(rowSize, ITEMS_PER_ROW, 1, 1));
 
+		// Create stacked items from the item list, calculates total price and then displays all the items in the UI.
 		for (int i = 0; i < rowSize * ITEMS_PER_ROW; i++)
 		{
 			final JPanel slot = new JPanel();
@@ -91,7 +75,7 @@ class LootGrid extends JPanel
 		repaint();
 	}
 
-	private static String buildToolTip(LTItemEntry item)
+	private static String buildToolTip(final LTItemEntry item)
 	{
 		final String name = item.getName();
 		final int quantity = item.getQuantity();

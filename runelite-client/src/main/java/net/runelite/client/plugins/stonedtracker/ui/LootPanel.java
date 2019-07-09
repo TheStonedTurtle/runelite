@@ -31,15 +31,15 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.plugins.loottracker.localstorage.LTItemEntry;
@@ -51,16 +51,15 @@ import net.runelite.client.ui.ColorScheme;
 @Slf4j
 class LootPanel extends JPanel
 {
-	private Collection<LTRecord> records;
-	private Collection<UniqueItem> uniques;
-	private boolean hideUniques;
-	private ItemSortTypes sortType;
-	private boolean itemBreakdown;
-	private ItemManager itemManager;
+	private final Collection<LTRecord> records;
+	private final Collection<UniqueItem> uniques;
+	private final boolean hideUniques;
+	private final ItemSortTypes sortType;
+	private final boolean itemBreakdown;
+	private final ItemManager itemManager;
 	// Consolidate LTItemEntries stored by ItemID
-	private Map<Integer, LTItemEntry> consolidated;
+	private final Map<Integer, LTItemEntry> consolidated = new HashMap<>();
 
-	@Getter
 	private boolean playbackPlaying = false;
 	private boolean cancelPlayback = false;
 
@@ -83,57 +82,24 @@ class LootPanel extends JPanel
 		setBorder(new EmptyBorder(0, 10, 0, 10));
 		setBackground(ColorScheme.DARK_GRAY_COLOR);
 
-		createConsolidatedArray(this.records);
-		createPanel(this.records);
+		createPanel(this.records, true);
 	}
 
-	private void createConsolidatedArray(Collection<LTRecord> records)
+	private void createPanel(final Collection<LTRecord> records, final boolean reconsolidate)
 	{
-		// Consolidate all LTItemEntrys from each record for combined loot totals
-		// Sort them based on the config setting.
-		this.consolidated = LTRecord.consolidateLootTrackerItemEntries(records)
-			.entrySet().stream()
-			.sorted((lt1, lt2) ->
-			{
-				LTItemEntry o1 = lt1.getValue();
-				LTItemEntry o2 = lt2.getValue();
-				switch (sortType)
-				{
-					case ITEM_ID:
-						return o1.getId() - o2.getId();
-					case PRICE:
-						if (o1.getPrice() != o2.getPrice())
-						{
-							return o1.getPrice() > o2.getPrice() ? -1 : 1;
-						}
-						break;
-					case VALUE:
-						if (o1.getTotal() != o2.getTotal())
-						{
-							return o1.getTotal() > o2.getTotal() ? -1 : 1;
-						}
-						break;
-					case ALPHABETICAL:
-						// Handled below
-						break;
-					default:
-						log.warn("Sort Type not being handled correctly, defaulting to alphabetical.");
-						break;
-				}
-
-				// Default to alphabetical
-				return o1.getName().compareTo(o2.getName());
-			})
-			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
-	}
-
-	private void createPanel(Collection<LTRecord> records)
-	{
-		GridBagConstraints c = new GridBagConstraints();
+		final GridBagConstraints c = new GridBagConstraints();
 		c.fill = GridBagConstraints.HORIZONTAL;
 		c.weightx = 1;
 		c.gridx = 0;
 		c.gridy = 0;
+
+		if (reconsolidate)
+		{
+			this.consolidated.clear();
+			final Collection<LTItemEntry> consolidatedLTItemEntries = LTRecord.consolidateLTItemEntries(records);
+			final Map<Integer, LTItemEntry> itemMap = LTItemEntry.consolidateItemEntires(consolidatedLTItemEntries);
+			this.consolidated.putAll(itemMap);
+		}
 
 		// Create necessary helpers for the unique toggles
 		final Multimap<Integer, UniqueItem> positionMap = ArrayListMultimap.create();
@@ -141,8 +107,7 @@ class LootPanel extends JPanel
 
 		// Loop over all UniqueItems and check how many the player has received as a drop for each
 		// Also add all Item IDs for uniques to a Set for easy hiding later on.
-		UniqueItemPanel panel;
-		for (UniqueItem item : this.uniques)
+		for (final UniqueItem item : this.uniques)
 		{
 
 			final int id = item.getItemID();
@@ -169,15 +134,15 @@ class LootPanel extends JPanel
 		// Attach Kill Count Panel(s)
 		if (records.size() > 0)
 		{
-			int amount = records.size();
-			LTRecord entry = Iterators.get(records.iterator(), (amount - 1));
+			final int amount = records.size();
+			final LTRecord entry = Iterators.get(records.iterator(), (amount - 1));
 			if (entry.getKillCount() != -1)
 			{
-				TextPanel p = new TextPanel("Current Killcount:", entry.getKillCount());
+				final TextPanel p = new TextPanel("Current Killcount:", entry.getKillCount());
 				this.add(p, c);
 				c.gridy++;
 			}
-			TextPanel p2 = new TextPanel("Kills Logged:", amount);
+			final TextPanel p2 = new TextPanel("Kills Logged:", amount);
 			this.add(p2, c);
 			c.gridy++;
 		}
@@ -185,55 +150,61 @@ class LootPanel extends JPanel
 		// Track total price of all tracked items for this panel
 		// Also ensure it is placed in correct location by preserving its gridy value
 		long totalValue = 0;
-		int totalValueIndex = c.gridy;
+		final int totalValueIndex = c.gridy;
 		c.gridy++;
 
 
-		Collection<LTItemEntry> itemsToDisplay = new ArrayList<>();
-		for (LTItemEntry item : consolidated.values())
-		{
-			totalValue += item.getTotal();
-			if (hideUniques && uniqueIds.contains(item.getId()))
-			{
-				continue;
-			}
-
-			if (itemBreakdown)
-			{
-				ItemPanel p = new ItemPanel(item, itemManager);
-				this.add(p, c);
-				c.gridy++;
-			}
-			else
-			{
-				itemsToDisplay.add(item);
-			}
-		}
+		final Collection<LTItemEntry> itemsToDisplay = consolidated.values().stream()
+			.filter(e -> !(hideUniques && uniqueIds.contains(e.getId())))
+			.sorted(createLTItemEntryComparator(sortType))
+			.collect(Collectors.toList());
 
 		if (itemsToDisplay.size() > 0)
 		{
-			LootGrid grid = new LootGrid(itemsToDisplay.toArray(new LTItemEntry[0]), itemManager);
-			this.add(grid, c);
-			c.gridy++;
+			totalValue = itemsToDisplay.stream().mapToLong(e -> e.getPrice() * e.getQuantity()).sum();
+			if (itemBreakdown)
+			{
+				for (final LTItemEntry e : itemsToDisplay)
+				{
+					final ItemPanel p = new ItemPanel(e, itemManager);
+					this.add(p, c);
+					c.gridy++;
+				}
+			}
+			else
+			{
+				final LootGrid grid = new LootGrid(itemsToDisplay.toArray(new LTItemEntry[0]), itemManager);
+				this.add(grid, c);
+				c.gridy++;
+			}
 		}
 
 		// Only add the total value element if it has something useful to display
 		if (totalValue > 0)
 		{
 			c.gridy = totalValueIndex;
-			TextPanel totalPanel = new TextPanel("Total Value:", totalValue);
+			final TextPanel totalPanel = new TextPanel("Total Value:", totalValue);
 			this.add(totalPanel, c);
 		}
 	}
 
-	void addedRecord(LTRecord record)
+	void addedRecord(final LTRecord record)
 	{
 		records.add(record);
+		for (final LTItemEntry entry : record.getDrops())
+		{
+			final LTItemEntry current = consolidated.get(entry.getId());
+			if (current != null)
+			{
+				entry.setQuantity(entry.getQuantity() + current.getQuantity());
+			}
+			consolidated.put(entry.getId(), entry);
+
+		}
 		// TODO: Smarter update system so it only repaints necessary Item and Text Panels
 		this.removeAll();
 
-		this.createConsolidatedArray(this.records);
-		this.createPanel(this.records);
+		this.createPanel(this.records, false);
 
 		this.revalidate();
 		this.repaint();
@@ -241,12 +212,18 @@ class LootPanel extends JPanel
 
 	void playback()
 	{
+		if (playbackPlaying)
+		{
+			cancelPlayback = true;
+			return;
+		}
+
 		playbackPlaying = true;
 
 		if (this.records.size() > 0)
 		{
-			Collection<LTRecord> recs = new ArrayList<>();
-			for (LTRecord r : this.records)
+			final Collection<LTRecord> recs = new ArrayList<>();
+			for (final LTRecord r : this.records)
 			{
 				recs.add(r);
 
@@ -261,6 +238,7 @@ class LootPanel extends JPanel
 						SwingUtilities.invokeLater(() -> refreshPlayback(this.records));
 						break;
 					}
+					// TODO: Allow this rate to be configurable?
 					Thread.sleep(250);
 				}
 				catch (InterruptedException e)
@@ -273,20 +251,51 @@ class LootPanel extends JPanel
 		playbackPlaying = false;
 	}
 
-	public void cancelPlayback()
-	{
-		// Only cancel if actually playing
-		cancelPlayback = playbackPlaying;
-	}
-
-	private void refreshPlayback(Collection<LTRecord> recs)
+	private void refreshPlayback(final Collection<LTRecord> recs)
 	{
 		this.removeAll();
 
-		this.createConsolidatedArray(recs);
-		this.createPanel(recs);
+		this.createPanel(recs, true);
 
 		this.revalidate();
 		this.repaint();
+	}
+
+	/**
+	 * Sorts the collection of LTItemEntry based on the selected {@link ItemSortTypes}
+	 * @param sortType The {@link ItemSortTypes} describing how these entries should be sorted
+	 * @return returns the sorted list
+	 */
+	private static Comparator<LTItemEntry> createLTItemEntryComparator(final ItemSortTypes sortType)
+	{
+		return (o1, o2) ->
+		{
+			switch (sortType)
+			{
+				case ITEM_ID:
+					return o1.getId() - o2.getId();
+				case PRICE:
+					if (o1.getPrice() != o2.getPrice())
+					{
+						return o1.getPrice() > o2.getPrice() ? -1 : 1;
+					}
+					break;
+				case VALUE:
+					if (o1.getTotal() != o2.getTotal())
+					{
+						return o1.getTotal() > o2.getTotal() ? -1 : 1;
+					}
+					break;
+				case ALPHABETICAL:
+					// Handled below
+					break;
+				default:
+					log.warn("Sort Type not being handled correctly, defaulting to alphabetical.");
+					break;
+			}
+
+			// Default to alphabetical
+			return o1.getName().compareTo(o2.getName());
+		};
 	}
 }

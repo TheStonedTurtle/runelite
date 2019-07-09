@@ -24,11 +24,10 @@
  */
 package net.runelite.client.plugins.loottracker.localstorage;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import java.util.HashMap;
-import java.util.Map;
 
 @Data
 @AllArgsConstructor
@@ -45,24 +44,13 @@ public class LTRecord
 		drops.add(itemEntry);
 	}
 
-	public static Map<Integer, LTItemEntry> consolidateLootTrackerItemEntries(Collection<LTRecord> records)
+	public static Collection<LTItemEntry> consolidateLTItemEntries(final Collection<LTRecord> records)
 	{
-		// Store LootTrackerItemEntry by ItemID
-		Map<Integer, LTItemEntry> itemMap = new HashMap<>();
-		for (LTRecord r : records)
+		final Collection<LTItemEntry> recordEntries = new ArrayList<>();
+		for (final LTRecord r : records)
 		{
-			for (LTItemEntry e : r.getDrops())
-			{
-				int old = 0;
-				if (itemMap.containsKey(e.getId()))
-				{
-					old = itemMap.get(e.getId()).getQuantity();
-					itemMap.remove(e.getId());
-				}
-				itemMap.put(e.getId(), new LTItemEntry(e.getName(), e.getId(), e.getQuantity() + old, e.getPrice()));
-			}
+			recordEntries.addAll(r.getDrops());
 		}
-
-		return itemMap;
+		return recordEntries;
 	}
 }

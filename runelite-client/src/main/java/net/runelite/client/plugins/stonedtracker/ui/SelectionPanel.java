@@ -33,8 +33,7 @@ import java.awt.Image;
 import java.awt.Insets;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.ArrayList;
-import java.util.Set;
+import java.util.Collection;
 import java.util.TreeSet;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
@@ -50,9 +49,9 @@ import net.runelite.client.ui.components.materialtabs.MaterialTabGroup;
 
 public class SelectionPanel extends JPanel
 {
-	private TreeSet<String> names;
-	private LootTrackerPanel parent;
-	private ItemManager itemManager;
+	private final TreeSet<String> names;
+	private final LootTrackerPanel parent;
+	private final ItemManager itemManager;
 
 	private final static Color BACKGROUND_COLOR = ColorScheme.DARK_GRAY_COLOR;
 	private final static Color BUTTON_COLOR = ColorScheme.DARKER_GRAY_COLOR;
@@ -60,7 +59,11 @@ public class SelectionPanel extends JPanel
 
 	private boolean configToggle;
 
-	SelectionPanel(boolean configToggle, TreeSet<String> names, LootTrackerPanel parent, ItemManager itemManager)
+	SelectionPanel(
+		final boolean configToggle,
+		final TreeSet<String> names,
+		final LootTrackerPanel parent,
+		final ItemManager itemManager)
 	{
 		this.names = names == null ? new TreeSet<>() : names;
 		this.parent = parent;
@@ -75,7 +78,7 @@ public class SelectionPanel extends JPanel
 
 	private void createPanel()
 	{
-		GridBagConstraints c = new GridBagConstraints();
+		final GridBagConstraints c = new GridBagConstraints();
 		c.fill = GridBagConstraints.HORIZONTAL;
 		c.weightx = 1;
 		c.gridx = 0;
@@ -85,12 +88,12 @@ public class SelectionPanel extends JPanel
 		// Add the bosses tabs, by category, to tabGroup
 		if (configToggle)
 		{
-			Set<String> categories = BossTab.getCategories();
-			JPanel container = new JPanel(new GridBagLayout());
+			final TreeSet<String> categories = BossTab.getCategories();
+			final JPanel container = new JPanel(new GridBagLayout());
 			container.setBorder(new EmptyBorder(0, 0, 10, 0));
-			int oldc = c.gridy;
+			final int oldc = c.gridy;
 			c.gridy = 0;
-			for (String categoryName : categories)
+			for (final String categoryName : categories)
 			{
 				container.add(createTabCategory(categoryName), c);
 				c.gridy++;
@@ -101,7 +104,7 @@ public class SelectionPanel extends JPanel
 		}
 
 		// Add all other names
-		for (String name : this.names)
+		for (final String name : this.names)
 		{
 			if (!configToggle || BossTab.getByName(name) == null)
 			{
@@ -111,9 +114,9 @@ public class SelectionPanel extends JPanel
 		}
 	}
 
-	private JPanel createNamePanel(String name)
+	private JPanel createNamePanel(final String name)
 	{
-		JPanel p = new JPanel();
+		final JPanel p = new JPanel();
 		p.add(new JLabel(name));
 		p.setBackground(BUTTON_COLOR);
 		p.addMouseListener(new MouseAdapter()
@@ -141,32 +144,32 @@ public class SelectionPanel extends JPanel
 	}
 
 	// Creates all tabs for a specific category
-	private JPanel createTabCategory(String categoryName)
+	private JPanel createTabCategory(final String categoryName)
 	{
-		JPanel container = new JPanel();
+		final JPanel container = new JPanel();
 		container.setLayout(new GridBagLayout());
 		container.setBorder(new EmptyBorder(0, 5, 0, 5));
 
-		GridBagConstraints c = new GridBagConstraints();
+		final GridBagConstraints c = new GridBagConstraints();
 		c.fill = GridBagConstraints.HORIZONTAL;
 		c.weightx = 1;
 		c.gridx = 0;
 		c.gridy = 0;
 
-		MaterialTabGroup thisTabGroup = new MaterialTabGroup();
+		final MaterialTabGroup thisTabGroup = new MaterialTabGroup();
 		thisTabGroup.setLayout(new GridLayout(0, 4, 7, 7));
 		thisTabGroup.setBorder(new EmptyBorder(4, 0, 0, 0));
 
-		JLabel name = new JLabel(categoryName);
+		final JLabel name = new JLabel(categoryName);
 		name.setBorder(new EmptyBorder(8, 0, 0, 0));
 		name.setForeground(Color.WHITE);
 		name.setVerticalAlignment(SwingConstants.CENTER);
 
-		final ArrayList<BossTab> categoryTabs = BossTab.getCategoryMap().get(categoryName);
-		for (BossTab tab : categoryTabs)
+		final Collection<BossTab> categoryTabs = BossTab.getByCategoryName(categoryName);
+		for (final BossTab tab : categoryTabs)
 		{
 			// Create tab (with hover effects/text)
-			MaterialTab materialTab = new MaterialTab("", thisTabGroup, null);
+			final MaterialTab materialTab = new MaterialTab("", thisTabGroup, null);
 			materialTab.setName(tab.getName());
 			materialTab.setToolTipText(tab.getName());
 			//materialTab.setSelectedBorder(new EmptyBorder(0, 0, 0, 0));
@@ -192,8 +195,8 @@ public class SelectionPanel extends JPanel
 			});
 
 			// Attach Icon to the Tab
-			AsyncBufferedImage image = itemManager.getImage(tab.getItemID());
-			Runnable resize = () ->
+			final AsyncBufferedImage image = itemManager.getImage(tab.getItemID());
+			final Runnable resize = () ->
 			{
 				materialTab.setIcon(new ImageIcon(image.getScaledInstance(35, 35, Image.SCALE_SMOOTH)));
 				materialTab.setOpaque(true);

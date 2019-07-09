@@ -24,17 +24,19 @@
  */
 package net.runelite.client.plugins.stonedtracker.data;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.Multimap;
+import java.util.Collection;
+import java.util.Map;
+import java.util.TreeSet;
 import javax.annotation.Nullable;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import net.runelite.api.ItemID;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
-
 @Getter
+@AllArgsConstructor
 public enum BossTab
 {
 	// Chest Rewards
@@ -89,58 +91,40 @@ public enum BossTab
 	CLUE_SCROLL_ELITE("Clue Scroll (Elite)", ItemID.CLUE_SCROLL_ELITE, "Clue Scrolls"),
 	CLUE_SCROLL_MASTER("Clue Scroll (Master)", ItemID.CLUE_SCROLL_MASTER, "Clue Scrolls");
 
-	BossTab(String name, int iconItem, String category)
-	{
-		this.name = name;
-		this.itemID = iconItem;
-		this.category = category;
-	}
-
 	private final String name;
 	private final int itemID;
 	private final String category;
 
-	public static Map<String, BossTab> getNameMap()
+	private static final Map<String, BossTab> NAME_MAP;
+	private static final Multimap<String, BossTab> CATEGORY_MAP;
+	static
 	{
-		Map<String, BossTab> byName = new HashMap<>();
+		final ImmutableMap.Builder<String, BossTab> byName = ImmutableMap.builder();
+		final ImmutableMultimap.Builder<String, BossTab> categoryMap = ImmutableMultimap.builder();
+
 		for (BossTab tab : values())
 		{
 			byName.put(tab.getName().toUpperCase(), tab);
+			categoryMap.put(tab.getCategory(), tab);
 		}
 
-		return byName;
+		NAME_MAP = byName.build();
+		CATEGORY_MAP = categoryMap.build();
 	}
 
 	@Nullable
 	public static BossTab getByName(final String name)
 	{
-		return getNameMap().get(name.toUpperCase());
+		return NAME_MAP.get(name.toUpperCase());
 	}
 
-	public static Map<String, ArrayList<BossTab>> getCategoryMap()
+	public static Collection<BossTab> getByCategoryName(final String name)
 	{
-		Map<String, ArrayList<BossTab>> map = new HashMap<>();
-		for (BossTab tab : values())
-		{
-			map.computeIfAbsent(tab.getCategory().toUpperCase(), e -> new ArrayList<BossTab>()).add(tab);
-		}
-
-		return map;
+		return CATEGORY_MAP.get(name);
 	}
 
-	@Nullable
-	public static ArrayList<BossTab> getByCategoryName(final String name)
+	public static TreeSet<String> getCategories()
 	{
-		return getCategoryMap().get(name.toUpperCase());
-	}
-
-	public static Set<String> getCategories()
-	{
-		Set<String> s = new TreeSet<String>();
-		for (BossTab tab : values())
-		{
-			s.add(tab.getCategory().toUpperCase());
-		}
-		return s;
+		return new TreeSet<>(CATEGORY_MAP.keySet());
 	}
 }

@@ -119,7 +119,7 @@ public class StonedTrackerPlugin extends Plugin
 	public void onLTNameChange(final LTNameChange c)
 	{
 		lootNames = new TreeSet<>(writer.getKnownFileNames());
-		SwingUtilities.invokeLater(() -> panel.updateNames());
+		SwingUtilities.invokeLater(() -> panel.showSelectionView());
 	}
 
 	@Subscribe
@@ -242,6 +242,7 @@ public class StonedTrackerPlugin extends Plugin
 			LTRecord r = items.get(items.size() - 1);
 			r.addDropEntry(itemEntry);
 			writer.writeLootTrackerFile("Abyssal sire", items);
+			// Write will trigger event this plugin is subscribed too
 		});
 	}
 
