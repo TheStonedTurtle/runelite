@@ -34,6 +34,7 @@ import java.util.Collection;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.SwingConstants;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 import lombok.Getter;
@@ -84,6 +85,8 @@ class UniqueItemPanel extends JPanel
 			final JLabel icon = new JLabel();
 			icon.setToolTipText(buildToolTip(l, quantity));
 			icon.setIcon(new ImageIcon(opaque));
+			icon.setVerticalAlignment(SwingConstants.CENTER);
+			icon.setHorizontalAlignment(SwingConstants.CENTER);
 			panel.add(icon, c);
 			c.gridx++;
 
