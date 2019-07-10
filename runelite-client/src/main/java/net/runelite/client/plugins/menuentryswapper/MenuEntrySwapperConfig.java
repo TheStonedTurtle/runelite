@@ -311,4 +311,15 @@ public interface MenuEntrySwapperConfig extends Config
 	{
 		return true;
 	}
+
+	@ConfigItem(
+		position = 99,
+		keyName = "forceRightClickAttack",
+		name = "Enforce Right-Click Attack",
+		description = "Ensure Right-Click attack on npcs with the following names. (Comma separated values)"
+	)
+	default String forceRightClickAttack()
+	{
+		return "";
+	}
 }
