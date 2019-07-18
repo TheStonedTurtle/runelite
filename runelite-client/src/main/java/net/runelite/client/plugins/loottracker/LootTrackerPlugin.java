@@ -329,6 +329,35 @@ public class LootTrackerPlugin extends Plugin
 		{
 			chestLooted = false;
 		}
+
+		if (event.getGameState() == GameState.LOGGING_IN)
+		{
+			clientThread.invokeLater(() ->
+			{
+				switch (client.getGameState())
+				{
+					case LOGGED_IN:
+						break;
+					case LOGGING_IN:
+					case LOADING:
+						return false;
+					default:
+						// Quit running if any other state
+						return true;
+				}
+
+				String name = client.getLocalPlayer().getName();
+				if (name != null)
+				{
+					writer.setPlayerUsername(name);
+					return true;
+				}
+				else
+				{
+					return false;
+				}
+			});
+		}
 	}
 
 	@Subscribe
@@ -797,38 +826,5 @@ public class LootTrackerPlugin extends Plugin
 			final int price = itemManager.getItemPrice(id);
 			return new LTItemEntry(c.getName(), i.getId(), i.getQuantity(), price);
 		}).collect(Collectors.toList());
-	}
-
-	@Subscribe
-	public void onGameStateChanged(GameStateChanged c)
-	{
-		if (c.getGameState().equals(GameState.LOGGING_IN))
-		{
-			clientThread.invokeLater(() ->
-			{
-				switch (client.getGameState())
-				{
-					case LOGGED_IN:
-						break;
-					case LOGGING_IN:
-					case LOADING:
-						return false;
-					default:
-						// Quit running if any other state
-						return true;
-				}
-
-				String name = client.getLocalPlayer().getName();
-				if (name != null)
-				{
-					writer.setPlayerUsername(name);
-					return true;
-				}
-				else
-				{
-					return false;
-				}
-			});
-		}
 	}
 }
