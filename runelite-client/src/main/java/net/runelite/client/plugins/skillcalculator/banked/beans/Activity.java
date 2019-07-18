@@ -248,6 +248,12 @@ public enum Activity
 		CriticalItem.OURG_BONES, null, null),
 	SUPERIOR_DRAGON_BONES(ItemID.SUPERIOR_DRAGON_BONES, "Superior dragon bones", Skill.PRAYER, 1, 150.0,
 		CriticalItem.SUPERIOR_DRAGON_BONES, null, null),
+	WYRM_BONES(ItemID.WYRM_BONES, "Wyrm bones", Skill.PRAYER, 1, 50.0,
+		CriticalItem.WYRM_BONES, null, null),
+	DRAKE_BONES(ItemID.DRAKE_BONES, "Drake bones", Skill.PRAYER, 1, 80.0,
+		CriticalItem.DRAKE_BONES, null, null),
+	HYDRA_BONES(ItemID.HYDRA_BONES, "Hydra bones", Skill.PRAYER, 1, 110.0,
+		CriticalItem.HYDRA_BONES, null, null),
 	// Shade Remains (Pyre Logs)
 	LOAR_REMAINS(ItemID.LOAR_REMAINS, "Loar remains", Skill.PRAYER, 1, 33.0,
 		CriticalItem.LOAR_REMAINS, null, null),

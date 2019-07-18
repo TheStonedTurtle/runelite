@@ -125,6 +125,9 @@ public enum CriticalItem
 	DAGANNOTH_BONES(ItemID.DAGANNOTH_BONES, Skill.PRAYER, "Bones"),
 	OURG_BONES(ItemID.OURG_BONES, Skill.PRAYER, "Bones"),
 	SUPERIOR_DRAGON_BONES(ItemID.SUPERIOR_DRAGON_BONES, Skill.PRAYER, "Bones"),
+	WYRM_BONES(ItemID.WYRM_BONES, Skill.PRAYER, "Bones"),
+	DRAKE_BONES(ItemID.DRAKE_BONES, Skill.PRAYER, "Bones"),
+	HYDRA_BONES(ItemID.HYDRA_BONES, Skill.PRAYER, "Bones"),
 	// Shade Remains (Pyre Logs)
 	LOAR_REMAINS(ItemID.LOAR_REMAINS, Skill.PRAYER, "Shades", true),
 	PHRIN_REMAINS(ItemID.PHRIN_REMAINS, Skill.PRAYER, "Shades", true),
