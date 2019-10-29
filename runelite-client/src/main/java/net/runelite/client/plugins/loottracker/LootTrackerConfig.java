@@ -98,6 +98,6 @@ public interface LootTrackerConfig extends Config
 	)
 	default boolean saveLocalLoot()
 	{
-		return false;
+		return true;
 	}
 }
