@@ -58,6 +58,38 @@ class XpState
 	 */
 	void resetSkill(Skill skill, long currentXp)
 	{
+		if (!skill.equals(Skill.OVERALL))
+		{
+			// Adjust overall skill state to account for xp gained from the skill we are resetting
+			final XpStateSingle currentSkill = getSkill(skill);
+			final XpStateSingle total = getSkill(Skill.OVERALL);
+			total.setXpGained(total.getXpGained() - currentSkill.getXpGained());
+			total.setStartXp(total.getStartXp() + currentSkill.getXpGained());
+
+			// Adjust starting period if overall is based on the reset skill
+			long startSkillTime = Long.MAX_VALUE;
+			if (currentSkill.getSkillTime() <= total.getSkillTime())
+			{
+				for (XpStateSingle xpState : xpSkills.values())
+				{
+					if (xpState.getSkillTime() < startSkillTime)
+					{
+						startSkillTime = xpState.getSkillTime();
+					}
+				}
+
+				// If we can't find a new start time we probably reset the only skill we gained xp in
+				if (startSkillTime == Long.MAX_VALUE)
+				{
+					resetSkill(Skill.OVERALL, total.getStartXp() + total.getXpGained());
+				}
+				else
+				{
+					total.setSkillTime(startSkillTime);
+				}
+			}
+		}
+
 		xpSkills.remove(skill);
 		xpSkills.put(skill, new XpStateSingle(skill, currentXp));
 	}

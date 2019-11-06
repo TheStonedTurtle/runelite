@@ -44,11 +44,14 @@ class XpStateSingle
 	private long startXp;
 
 	@Getter
+	@Setter
 	private int xpGained = 0;
 
 	@Setter
 	private XpActionType actionType = XpActionType.EXPERIENCE;
 
+	@Getter
+	@Setter
 	private long skillTime = 0;
 	private int startLevelExp = 0;
 	private int endLevelExp = 0;
