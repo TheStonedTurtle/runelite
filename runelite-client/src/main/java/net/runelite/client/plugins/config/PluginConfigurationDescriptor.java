@@ -29,6 +29,7 @@ import javax.swing.JMenuItem;
 import lombok.Value;
 import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigDescriptor;
+import net.runelite.client.config.CustomNotifier;
 import net.runelite.client.externalplugins.ExternalPluginManager;
 import net.runelite.client.externalplugins.ExternalPluginManifest;
 import net.runelite.client.plugins.Plugin;
@@ -51,6 +52,10 @@ class PluginConfigurationDescriptor
 
 	@Nullable
 	private final ConfigDescriptor configDescriptor;
+
+	// Can be null if the config/plugin doesn't require custom notification settings
+	@Nullable
+	private final CustomNotifier customNotifier;
 
 	boolean hasConfigurables()
 	{

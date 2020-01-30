@@ -51,6 +51,7 @@ import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigDescriptor;
 import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigManager;
+import net.runelite.client.config.CustomNotifier;
 import net.runelite.client.config.RuneLiteConfig;
 import net.runelite.client.eventbus.EventBus;
 import net.runelite.client.eventbus.Subscribe;
@@ -194,6 +195,8 @@ class PluginListPanel extends PluginPanel
 					PluginDescriptor descriptor = plugin.getClass().getAnnotation(PluginDescriptor.class);
 					Config config = pluginManager.getPluginConfigProxy(plugin);
 					ConfigDescriptor configDescriptor = config == null ? null : configManager.getConfigDescriptor(config);
+					CustomNotifier notifier = config == null ? null :
+						config.getClass().getInterfaces()[0].getAnnotation(CustomNotifier.class);
 
 					return new PluginConfigurationDescriptor(
 						descriptor.name(),
@@ -201,7 +204,8 @@ class PluginListPanel extends PluginPanel
 						descriptor.tags(),
 						plugin,
 						config,
-						configDescriptor);
+						configDescriptor,
+						notifier);
 				})
 		).map(desc ->
 		{

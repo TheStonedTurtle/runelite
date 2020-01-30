@@ -74,11 +74,11 @@ public class ConfigPlugin extends Plugin
 		pluginListPanel = pluginListPanelProvider.get();
 		pluginListPanel.addFakePlugin(new PluginConfigurationDescriptor(
 				"RuneLite", "RuneLite client settings", new String[]{"client"},
-				null, runeLiteConfig, configManager.getConfigDescriptor(runeLiteConfig)
+				null, runeLiteConfig, configManager.getConfigDescriptor(runeLiteConfig), null
 			),
 			new PluginConfigurationDescriptor(
 				"Chat Color", "Recolor chat text", new String[]{"colour", "messages"},
-				null, chatColorConfig, configManager.getConfigDescriptor(chatColorConfig)
+				null, chatColorConfig, configManager.getConfigDescriptor(chatColorConfig), null
 			));
 		pluginListPanel.rebuildPluginList();
 
