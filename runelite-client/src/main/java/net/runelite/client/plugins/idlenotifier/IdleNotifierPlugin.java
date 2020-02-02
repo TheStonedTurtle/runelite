@@ -52,7 +52,7 @@ import net.runelite.api.events.GameTick;
 import net.runelite.api.events.GraphicChanged;
 import net.runelite.api.events.HitsplatApplied;
 import net.runelite.api.events.InteractingChanged;
-import net.runelite.client.Notifier;
+import net.runelite.client.CustomizableNotifier;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.plugins.Plugin;
@@ -77,7 +77,7 @@ public class IdleNotifierPlugin extends Plugin
 	private static final String FISHING_SPOT = "Fishing spot";
 
 	@Inject
-	private Notifier notifier;
+	private CustomizableNotifier notifier;
 
 	@Inject
 	private Client client;
@@ -107,6 +107,12 @@ public class IdleNotifierPlugin extends Plugin
 	IdleNotifierConfig provideConfig(ConfigManager configManager)
 	{
 		return configManager.getConfig(IdleNotifierConfig.class);
+	}
+
+	@Override
+	public void startUp()
+	{
+		notifier.setConfig(config);
 	}
 
 	@Subscribe

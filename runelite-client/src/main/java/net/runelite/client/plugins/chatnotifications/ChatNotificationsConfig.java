@@ -28,8 +28,10 @@ package net.runelite.client.plugins.chatnotifications;
 import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
+import net.runelite.client.config.CustomNotifier;
 
 @ConfigGroup("chatnotification")
+@CustomNotifier
 public interface ChatNotificationsConfig extends Config
 {
 	@ConfigItem(

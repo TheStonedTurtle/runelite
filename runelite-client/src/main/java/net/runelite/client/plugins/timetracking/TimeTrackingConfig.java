@@ -27,8 +27,10 @@ package net.runelite.client.plugins.timetracking;
 import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
+import net.runelite.client.config.CustomNotifier;
 
 @ConfigGroup("timetracking")
+@CustomNotifier
 public interface TimeTrackingConfig extends Config
 {
 	String CONFIG_GROUP = "timetracking";

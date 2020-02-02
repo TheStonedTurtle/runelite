@@ -40,7 +40,7 @@ import net.runelite.api.Player;
 import net.runelite.api.events.InteractingChanged;
 import net.runelite.api.events.MenuEntryAdded;
 import net.runelite.api.events.NpcDespawned;
-import net.runelite.client.Notifier;
+import net.runelite.client.CustomizableNotifier;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.plugins.Plugin;
@@ -91,7 +91,7 @@ public class RandomEventPlugin extends Plugin
 	private Client client;
 
 	@Inject
-	private Notifier notifier;
+	private CustomizableNotifier notifier;
 
 	@Inject
 	private RandomEventConfig config;
@@ -105,6 +105,7 @@ public class RandomEventPlugin extends Plugin
 	@Override
 	protected void shutDown() throws Exception
 	{
+		notifier.setConfig(config);
 		lastNotificationTick = 0;
 		currentRandomEvent = null;
 	}

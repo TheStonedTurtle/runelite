@@ -42,15 +42,15 @@ import net.runelite.api.ItemContainer;
 import net.runelite.api.ItemID;
 import net.runelite.api.Varbits;
 import net.runelite.api.events.ChatMessage;
-import net.runelite.client.events.ConfigChanged;
 import net.runelite.api.events.ItemContainerChanged;
 import net.runelite.api.events.ScriptCallbackEvent;
 import net.runelite.api.events.VarbitChanged;
 import net.runelite.api.widgets.Widget;
 import net.runelite.api.widgets.WidgetInfo;
-import net.runelite.client.Notifier;
+import net.runelite.client.CustomizableNotifier;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
+import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
@@ -104,7 +104,7 @@ public class ItemChargePlugin extends Plugin
 	private InfoBoxManager infoBoxManager;
 
 	@Inject
-	private Notifier notifier;
+	private CustomizableNotifier notifier;
 
 	@Inject
 	private ItemChargeConfig config;
@@ -127,6 +127,7 @@ public class ItemChargePlugin extends Plugin
 	@Override
 	protected void shutDown() throws Exception
 	{
+		notifier.setConfig(config);
 		overlayManager.remove(overlay);
 		infoBoxManager.removeIf(ItemChargeInfobox.class::isInstance);
 		lastCheckTick = -1;

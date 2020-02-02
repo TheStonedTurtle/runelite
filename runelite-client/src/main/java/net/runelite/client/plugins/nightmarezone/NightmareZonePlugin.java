@@ -34,13 +34,13 @@ import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
 import net.runelite.api.Varbits;
 import net.runelite.api.events.ChatMessage;
-import net.runelite.client.events.ConfigChanged;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.widgets.Widget;
 import net.runelite.api.widgets.WidgetInfo;
-import net.runelite.client.Notifier;
+import net.runelite.client.CustomizableNotifier;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
+import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.overlay.OverlayManager;
@@ -57,7 +57,7 @@ public class NightmareZonePlugin extends Plugin
 	private static final Duration HOUR = Duration.ofHours(1);
 
 	@Inject
-	private Notifier notifier;
+	private CustomizableNotifier notifier;
 
 	@Inject
 	private Client client;
@@ -83,6 +83,7 @@ public class NightmareZonePlugin extends Plugin
 	@Override
 	protected void startUp() throws Exception
 	{
+		notifier.setConfig(config);
 		overlayManager.add(overlay);
 		overlay.removeAbsorptionCounter();
 	}

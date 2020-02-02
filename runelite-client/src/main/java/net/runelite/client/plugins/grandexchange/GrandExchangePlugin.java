@@ -51,7 +51,6 @@ import net.runelite.api.ItemComposition;
 import net.runelite.api.MenuAction;
 import net.runelite.api.MenuEntry;
 import net.runelite.api.events.ChatMessage;
-import net.runelite.client.events.ConfigChanged;
 import net.runelite.api.events.FocusChanged;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GrandExchangeOfferChanged;
@@ -61,11 +60,12 @@ import net.runelite.api.events.WidgetLoaded;
 import net.runelite.api.widgets.Widget;
 import net.runelite.api.widgets.WidgetID;
 import net.runelite.api.widgets.WidgetInfo;
-import net.runelite.client.Notifier;
+import net.runelite.client.CustomizableNotifier;
 import net.runelite.client.account.AccountSession;
 import net.runelite.client.account.SessionManager;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
+import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.events.SessionClose;
 import net.runelite.client.events.SessionOpen;
 import net.runelite.client.game.ItemManager;
@@ -136,7 +136,7 @@ public class GrandExchangePlugin extends Plugin
 	private GrandExchangeConfig config;
 
 	@Inject
-	private Notifier notifier;
+	private CustomizableNotifier notifier;
 
 	@Inject
 	private ScheduledExecutorService executorService;
@@ -185,6 +185,7 @@ public class GrandExchangePlugin extends Plugin
 	@Override
 	protected void startUp()
 	{
+		notifier.setConfig(config);
 		itemGELimits = loadGELimits();
 		panel = injector.getInstance(GrandExchangePanel.class);
 		panel.setGELimits(itemGELimits);

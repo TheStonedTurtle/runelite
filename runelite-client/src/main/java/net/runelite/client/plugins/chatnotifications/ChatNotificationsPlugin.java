@@ -37,14 +37,14 @@ import javax.inject.Inject;
 import net.runelite.api.Client;
 import net.runelite.api.MessageNode;
 import net.runelite.api.events.ChatMessage;
-import net.runelite.client.events.ConfigChanged;
 import net.runelite.api.events.GameStateChanged;
-import net.runelite.client.Notifier;
+import net.runelite.client.CustomizableNotifier;
 import net.runelite.client.RuneLiteProperties;
 import net.runelite.client.chat.ChatColorType;
 import net.runelite.client.chat.ChatMessageManager;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
+import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.util.Text;
@@ -67,7 +67,7 @@ public class ChatNotificationsPlugin extends Plugin
 	private ChatMessageManager chatMessageManager;
 
 	@Inject
-	private Notifier notifier;
+	private CustomizableNotifier notifier;
 
 	//Custom Highlights
 	private Pattern usernameMatcher = null;
@@ -83,6 +83,7 @@ public class ChatNotificationsPlugin extends Plugin
 	@Override
 	public void startUp()
 	{
+		notifier.setConfig(config);
 		updateHighlights();
 	}
 

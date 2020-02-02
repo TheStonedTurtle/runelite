@@ -63,7 +63,7 @@ import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.events.ItemContainerChanged;
 import net.runelite.api.events.VarbitChanged;
-import net.runelite.client.Notifier;
+import net.runelite.client.CustomizableNotifier;
 import net.runelite.client.chat.ChatMessageManager;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
@@ -83,7 +83,7 @@ public class WintertodtPlugin extends Plugin
 	private static final int WINTERTODT_REGION = 6462;
 
 	@Inject
-	private Notifier notifier;
+	private CustomizableNotifier notifier;
 
 	@Inject
 	private Client client;
@@ -131,6 +131,7 @@ public class WintertodtPlugin extends Plugin
 	@Override
 	protected void startUp() throws Exception
 	{
+		notifier.setConfig(config);
 		reset();
 		overlayManager.add(overlay);
 	}

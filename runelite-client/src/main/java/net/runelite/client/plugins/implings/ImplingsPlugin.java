@@ -37,7 +37,7 @@ import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.NpcChanged;
 import net.runelite.api.events.NpcDespawned;
 import net.runelite.api.events.NpcSpawned;
-import net.runelite.client.Notifier;
+import net.runelite.client.CustomizableNotifier;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.plugins.Plugin;
@@ -67,7 +67,7 @@ public class ImplingsPlugin extends Plugin
 	private ImplingsConfig config;
 
 	@Inject
-	private Notifier notifier;
+	private CustomizableNotifier notifier;
 
 	@Provides
 	ImplingsConfig getConfig(ConfigManager configManager)
@@ -78,6 +78,7 @@ public class ImplingsPlugin extends Plugin
 	@Override
 	protected void startUp()
 	{
+		notifier.setConfig(config);
 		overlayManager.add(overlay);
 		overlayManager.add(minimapOverlay);
 	}

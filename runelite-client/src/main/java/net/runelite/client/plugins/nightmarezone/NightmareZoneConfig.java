@@ -28,8 +28,10 @@ import java.awt.Color;
 import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
+import net.runelite.client.config.CustomNotifier;
 
 @ConfigGroup("nightmareZone")
+@CustomNotifier
 public interface NightmareZoneConfig extends Config
 {
 	@ConfigItem(

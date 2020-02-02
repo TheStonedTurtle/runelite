@@ -27,8 +27,10 @@ package net.runelite.client.plugins.idlenotifier;
 import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
+import net.runelite.client.config.CustomNotifier;
 
 @ConfigGroup("idlenotifier")
+@CustomNotifier
 public interface IdleNotifierConfig extends Config
 {
 	@ConfigItem(
