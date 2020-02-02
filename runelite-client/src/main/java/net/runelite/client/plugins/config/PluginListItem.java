@@ -94,7 +94,7 @@ class PluginListItem extends JPanel
 		NOTIFIER_ICON_HOVER = new ImageIcon(ImageUtil.luminanceOffset(notifierIcon, -100));
 	}
 
-	PluginListItem(PluginListPanel pluginListPanel, PluginConfigurationDescriptor pluginConfig)
+	PluginListItem(PluginListPanel pluginListPanel, PluginConfigurationDescriptor pluginConfig, boolean showNotifierIcon)
 	{
 		this.pluginListPanel = pluginListPanel;
 		this.pluginConfig = pluginConfig;
@@ -139,7 +139,7 @@ class PluginListItem extends JPanel
 		add(buttonPanel, BorderLayout.LINE_END);
 
 		JMenuItem notifierMenuItem = null;
-		if (pluginConfig.getCustomNotifier() != null)
+		if (showNotifierIcon && pluginConfig.getCustomNotifier() != null)
 		{
 			JButton notifierButton = new JButton(NOTIFIER_ICON);
 			notifierButton.setRolloverIcon(NOTIFIER_ICON_HOVER);
