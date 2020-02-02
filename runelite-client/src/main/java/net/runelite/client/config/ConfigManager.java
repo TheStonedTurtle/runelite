@@ -61,10 +61,10 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.coords.WorldPoint;
-import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.RuneLite;
 import net.runelite.client.account.AccountSession;
 import net.runelite.client.eventbus.EventBus;
+import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.util.ColorUtil;
 import net.runelite.http.api.config.ConfigClient;
 import net.runelite.http.api.config.ConfigEntry;
@@ -540,6 +540,63 @@ public class ConfigManager
 			log.debug("Setting default configuration value for {}.{} to {}", group.value(), item.keyName(), defaultValue);
 
 			setConfiguration(group.value(), item.keyName(), valueString);
+		}
+
+		// Initialize the Custom Notifier settings on start-up
+		// Do not reset Custom Notifier settings when overriding plugin settings
+		CustomNotifier notifier = clazz.getAnnotation(CustomNotifier.class);
+		if (!override && notifier != null)
+		{
+			setDefaultNotifierConfiguration(notifier, group.value(), false);
+		}
+	}
+
+	public void setDefaultNotifierConfiguration(CustomNotifier notifier, String groupName, boolean override)
+	{
+		for (Method method : CustomNotifier.class.getDeclaredMethods())
+		{
+			ConfigItem item = method.getAnnotation(ConfigItem.class);
+			if (item == null)
+			{
+				continue;
+			}
+
+			final String keyName = method.getName();
+			if (!override)
+			{
+				// This checks if it is set and is also unmarshallable to the correct type; so
+				// we will overwrite invalid config values with the default
+				Object current = getConfiguration(groupName, keyName, method.getReturnType());
+				if (current != null)
+				{
+					continue; // something else is already set
+				}
+			}
+
+			Object defaultValue;
+			try
+			{
+				defaultValue = method.invoke(notifier);
+			}
+			catch (Throwable ex)
+			{
+				log.warn(null, ex);
+				continue;
+			}
+
+			String current = getConfiguration(groupName, keyName);
+			String valueString = objectToString(defaultValue);
+			// null and the empty string are treated identically in sendConfig and treated as an unset
+			// If a config value defaults to "" and the current value is null, it will cause an extra
+			// unset to be sent, so treat them as equal
+			if (Objects.equals(current, valueString) || (Strings.isNullOrEmpty(current) && Strings.isNullOrEmpty(valueString)))
+			{
+				continue; // already set to the default value
+			}
+
+			log.debug("Setting default configuration value for {}.{} to {}", groupName, item.keyName(), defaultValue);
+
+			setConfiguration(groupName, item.keyName(), valueString);
 		}
 	}
 

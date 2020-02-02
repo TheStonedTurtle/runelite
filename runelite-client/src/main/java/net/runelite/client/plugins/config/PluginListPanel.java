@@ -80,6 +80,7 @@ class PluginListPanel extends PluginPanel
 	private final PluginManager pluginManager;
 	private final ScheduledExecutorService executorService;
 	private final Provider<ConfigPanel> configPanelProvider;
+	private final Provider<NotifierPanel> notifierPanelProvider;
 	private final List<PluginConfigurationDescriptor> fakePlugins = new ArrayList<>();
 
 	@Getter
@@ -101,6 +102,7 @@ class PluginListPanel extends PluginPanel
 		ScheduledExecutorService executorService,
 		EventBus eventBus,
 		Provider<ConfigPanel> configPanelProvider,
+		Provider<NotifierPanel> notifierPanelProvider,
 		Provider<PluginHubPanel> pluginHubPanelProvider)
 	{
 		super(false);
@@ -110,6 +112,7 @@ class PluginListPanel extends PluginPanel
 		this.externalPluginManager = externalPluginManager;
 		this.executorService = executorService;
 		this.configPanelProvider = configPanelProvider;
+		this.notifierPanelProvider = notifierPanelProvider;
 
 		muxer = new MultiplexingPluginPanel(this)
 		{
@@ -309,6 +312,13 @@ class PluginListPanel extends PluginPanel
 	void openConfigurationPanel(PluginConfigurationDescriptor plugin)
 	{
 		ConfigPanel panel = configPanelProvider.get();
+		panel.init(plugin);
+		muxer.pushState(panel);
+	}
+
+	void openCustomNotifierPanel(PluginConfigurationDescriptor plugin)
+	{
+		NotifierPanel panel = notifierPanelProvider.get();
 		panel.init(plugin);
 		muxer.pushState(panel);
 	}
