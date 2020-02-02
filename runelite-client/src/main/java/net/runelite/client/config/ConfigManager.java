@@ -348,12 +348,14 @@ public class ConfigManager
 			throw new RuntimeException("Non-public configuration classes can't have default methods invoked");
 		}
 
-		T t = (T) Proxy.newProxyInstance(clazz.getClassLoader(), new Class<?>[]
-			{
-				clazz
-			}, handler);
+		Class[] classes = new Class<?>[] { clazz };
+		// Include the RuneLiteConfig since it has the exact same options and it simplifies the Notifier code
+		if (clazz.getSimpleName().equals("RuneLiteConfig") || clazz.getAnnotation(CustomNotifier.class) != null)
+		{
+			classes = new Class<?>[] { clazz, CustomNotifier.class };
+		}
 
-		return t;
+		return (T) Proxy.newProxyInstance(clazz.getClassLoader(), classes, handler);
 	}
 
 	public List<String> getConfigurationKeys(String prefix)
