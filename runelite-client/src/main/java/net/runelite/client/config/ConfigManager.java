@@ -56,6 +56,7 @@ import java.util.Objects;
 import java.util.Properties;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -66,6 +67,7 @@ import net.runelite.client.RuneLite;
 import net.runelite.client.account.AccountSession;
 import net.runelite.client.eventbus.EventBus;
 import net.runelite.client.util.ColorUtil;
+import net.runelite.http.api.RuneLiteAPI;
 import net.runelite.http.api.config.ConfigClient;
 import net.runelite.http.api.config.ConfigEntry;
 import net.runelite.http.api.config.Configuration;
@@ -543,6 +545,13 @@ public class ConfigManager
 		}
 	}
 
+	public <T> void updateConfiguration(final String groupName, final String keyName, BiFunction<NotificationSettings, T, NotificationSettings> with, T val)
+	{
+		NotificationSettings settings = getConfiguration(groupName, keyName, NotificationSettings.class);
+		settings = with.apply(settings, val);
+		setConfiguration(groupName, keyName, settings);
+	}
+
 	static Object stringToObject(String str, Class<?> type)
 	{
 		if (type == boolean.class || type == Boolean.class)
@@ -611,6 +620,17 @@ public class ConfigManager
 		{
 			return Duration.ofMillis(Long.parseLong(str));
 		}
+		if (type == NotificationSettings.class)
+		{
+			try
+			{
+				return RuneLiteAPI.GSON.fromJson(str, NotificationSettings.class);
+			}
+			catch (Throwable ex)
+			{
+				return null;
+			}
+		}
 		return str;
 	}
 
@@ -656,6 +676,10 @@ public class ConfigManager
 		if (object instanceof Duration)
 		{
 			return Long.toString(((Duration) object).toMillis());
+		}
+		if (object instanceof NotificationSettings)
+		{
+			return RuneLiteAPI.GSON.toJson(object);
 		}
 		return object.toString();
 	}
