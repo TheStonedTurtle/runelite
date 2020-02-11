@@ -54,6 +54,7 @@ import net.runelite.client.config.ConfigManager;
 import net.runelite.client.config.RuneLiteConfig;
 import net.runelite.client.eventbus.EventBus;
 import net.runelite.client.eventbus.Subscribe;
+import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.events.ExternalPluginsChanged;
 import net.runelite.client.events.PluginChanged;
 import net.runelite.client.externalplugins.ExternalPluginManager;
@@ -74,12 +75,15 @@ class PluginListPanel extends PluginPanel
 {
 	private static final String RUNELITE_GROUP_NAME = RuneLiteConfig.class.getAnnotation(ConfigGroup.class).value();
 	private static final String PINNED_PLUGINS_CONFIG_KEY = "pinnedPlugins";
+	private static final String CUSTOM_NOTIFICATIONS_CONFIG_KEY = "enableCustomNotifier";
 
 	private final ConfigManager configManager;
 	private final PluginManager pluginManager;
 	private final ScheduledExecutorService executorService;
 	private final Provider<ConfigPanel> configPanelProvider;
+	private final Provider<NotifierPanel> notifierPanelProvider;
 	private final List<PluginConfigurationDescriptor> fakePlugins = new ArrayList<>();
+	private final RuneLiteConfig runeLiteConfig;
 
 	@Getter
 	private final ExternalPluginManager externalPluginManager;
@@ -100,7 +104,9 @@ class PluginListPanel extends PluginPanel
 		ScheduledExecutorService executorService,
 		EventBus eventBus,
 		Provider<ConfigPanel> configPanelProvider,
-		Provider<PluginHubPanel> pluginHubPanelProvider)
+		Provider<PluginHubPanel> pluginHubPanelProvider,
+		Provider<NotifierPanel> notifierPanelProvider,
+		RuneLiteConfig runeLiteConfig)
 	{
 		super(false);
 
@@ -109,6 +115,8 @@ class PluginListPanel extends PluginPanel
 		this.externalPluginManager = externalPluginManager;
 		this.executorService = executorService;
 		this.configPanelProvider = configPanelProvider;
+		this.notifierPanelProvider = notifierPanelProvider;
+		this.runeLiteConfig = runeLiteConfig;
 
 		muxer = new MultiplexingPluginPanel(this)
 		{
@@ -205,7 +213,7 @@ class PluginListPanel extends PluginPanel
 				})
 		).map(desc ->
 		{
-			PluginListItem listItem = new PluginListItem(this, desc);
+			PluginListItem listItem = new PluginListItem(this, desc, runeLiteConfig.enableCustomNotifier());
 			listItem.setPinned(pinnedPlugins.contains(desc.getName()));
 			return listItem;
 		}).collect(Collectors.toList());
@@ -309,6 +317,13 @@ class PluginListPanel extends PluginPanel
 		muxer.pushState(panel);
 	}
 
+	void openCustomNotifierPanel(PluginConfigurationDescriptor plugin)
+	{
+		NotifierPanel panel = notifierPanelProvider.get();
+		panel.init(plugin);
+		muxer.pushState(panel);
+	}
+
 	void startPlugin(Plugin plugin)
 	{
 		executorService.submit(() ->
@@ -392,5 +407,14 @@ class PluginListPanel extends PluginPanel
 	private void onExternalPluginsChanged(ExternalPluginsChanged ev)
 	{
 		SwingUtilities.invokeLater(this::rebuildPluginList);
+	}
+
+	@Subscribe
+	private void onConfigChanged(ConfigChanged ev)
+	{
+		if (ev.getGroup().equals(RUNELITE_GROUP_NAME) && ev.getKey().equals(CUSTOM_NOTIFICATIONS_CONFIG_KEY))
+		{
+			SwingUtilities.invokeLater(this::rebuildPluginList);
+		}
 	}
 }

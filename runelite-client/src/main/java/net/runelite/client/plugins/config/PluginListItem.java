@@ -62,6 +62,8 @@ class PluginListItem extends JPanel
 	private static final ImageIcon CONFIG_ICON_HOVER;
 	private static final ImageIcon ON_STAR;
 	private static final ImageIcon OFF_STAR;
+	private static final ImageIcon NOTIFIER_ICON;
+	private static final ImageIcon NOTIFIER_ICON_HOVER;
 
 	private final PluginListPanel pluginListPanel;
 
@@ -86,9 +88,13 @@ class PluginListItem extends JPanel
 			0.77f
 		);
 		OFF_STAR = new ImageIcon(offStar);
+
+		BufferedImage notifierIcon = ImageUtil.getResourceStreamFromClass(ConfigPanel.class, "notifier_icon.png");
+		NOTIFIER_ICON = new ImageIcon(notifierIcon);
+		NOTIFIER_ICON_HOVER = new ImageIcon(ImageUtil.luminanceOffset(notifierIcon, -100));
 	}
 
-	PluginListItem(PluginListPanel pluginListPanel, PluginConfigurationDescriptor pluginConfig)
+	PluginListItem(PluginListPanel pluginListPanel, PluginConfigurationDescriptor pluginConfig, boolean showNotifierIcon)
 	{
 		this.pluginListPanel = pluginListPanel;
 		this.pluginConfig = pluginConfig;
@@ -132,6 +138,29 @@ class PluginListItem extends JPanel
 		buttonPanel.setLayout(new GridLayout(1, 2));
 		add(buttonPanel, BorderLayout.LINE_END);
 
+		JMenuItem notifierMenuItem = null;
+		if (showNotifierIcon && pluginConfig.hasNotificationConfigurables())
+		{
+			JButton notifierButton = new JButton(NOTIFIER_ICON);
+			notifierButton.setRolloverIcon(NOTIFIER_ICON_HOVER);
+			SwingUtil.removeButtonDecorations(notifierButton);
+			notifierButton.setPreferredSize(new Dimension(25, 0));
+			notifierButton.setVisible(false);
+			buttonPanel.add(notifierButton);
+
+			notifierButton.addActionListener(e ->
+			{
+				notifierButton.setIcon(NOTIFIER_ICON);
+				openNotifierConfigPanel();
+			});
+
+			notifierButton.setVisible(true);
+			notifierButton.setToolTipText("Edit plugin notification settings");
+
+			notifierMenuItem = new JMenuItem("Notifier");
+			notifierMenuItem.addActionListener(e -> openNotifierConfigPanel());
+		}
+
 		JMenuItem configMenuItem = null;
 		if (pluginConfig.hasConfigurables())
 		{
@@ -162,7 +191,7 @@ class PluginListItem extends JPanel
 			uninstallItem.addActionListener(ev -> pluginListPanel.getExternalPluginManager().remove(mf.getInternalName()));
 		}
 
-		addLabelPopupMenu(nameLabel, configMenuItem, pluginConfig.createSupportMenuItem(), uninstallItem);
+		addLabelPopupMenu(nameLabel, configMenuItem, notifierMenuItem, pluginConfig.createSupportMenuItem(), uninstallItem);
 		add(nameLabel, BorderLayout.CENTER);
 
 		onOffToggle = new PluginToggleButton();
@@ -223,6 +252,11 @@ class PluginListItem extends JPanel
 	private void openGroupConfigPanel()
 	{
 		pluginListPanel.openConfigurationPanel(pluginConfig);
+	}
+
+	private void openNotifierConfigPanel()
+	{
+		pluginListPanel.openCustomNotifierPanel(pluginConfig);
 	}
 
 	/**

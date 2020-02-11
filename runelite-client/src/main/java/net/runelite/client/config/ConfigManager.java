@@ -53,6 +53,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -493,6 +494,14 @@ public class ConfigManager
 				continue;
 			}
 
+			// Initialize the notification settings on start-up
+			// Do not reset notification settings when overriding plugin settings
+			if (!override && method.getReturnType().equals(NotificationSettings.class))
+			{
+				setDefaultNotificationSettings(proxy, group.value());
+				continue;
+			}
+
 			if (!method.isDefault())
 			{
 				if (override)
@@ -550,6 +559,49 @@ public class ConfigManager
 		NotificationSettings settings = getConfiguration(groupName, keyName, NotificationSettings.class);
 		settings = with.apply(settings, val);
 		setConfiguration(groupName, keyName, settings);
+	}
+	
+	public void setDefaultNotificationSettings(Object proxy, String groupName)
+	{
+		// We need to grab the default NotificationSettings from the proxy object
+		// To do this we must first find the method that has a return type of NotificationSettings
+		final Class<?> clazz = proxy.getClass().getInterfaces()[0];
+		final Optional<Method> notificationOptional = Arrays.stream(clazz.getDeclaredMethods())
+			.filter(f -> f.getReturnType().equals(NotificationSettings.class))
+			.findFirst();
+
+		if (!notificationOptional.isPresent())
+		{
+			log.warn("Couldn't find any notification settings for {}", clazz);
+			return;
+		}
+		final Method method = notificationOptional.get();
+
+		// Invoke the above method to get the default notification settings
+		Object defaultValue;
+		try
+		{
+			defaultValue = ConfigInvocationHandler.callDefaultMethod(proxy, method, null);
+		}
+		catch (Throwable ex)
+		{
+			log.warn(null, ex);
+			return;
+		}
+
+		String current = getConfiguration(groupName, method.getName());
+		String valueString = objectToString(defaultValue);
+		// null and the empty string are treated identically in sendConfig and treated as an unset
+		// If a config value defaults to "" and the current value is null, it will cause an extra
+		// unset to be sent, so treat them as equal
+		if (Objects.equals(current, valueString) || (Strings.isNullOrEmpty(current) && Strings.isNullOrEmpty(valueString)))
+		{
+			return; // already set to the default value
+		}
+
+		log.debug("Setting default configuration value for {}.{} to {}", groupName, method.getName(), defaultValue);
+
+		setConfiguration(groupName, method.getName(), valueString);
 	}
 
 	static Object stringToObject(String str, Class<?> type)
