@@ -359,4 +359,60 @@ public class WorldPoint
 	{
 		return position & (REGION_SIZE - 1);
 	}
+
+	/**
+	 * Calculates the directional degrees to the passed endPoint from the passed startingPoint where 0 is north and 180 is south
+	 * If the points are not on the same plane this method will return -1
+	 * @param startPoint current WorldPoint
+	 * @param endPoint target WorldPoint
+	 * @return degrees to endPoint from startPoint
+	 */
+	public static double getDegreesToWorldPoint(final WorldPoint startPoint, final WorldPoint endPoint)
+	{
+		if (startPoint.plane != endPoint.plane)
+		{
+			return -1;
+		}
+
+		final double angle = Math.atan2(endPoint.y - startPoint.y, endPoint.x - startPoint.x);
+		// Normalizes north to 0
+		return (90 - Math.toDegrees(angle) + 360) % 360;
+	}
+
+	/**
+	 * Calculates the {@link Direction} to the passed endPoint from the passed startPoint.
+	 * If the points are not on the same plane this method will return {@code Direction.UNKNOWN}
+	 * @param startPoint current WorldPoint
+	 * @param endPoint target WorldPoint
+	 * @return {@link Direction} to endPoint from statPoint
+	 */
+	public static Direction getDirectionToWorldPoint(final WorldPoint startPoint, final WorldPoint endPoint)
+	{
+		if (startPoint.plane != endPoint.plane)
+		{
+			return Direction.UNKNOWN;
+		}
+
+		// converts the degrees to endPoint into fraction representing X eighths of a circle (360 / 8 = 45)
+		final int fraction = (int) Math.round(getDegreesToWorldPoint(startPoint, endPoint) / 45);
+		if (fraction < 0 || fraction >= Direction.values().length)
+		{
+			return Direction.UNKNOWN;
+		}
+
+		return Direction.values()[fraction];
+	}
+
+	public enum Direction
+	{
+		NORTH,
+		NORTHEAST,
+		EAST,
+		SOUTHEAST,
+		SOUTH,
+		SOUTHWEST,
+		WEST,
+		NORTHWEST,
+		UNKNOWN
+	}
 }
