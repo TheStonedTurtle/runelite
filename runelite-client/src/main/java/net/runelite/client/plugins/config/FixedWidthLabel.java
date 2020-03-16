@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 Abex
+ * Copyright (c) 2020, Michael Goodwin <https://github.com/MichaelGoodwin>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -22,70 +22,47 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package net.runelite.client.externalplugins;
+package net.runelite.client.plugins.config;
 
-import com.google.common.hash.Hashing;
-import com.google.common.io.Files;
-import java.io.File;
-import java.io.IOException;
-import java.net.URL;
+import com.google.common.html.HtmlEscapers;
+import java.awt.Dimension;
+import java.awt.Insets;
 import javax.annotation.Nullable;
-import javax.swing.Icon;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import net.runelite.client.RuneLite;
+import javax.swing.JLabel;
+import javax.swing.plaf.basic.BasicHTML;
+import javax.swing.text.View;
+import lombok.extern.slf4j.Slf4j;
+import net.runelite.client.ui.PluginPanel;
 
-@Data
-public class ExternalPluginManifest
+@Slf4j
+public class FixedWidthLabel extends JLabel
 {
-	private String internalName;
-	private String commit;
-	private String hash;
-	private int size;
-	private String[] plugins;
-
-	private String displayName;
-	private String version;
-	private String author;
-	@Nullable
-	private String description;
-	@Nullable
-	private String[] tags;
-	@Nullable
-	private String[] warnings;
-	@EqualsAndHashCode.Exclude
-	private URL support;
-	private boolean hasIcon;
-	private Icon storedIcon;
-
-	public boolean hasIcon()
+	@Override
+	public void setText(@Nullable String text)
 	{
-		return hasIcon;
+		if (text != null && !text.startsWith("<html>"))
+		{
+			text = "<html>" +  HtmlEscapers.htmlEscaper().escape(text) + "</html>";
+		}
+
+		super.setText(text);
 	}
 
-	File getJarFile()
+	@Override
+	public Dimension getPreferredSize()
 	{
-		return new File(RuneLite.PLUGINS_DIR, internalName + commit + ".jar");
-	}
-
-	boolean isValid()
-	{
-		File file = getJarFile();
-
-		try
+		final View view = (View) this.getClientProperty(BasicHTML.propertyKey);
+		if (view == null)
 		{
-			if (file.exists())
-			{
-				String hash = Files.asByteSource(file).hash(Hashing.sha256()).toString();
-				if (this.hash.equals(hash))
-				{
-					return true;
-				}
-			}
+			log.warn("Trying to use FixedWidthLabel with non-html content: {}", getText());
+			return super.getPreferredSize();
 		}
-		catch (IOException e)
-		{
-		}
-		return false;
+
+		view.setSize(PluginPanel.PANEL_WIDTH, 0.0f);
+		int w = (int) view.getPreferredSpan(View.X_AXIS);
+		int h = (int) view.getPreferredSpan(View.Y_AXIS);
+		final Insets insets = getInsets();
+
+		return new Dimension(Math.min(super.getPreferredSize().width, w), h + insets.top + insets.bottom);
 	}
 }

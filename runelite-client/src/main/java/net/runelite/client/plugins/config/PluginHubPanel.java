@@ -58,6 +58,7 @@ import javax.swing.GroupLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.KeyStroke;
@@ -194,7 +195,8 @@ class PluginHubPanel extends PluginPanel
 
 						SwingUtilities.invokeLater(() ->
 						{
-							icon.setIcon(new ImageIcon(img));
+							manifest.setStoredIcon(new ImageIcon(img));
+							icon.setIcon(manifest.getStoredIcon());
 						});
 					}
 					catch (IOException e)
@@ -263,7 +265,22 @@ class PluginHubPanel extends PluginPanel
 			{
 				addrm.setText("Install");
 				addrm.setBackground(new Color(0x28BE28));
-				addrm.addActionListener(l -> externalPluginManager.install(manifest.getInternalName()));
+				addrm.addActionListener(l ->
+				{
+					if (manifest.getWarnings() != null)
+					{
+						final int result = JOptionPane.showConfirmDialog(this.getRootPane(),
+							new PluginPopupPanel(manifest),
+							"Attempting to install plugin",
+							JOptionPane.YES_NO_OPTION,
+							JOptionPane.PLAIN_MESSAGE);
+						if (result != JOptionPane.OK_OPTION)
+						{
+							return;
+						}
+					}
+					externalPluginManager.install(manifest.getInternalName());
+				});
 			}
 			else if (remove)
 			{
