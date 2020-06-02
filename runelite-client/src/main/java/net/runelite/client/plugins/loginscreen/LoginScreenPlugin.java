@@ -39,14 +39,16 @@ import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.Constants;
 import net.runelite.api.GameState;
+import net.runelite.api.IndexedSprite;
 import net.runelite.api.SpritePixels;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.client.RuneLite;
 import net.runelite.client.callback.ClientThread;
-import net.runelite.client.events.ConfigChanged;
-import net.runelite.client.events.SessionOpen;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
+import net.runelite.client.events.ConfigChanged;
+import net.runelite.client.events.SessionOpen;
+import net.runelite.client.game.SpriteManager;
 import net.runelite.client.input.KeyListener;
 import net.runelite.client.input.KeyManager;
 import net.runelite.client.plugins.Plugin;
@@ -77,6 +79,9 @@ public class LoginScreenPlugin extends Plugin implements KeyListener
 	@Inject
 	private KeyManager keyManager;
 
+	@Inject
+	private SpriteManager spriteManager;
+
 	private String usernameCache;
 
 	@Override
@@ -85,6 +90,7 @@ public class LoginScreenPlugin extends Plugin implements KeyListener
 		applyUsername();
 		keyManager.registerKeyListener(this);
 		clientThread.invoke(this::overrideLoginScreen);
+		clientThread.invoke(this::overrideLoginSprites);
 	}
 
 	@Override
@@ -99,6 +105,7 @@ public class LoginScreenPlugin extends Plugin implements KeyListener
 		clientThread.invoke(() ->
 		{
 			restoreLoginScreen();
+			restoreLoginScreenSprites();
 			client.setShouldRenderLoginScreenFire(true);
 		});
 	}
@@ -115,6 +122,7 @@ public class LoginScreenPlugin extends Plugin implements KeyListener
 		if (event.getGroup().equals("loginscreen"))
 		{
 			clientThread.invoke(this::overrideLoginScreen);
+			clientThread.invoke(this::overrideLoginSprites);
 		}
 	}
 
@@ -129,6 +137,10 @@ public class LoginScreenPlugin extends Plugin implements KeyListener
 		if (event.getGameState() == GameState.LOGIN_SCREEN)
 		{
 			applyUsername();
+			if (config.loginSprites() != LoginScreenSpriteOverride.OFF)
+			{
+				overrideLoginSprites();
+			}
 		}
 		else if (event.getGameState() == GameState.LOGGED_IN)
 		{
@@ -311,5 +323,68 @@ public class LoginScreenPlugin extends Plugin implements KeyListener
 		}
 
 		return null;
+	}
+
+	private IndexedSprite getIndexedSprite(LoginScreenSprites sprite)
+	{
+		if (config.loginSprites() == LoginScreenSpriteOverride.OFF)
+		{
+			return getIndexedSpriteFromSpriteManager(sprite);
+		}
+
+		return getIndexedSpriteFromFile(sprite, config.loginSprites());
+	}
+
+	private IndexedSprite getIndexedSpriteFromSpriteManager(LoginScreenSprites sprite)
+	{
+		final BufferedImage img = spriteManager.getSprite(sprite.getSpriteID(), sprite.getFileIdx());
+		if (img == null)
+		{
+			// These sprites should always exist?
+			return ImageUtil.getImageIndexedSprite(new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB), client);
+		}
+
+		return ImageUtil.getImageIndexedSprite(img, client);
+	}
+
+	private IndexedSprite getIndexedSpriteFromFile(LoginScreenSprites sprite, LoginScreenSpriteOverride override)
+	{
+		final BufferedImage img = sprite.getOverrideImage(override);
+		if (img == null)
+		{
+			// Default to the current jagex sprite
+			return getIndexedSpriteFromSpriteManager(sprite);
+		}
+
+		return ImageUtil.getImageIndexedSprite(img, client);
+	}
+
+	private void restoreLoginScreenSprites()
+	{
+		client.setTitleWorldSwitchSprite(null);
+
+		// All other login sprites are reset on GameState changed
+		if (client.getGameState() == GameState.LOGIN_SCREEN)
+		{
+			client.setGameState(GameState.LOGIN_SCREEN);
+		}
+	}
+
+	private void overrideLoginSprites()
+	{
+		final LoginScreenSpriteOverride spriteOverride = config.loginSprites();
+		if (spriteOverride == LoginScreenSpriteOverride.OFF)
+		{
+			restoreLoginScreenSprites();
+			return;
+		}
+
+		client.setLogoSprite(getIndexedSprite(LoginScreenSprites.LOGO));
+		client.setTitleBox(getIndexedSprite(LoginScreenSprites.DIALOG_BACKGROUND));
+		client.setTitleLoginButtonSprite(getIndexedSprite(LoginScreenSprites.BUTTON_BACKGROUND));
+		client.setTitleWorldSwitchSprite(getIndexedSprite(LoginScreenSprites.WORLD_SELECT));
+		client.setTitlemuteSprite(new IndexedSprite[]{
+			getIndexedSprite(LoginScreenSprites.MUSIC_BUTTON), getIndexedSprite(LoginScreenSprites.MUSIC_BUTTON_MUTED)
+		});
 	}
 }

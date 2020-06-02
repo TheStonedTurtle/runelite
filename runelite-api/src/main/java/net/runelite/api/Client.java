@@ -1762,4 +1762,30 @@ public interface Client extends GameEngine
 	 * Sets whether the flames on the login screen should be rendered
 	 */
 	void setShouldRenderLoginScreenFire(boolean val);
+
+	/**
+	 * Sets the image to be used for the logo. This is displayed on the login screen
+	 */
+	void setLogoSprite(IndexedSprite is);
+
+	/**
+	 * Sets the image to be used for the title box. This is displayed on the login screen
+	 */
+	void setTitleBox(IndexedSprite is);
+
+	/**
+	 * Sets the image to be used for the buttons inside the title box. This is displayed on the login screen
+	 */
+	void setTitleLoginButtonSprite(IndexedSprite is);
+
+	/**
+	 * Sets the images to be used for the mute button inside the title box. These are displayed on the login screen
+	 * @param ais Expected to have a length of 2 where index 0 is the un-muted icon and index 1 is the muted icon
+	 */
+	void setTitlemuteSprite(IndexedSprite[] ais);
+
+	/**
+	 * Sets the image to be used for the world switcher button that is displayed on the login screen
+	 */
+	void setTitleWorldSwitchSprite(IndexedSprite is);
 }
