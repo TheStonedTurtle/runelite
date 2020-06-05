@@ -164,6 +164,20 @@ public class WorldPoint
 	 */
 	public static WorldPoint fromLocalInstance(Client client, LocalPoint localPoint)
 	{
+		return fromLocalInstance(client, localPoint, -1);
+	}
+
+	/**
+	 * Gets the coordinate of the tile that contains the passed local point,
+	 * accounting for instances.
+	 *
+	 * @param client the client
+	 * @param localPoint the local coordinate
+	 * @param plane the plane or z parameter. Ignored if not in an instance. Calculated from template chunk if -1
+	 * @return the tile coordinate containing the local point
+	 */
+	public static WorldPoint fromLocalInstance(Client client, LocalPoint localPoint, int plane)
+	{
 		if (client.isInInstancedRegion())
 		{
 			// get position in the scene
@@ -181,7 +195,10 @@ public class WorldPoint
 			int rotation = templateChunk >> 1 & 0x3;
 			int templateChunkY = (templateChunk >> 3 & 0x7FF) * CHUNK_SIZE;
 			int templateChunkX = (templateChunk >> 14 & 0x3FF) * CHUNK_SIZE;
-			int plane = templateChunk >> 24 & 0x3;
+			if (plane == -1)
+			{
+				plane = templateChunk >> 24 & 0x3;
+			}
 
 			// calculate world point of the template
 			int x = templateChunkX + (sceneX & (CHUNK_SIZE - 1));
