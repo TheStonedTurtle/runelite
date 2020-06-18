@@ -113,6 +113,7 @@ public class TabInterface
 	private static final String REMOVE_TAG = "Remove-tag";
 	private static final String TAG_GEAR = "Tag-equipment";
 	private static final String TAG_INVENTORY = "Tag-inventory";
+	private static final String TAG_ITEM = "Tag-item";
 	private static final String TAB_MENU_KEY = "tagtabs";
 	private static final String TAB_MENU = TAG_SEARCH + TAB_MENU_KEY;
 	private static final String OPEN_TAB_MENU = "View tag tabs";
@@ -692,6 +693,24 @@ public class TabInterface
 
 			client.setMenuEntries(entries);
 		}
+		else if (activeTab != null
+			&& event.getActionParam1() == WidgetInfo.BANK_INVENTORY_ITEMS_CONTAINER.getId()
+			&& event.getOption().equals("Examine")
+			&& config.tagItems())
+		{
+			final Widget container = client.getWidget(WidgetInfo.BANK_INVENTORY_ITEMS_CONTAINER);
+			final Widget item = container.getChild(event.getActionParam0());
+			final int itemID = item.getItemId();
+
+			String entryText = TAG_ITEM;
+			if (tagManager.hasTag(itemID, activeTab.getTag()))
+			{
+				entryText = REMOVE_TAG;
+			}
+
+			entries = createMenuEntry(event, entryText, event.getTarget(), entries);
+			client.setMenuEntries(entries);
+		}
 	}
 
 	public void handleClick(MenuOptionClicked event)
@@ -752,6 +771,26 @@ public class TabInterface
 			|| (event.getWidgetId() == WidgetInfo.BANK_DEPOSIT_EQUIPMENT.getId() && event.getMenuOption().equals(TAG_GEAR))))
 		{
 			handleDeposit(event, event.getWidgetId() == WidgetInfo.BANK_DEPOSIT_INVENTORY.getId());
+		}
+		else if (activeTab != null
+			&& event.getMenuAction() == MenuAction.RUNELITE
+			&& event.getWidgetId() == WidgetInfo.BANK_INVENTORY_ITEMS_CONTAINER.getId()
+			&& (event.getMenuOption().equals(TAG_ITEM) || event.getMenuOption().equals(REMOVE_TAG)))
+		{
+			final Widget container = client.getWidget(WidgetInfo.BANK_INVENTORY_ITEMS_CONTAINER);
+			final Widget item = container.getChild(event.getActionParam());
+			final int itemID = item.getItemId();
+
+			if (event.getMenuOption().equals(TAG_ITEM))
+			{
+				tagManager.addTag(itemID, activeTab.getTag(), false);
+			}
+			else if (event.getMenuOption().equals(REMOVE_TAG))
+			{
+				tagManager.removeTag(itemID, activeTab.getTag());
+			}
+
+			openTag(activeTab.getTag());
 		}
 	}
 

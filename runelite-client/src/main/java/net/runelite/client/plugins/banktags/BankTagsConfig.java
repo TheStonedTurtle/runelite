@@ -54,6 +54,17 @@ public interface BankTagsConfig extends Config
 	}
 
 	@ConfigItem(
+		keyName = "tagItems",
+		name = "Tag Inventory Items",
+		description = "Enables the ability to tag items from your inventory while viewing a bank tab.",
+		position = 3
+	)
+	default boolean tagItems()
+	{
+		return false;
+	}
+
+	@ConfigItem(
 		keyName = "position",
 		name = "",
 		description = "",

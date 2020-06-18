@@ -228,4 +228,14 @@ public class TagManager
 
 		return false;
 	}
+
+	public boolean hasTag(int itemId, String tag)
+	{
+		return hasTag(itemId, tag, false);
+	}
+
+	public boolean hasTag(int itemId, String tag, boolean variation)
+	{
+		return tag != null && getTags(itemId, variation).contains(tag);
+	}
 }
