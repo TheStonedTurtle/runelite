@@ -1762,4 +1762,7 @@ public interface Client extends GameEngine
 	 * Sets whether the flames on the login screen should be rendered
 	 */
 	void setShouldRenderLoginScreenFire(boolean val);
+
+	void ayyy(SpritePixels left);
+	void lmao(SpritePixels right);
 }
