@@ -33,6 +33,9 @@ import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import javax.imageio.ImageIO;
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
@@ -43,16 +46,17 @@ import net.runelite.api.SpritePixels;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.client.RuneLite;
 import net.runelite.client.callback.ClientThread;
-import net.runelite.client.events.ConfigChanged;
-import net.runelite.client.events.SessionOpen;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
+import net.runelite.client.events.ConfigChanged;
+import net.runelite.client.events.SessionOpen;
 import net.runelite.client.input.KeyListener;
 import net.runelite.client.input.KeyManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.util.ImageUtil;
 import net.runelite.client.util.OSType;
+import net.runelite.client.util.RunnableExceptionLogger;
 
 @PluginDescriptor(
 	name = "Login Screen",
@@ -64,6 +68,8 @@ public class LoginScreenPlugin extends Plugin implements KeyListener
 	private static final int MAX_USERNAME_LENGTH = 254;
 	private static final int MAX_PIN_LENGTH = 6;
 	private static final File CUSTOM_LOGIN_SCREEN_FILE = new File(RuneLite.RUNELITE_DIR, "login.png");
+	private static final File ANIMATED_LOGIN_SCREEN_FILE = new File(RuneLite.RUNELITE_DIR, "login.mp4");
+	private static final int _24_FPS_MICROSECONDS = 41666;
 
 	@Inject
 	private Client client;
@@ -75,9 +81,15 @@ public class LoginScreenPlugin extends Plugin implements KeyListener
 	private LoginScreenConfig config;
 
 	@Inject
+	private ScheduledExecutorService executorService;
+
+	@Inject
 	private KeyManager keyManager;
 
 	private String usernameCache;
+
+	private MP4Decoder decoder = null;
+	private ScheduledFuture<?> gifPlaybackFuture = null;
 
 	@Override
 	protected void startUp() throws Exception
@@ -85,6 +97,7 @@ public class LoginScreenPlugin extends Plugin implements KeyListener
 		applyUsername();
 		keyManager.registerKeyListener(this);
 		clientThread.invoke(this::overrideLoginScreen);
+		decoder = new MP4Decoder(ANIMATED_LOGIN_SCREEN_FILE);
 	}
 
 	@Override
@@ -101,6 +114,8 @@ public class LoginScreenPlugin extends Plugin implements KeyListener
 			restoreLoginScreen();
 			client.setShouldRenderLoginScreenFire(true);
 		});
+
+		cleanupAnimatedBackground();
 	}
 
 	@Provides
@@ -114,6 +129,11 @@ public class LoginScreenPlugin extends Plugin implements KeyListener
 	{
 		if (event.getGroup().equals("loginscreen"))
 		{
+			if (event.getKey().equals("loginScreen"))
+			{
+				cleanupAnimatedBackground();
+			}
+
 			clientThread.invoke(this::overrideLoginScreen);
 		}
 	}
@@ -129,6 +149,12 @@ public class LoginScreenPlugin extends Plugin implements KeyListener
 		if (event.getGameState() == GameState.LOGIN_SCREEN)
 		{
 			applyUsername();
+
+			// Make sure the right side of login screen is removed since animated backgrounds should use the entire screen
+			if (config.loginScreen() == LoginScreenOverride.ANIMATED && (decoder != null && decoder.isValid()))
+			{
+				clientThread.invoke(() -> client.lmao(client.createSpritePixels(new int[]{0}, 0, 0)));
+			}
 		}
 		else if (event.getGameState() == GameState.LOGGED_IN)
 		{
@@ -281,6 +307,30 @@ public class LoginScreenPlugin extends Plugin implements KeyListener
 				}
 			}
 		}
+		else if (config.loginScreen() == LoginScreenOverride.ANIMATED)
+		{
+			if (!ANIMATED_LOGIN_SCREEN_FILE.exists())
+			{
+				return;
+			}
+
+			if (gifPlaybackFuture != null)
+			{
+				// Ensure right side of client hasn't changed during foreground updates
+				clientThread.invoke(() -> client.lmao(client.createSpritePixels(new int[]{0}, 0, 0)));
+				return;
+			}
+
+			decoder = new MP4Decoder(ANIMATED_LOGIN_SCREEN_FILE);
+			if (decoder.isValid())
+			{
+				// Remove right side of image since animated backgrounds should use the entire screen
+				clientThread.invoke(() -> client.lmao(client.createSpritePixels(new int[]{0}, 0, 0)));
+				// Schedule the image to be updated every 41.666 milliseconds (24 fps)
+				gifPlaybackFuture = executorService.scheduleAtFixedRate(
+					RunnableExceptionLogger.wrap(this::displayNextAnimatedBackgroundFrame), 0, _24_FPS_MICROSECONDS, TimeUnit.MICROSECONDS);
+			}
+		}
 		else
 		{
 			pixels = getFileSpritePixels(config.loginScreen().getFileName());
@@ -311,5 +361,34 @@ public class LoginScreenPlugin extends Plugin implements KeyListener
 		}
 
 		return null;
+	}
+
+	private void cleanupAnimatedBackground()
+	{
+		decoder = null;
+		if (gifPlaybackFuture != null && !gifPlaybackFuture.isDone())
+		{
+			gifPlaybackFuture.cancel(true);
+			gifPlaybackFuture = null;
+		}
+	}
+
+	private void displayNextAnimatedBackgroundFrame()
+	{
+		if (decoder == null || !decoder.isValid()
+			|| client.getGameState() != GameState.LOGIN_SCREEN
+			|| config.loginScreen() != LoginScreenOverride.ANIMATED)
+		{
+			return;
+		}
+
+		final BufferedImage img = decoder.getNextFrame();
+		if (img == null)
+		{
+			return;
+		}
+
+		final SpritePixels pixels = ImageUtil.getImageSpritePixels(img, client);
+		clientThread.invoke(() -> client.ayyy(pixels));
 	}
 }

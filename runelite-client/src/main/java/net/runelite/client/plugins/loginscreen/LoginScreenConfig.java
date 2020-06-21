@@ -80,6 +80,13 @@ public interface LoginScreenConfig extends Config
 	}
 
 	@ConfigItem(
+		keyName = "loginScreen",
+		name = "",
+		description = ""
+	)
+	void setLoginScreen(LoginScreenOverride state);
+
+	@ConfigItem(
 		keyName = "showLoginFire",
 		name = "Display Fire",
 		description = "Whether or not the fire in the braziers at the sides of the login screen should be on fire."
