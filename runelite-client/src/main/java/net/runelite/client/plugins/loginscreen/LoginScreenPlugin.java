@@ -96,7 +96,6 @@ public class LoginScreenPlugin extends Plugin implements KeyListener
 	private String usernameCache;
 
 	private ScheduledFuture<?> gifPlaybackFuture = null;
-
 	private FrameGrab backgroundFrameGrabber = null;
 	private int backgroundFrameNumber = 0;
 	private int backgroundTotalFrames = 0;
@@ -381,11 +380,16 @@ public class LoginScreenPlugin extends Plugin implements KeyListener
 		try
 		{
 			final FileChannelWrapper wrapper = NIOUtils.readableChannel(ANIMATED_LOGIN_SCREEN_FILE);
-			backgroundFrameGrabber = FrameGrab.createFrameGrab(NIOUtils.readableChannel(ANIMATED_LOGIN_SCREEN_FILE));
-			backgroundFrameNumber = 0;
 			final DemuxerTrack videoTrack = MP4Demuxer.createMP4Demuxer(wrapper).getVideoTrack();
 			backgroundTotalFrames = videoTrack.getMeta().getTotalFrames();
-			log.info("Total Frames: {}", backgroundTotalFrames);
+			if (backgroundTotalFrames <= 0)
+			{
+				log.error("Background MP4 file does not have frames");
+				return;
+			}
+
+			backgroundFrameGrabber = FrameGrab.createFrameGrab(wrapper);
+			backgroundFrameNumber = 0;
 		}
 		catch (IOException | JCodecException e)
 		{
