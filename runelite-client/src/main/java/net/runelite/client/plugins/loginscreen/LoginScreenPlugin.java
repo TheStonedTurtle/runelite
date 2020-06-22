@@ -57,14 +57,6 @@ import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.util.ImageUtil;
 import net.runelite.client.util.OSType;
 import net.runelite.client.util.RunnableExceptionLogger;
-import org.jcodec.api.FrameGrab;
-import org.jcodec.api.JCodecException;
-import org.jcodec.common.DemuxerTrack;
-import org.jcodec.common.io.FileChannelWrapper;
-import org.jcodec.common.io.NIOUtils;
-import org.jcodec.common.model.Picture;
-import org.jcodec.containers.mp4.demuxer.MP4Demuxer;
-import org.jcodec.scale.AWTUtil;
 
 @PluginDescriptor(
 	name = "Login Screen",
@@ -77,6 +69,7 @@ public class LoginScreenPlugin extends Plugin implements KeyListener
 	private static final int MAX_PIN_LENGTH = 6;
 	private static final File CUSTOM_LOGIN_SCREEN_FILE = new File(RuneLite.RUNELITE_DIR, "login.png");
 	private static final File ANIMATED_LOGIN_SCREEN_FILE = new File(RuneLite.RUNELITE_DIR, "login.mp4");
+	private static final int _24_FPS_MICROSECONDS = 41666;
 
 	@Inject
 	private Client client;
@@ -95,10 +88,8 @@ public class LoginScreenPlugin extends Plugin implements KeyListener
 
 	private String usernameCache;
 
+	private MP4Decoder decoder = null;
 	private ScheduledFuture<?> gifPlaybackFuture = null;
-	private FrameGrab backgroundFrameGrabber = null;
-	private int backgroundFrameNumber = 0;
-	private int backgroundTotalFrames = 0;
 
 	@Override
 	protected void startUp() throws Exception
@@ -106,6 +97,7 @@ public class LoginScreenPlugin extends Plugin implements KeyListener
 		applyUsername();
 		keyManager.registerKeyListener(this);
 		clientThread.invoke(this::overrideLoginScreen);
+		decoder = new MP4Decoder(ANIMATED_LOGIN_SCREEN_FILE);
 	}
 
 	@Override
@@ -157,6 +149,12 @@ public class LoginScreenPlugin extends Plugin implements KeyListener
 		if (event.getGameState() == GameState.LOGIN_SCREEN)
 		{
 			applyUsername();
+
+			// Make sure the right side of login screen is removed since animated backgrounds should use the entire screen
+			if (config.loginScreen() == LoginScreenOverride.ANIMATED && (decoder != null && decoder.isValid()))
+			{
+				clientThread.invoke(() -> client.lmao(client.createSpritePixels(new int[]{0}, 0, 0)));
+			}
 		}
 		else if (event.getGameState() == GameState.LOGGED_IN)
 		{
@@ -311,20 +309,26 @@ public class LoginScreenPlugin extends Plugin implements KeyListener
 		}
 		else if (config.loginScreen() == LoginScreenOverride.ANIMATED)
 		{
-			if (gifPlaybackFuture != null)
+			if (!ANIMATED_LOGIN_SCREEN_FILE.exists())
 			{
 				return;
 			}
 
-			updateAnimatedBackgroundFrameGrabber();
+			if (gifPlaybackFuture != null)
+			{
+				// Ensure right side of client hasn't changed during foreground updates
+				clientThread.invoke(() -> client.lmao(client.createSpritePixels(new int[]{0}, 0, 0)));
+				return;
+			}
 
-			if (backgroundFrameGrabber != null)
+			decoder = new MP4Decoder(ANIMATED_LOGIN_SCREEN_FILE);
+			if (decoder.isValid())
 			{
 				// Remove right side of image since animated backgrounds should use the entire screen
 				clientThread.invoke(() -> client.lmao(client.createSpritePixels(new int[]{0}, 0, 0)));
 				// Schedule the image to be updated every 41.666 milliseconds (24 fps)
 				gifPlaybackFuture = executorService.scheduleAtFixedRate(
-					RunnableExceptionLogger.wrap(this::displayNextAnimatedBackgroundFrame), 0, 41666, TimeUnit.MICROSECONDS);
+					RunnableExceptionLogger.wrap(this::displayNextAnimatedBackgroundFrame), 0, _24_FPS_MICROSECONDS, TimeUnit.MICROSECONDS);
 			}
 		}
 		else
@@ -361,8 +365,7 @@ public class LoginScreenPlugin extends Plugin implements KeyListener
 
 	private void cleanupAnimatedBackground()
 	{
-		backgroundFrameGrabber = null;
-		backgroundFrameNumber = 0;
+		decoder = null;
 		if (gifPlaybackFuture != null && !gifPlaybackFuture.isDone())
 		{
 			gifPlaybackFuture.cancel(true);
@@ -370,71 +373,21 @@ public class LoginScreenPlugin extends Plugin implements KeyListener
 		}
 	}
 
-	private void updateAnimatedBackgroundFrameGrabber()
-	{
-		if (!ANIMATED_LOGIN_SCREEN_FILE.exists())
-		{
-			return;
-		}
-
-		try
-		{
-			final FileChannelWrapper wrapper = NIOUtils.readableChannel(ANIMATED_LOGIN_SCREEN_FILE);
-			final DemuxerTrack videoTrack = MP4Demuxer.createMP4Demuxer(wrapper).getVideoTrack();
-			backgroundTotalFrames = videoTrack.getMeta().getTotalFrames();
-			if (backgroundTotalFrames <= 0)
-			{
-				log.error("Background MP4 file does not have frames");
-				return;
-			}
-
-			backgroundFrameGrabber = FrameGrab.createFrameGrab(wrapper);
-			backgroundFrameNumber = 0;
-		}
-		catch (IOException | JCodecException e)
-		{
-			log.error("error loading custom animated login screen file", e);
-		}
-	}
-
 	private void displayNextAnimatedBackgroundFrame()
 	{
-		if (client.getGameState() != GameState.LOGIN_SCREEN || config.loginScreen() != LoginScreenOverride.ANIMATED)
+		if (client.getGameState() != GameState.LOGIN_SCREEN || config.loginScreen() != LoginScreenOverride.ANIMATED
+			|| decoder == null || !decoder.isValid())
 		{
 			return;
 		}
 
-		if (backgroundFrameNumber >= backgroundTotalFrames)
+		final BufferedImage img = decoder.getNextFrame();
+		if (img == null)
 		{
-			backgroundFrameNumber = 0;
-			try
-			{
-				backgroundFrameGrabber.seekToFramePrecise(0);
-			}
-			catch (IOException | JCodecException ignored)
-			{
-			}
 			return;
 		}
 
-		final SpritePixels pixels = getNextFrameOfMp4File();
-		backgroundFrameNumber++;
+		final SpritePixels pixels = ImageUtil.getImageSpritePixels(img, client);
 		clientThread.invoke(() -> client.ayyy(pixels));
-	}
-
-	private SpritePixels getNextFrameOfMp4File()
-	{
-		try
-		{
-			final Picture picture = backgroundFrameGrabber.getNativeFrame();
-			final BufferedImage bufferedImage = AWTUtil.toBufferedImage(picture);
-			return ImageUtil.getImageSpritePixels(bufferedImage, client);
-		}
-		catch (IOException e)
-		{
-			log.error("Error retrieving frame of MP4 file", e);
-		}
-
-		return null;
 	}
 }
