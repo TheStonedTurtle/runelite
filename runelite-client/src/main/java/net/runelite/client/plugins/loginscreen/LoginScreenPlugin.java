@@ -37,8 +37,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import javax.imageio.ImageIO;
-import javax.imageio.ImageReader;
-import javax.imageio.metadata.IIOMetadata;
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
@@ -59,9 +57,14 @@ import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.util.ImageUtil;
 import net.runelite.client.util.OSType;
 import net.runelite.client.util.RunnableExceptionLogger;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
+import org.jcodec.api.FrameGrab;
+import org.jcodec.api.JCodecException;
+import org.jcodec.common.DemuxerTrack;
+import org.jcodec.common.io.FileChannelWrapper;
+import org.jcodec.common.io.NIOUtils;
+import org.jcodec.common.model.Picture;
+import org.jcodec.containers.mp4.demuxer.MP4Demuxer;
+import org.jcodec.scale.AWTUtil;
 
 @PluginDescriptor(
 	name = "Login Screen",
@@ -73,7 +76,7 @@ public class LoginScreenPlugin extends Plugin implements KeyListener
 	private static final int MAX_USERNAME_LENGTH = 254;
 	private static final int MAX_PIN_LENGTH = 6;
 	private static final File CUSTOM_LOGIN_SCREEN_FILE = new File(RuneLite.RUNELITE_DIR, "login.png");
-	private static final File CUSTOM_LOGIN_SCREEN_GIF = new File(RuneLite.RUNELITE_DIR, "login.gif");
+	private static final File ANIMATED_LOGIN_SCREEN_FILE = new File(RuneLite.RUNELITE_DIR, "login.mp4");
 
 	@Inject
 	private Client client;
@@ -93,9 +96,10 @@ public class LoginScreenPlugin extends Plugin implements KeyListener
 	private String usernameCache;
 
 	private ScheduledFuture<?> gifPlaybackFuture = null;
-	private BufferedImage gifReaderFrame = null;
-	private ImageReader gifReader = null;
-	private int gifReaderIdx = 0;
+
+	private FrameGrab backgroundFrameGrabber = null;
+	private int backgroundFrameNumber = 0;
+	private int backgroundTotalFrames = 0;
 
 	@Override
 	protected void startUp() throws Exception
@@ -313,10 +317,9 @@ public class LoginScreenPlugin extends Plugin implements KeyListener
 				return;
 			}
 
-			cleanupAnimatedBackground();
-			updateGifReader();
+			updateAnimatedBackgroundFrameGrabber();
 
-			if (gifReader != null)
+			if (backgroundFrameGrabber != null)
 			{
 				// Remove right side of image since animated backgrounds should use the entire screen
 				clientThread.invoke(() -> client.lmao(client.createSpritePixels(new int[]{0}, 0, 0)));
@@ -359,9 +362,8 @@ public class LoginScreenPlugin extends Plugin implements KeyListener
 
 	private void cleanupAnimatedBackground()
 	{
-		gifReaderFrame = null;
-		gifReader = null;
-		gifReaderIdx = 0;
+		backgroundFrameGrabber = null;
+		backgroundFrameNumber = 0;
 		if (gifPlaybackFuture != null && !gifPlaybackFuture.isDone())
 		{
 			gifPlaybackFuture.cancel(true);
@@ -369,25 +371,25 @@ public class LoginScreenPlugin extends Plugin implements KeyListener
 		}
 	}
 
-	private void updateGifReader()
+	private void updateAnimatedBackgroundFrameGrabber()
 	{
-		if (!CUSTOM_LOGIN_SCREEN_GIF.exists())
+		if (!ANIMATED_LOGIN_SCREEN_FILE.exists())
 		{
 			return;
 		}
 
 		try
 		{
-			synchronized (ImageIO.class)
-			{
-				gifReader = ImageIO.getImageReadersByFormatName("gif").next();
-				gifReader.setInput(ImageIO.createImageInputStream(CUSTOM_LOGIN_SCREEN_GIF), false);
-				gifReaderIdx = 0;
-			}
+			final FileChannelWrapper wrapper = NIOUtils.readableChannel(ANIMATED_LOGIN_SCREEN_FILE);
+			backgroundFrameGrabber = FrameGrab.createFrameGrab(NIOUtils.readableChannel(ANIMATED_LOGIN_SCREEN_FILE));
+			backgroundFrameNumber = 0;
+			final DemuxerTrack videoTrack = MP4Demuxer.createMP4Demuxer(wrapper).getVideoTrack();
+			backgroundTotalFrames = videoTrack.getMeta().getTotalFrames();
+			log.info("Total Frames: {}", backgroundTotalFrames);
 		}
-		catch (IOException e)
+		catch (IOException | JCodecException e)
 		{
-			log.error("error loading custom animated login screen gif", e);
+			log.error("error loading custom animated login screen file", e);
 		}
 	}
 
@@ -398,55 +400,37 @@ public class LoginScreenPlugin extends Plugin implements KeyListener
 			return;
 		}
 
-		if (gifReader == null)
+		if (backgroundFrameNumber >= backgroundTotalFrames)
 		{
-			updateGifReader();
+			backgroundFrameNumber = 0;
+			try
+			{
+				backgroundFrameGrabber.seekToFramePrecise(0);
+			}
+			catch (IOException | JCodecException ignored)
+			{
+			}
 			return;
 		}
 
+		final SpritePixels pixels = getNextFrameOfMp4File();
+		backgroundFrameNumber++;
+		clientThread.invoke(() -> client.ayyy(pixels));
+	}
+
+	private SpritePixels getNextFrameOfMp4File()
+	{
 		try
 		{
-			if (gifReaderIdx >= gifReader.getNumImages(true))
-			{
-				gifReaderIdx = 0;
-				return;
-			}
-
-			final BufferedImage image = gifReader.read(gifReaderIdx);
-			final IIOMetadata metadata = gifReader.getImageMetadata(gifReaderIdx);
-
-			final Node tree = metadata.getAsTree("javax_imageio_gif_image_1.0");
-			final NodeList children = tree.getChildNodes();
-			// Find the ImageDescriptor child
-			for (int j = 0; j < children.getLength(); j++)
-			{
-				final Node nodeItem = children.item(j);
-				if (!nodeItem.getNodeName().equals("ImageDescriptor"))
-				{
-					continue;
-				}
-
-				final NamedNodeMap attr = nodeItem.getAttributes();
-				if (gifReaderFrame == null)
-				{
-					// Size frame to fit gif dimensions
-					final int width = Integer.valueOf(attr.getNamedItem("imageWidth").getNodeValue());
-					final int height = Integer.valueOf(attr.getNamedItem("imageHeight").getNodeValue());
-					gifReaderFrame = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-				}
-
-				// Draw the updated pixels over the previous frame
-				final int leftPos = Integer.valueOf(attr.getNamedItem("imageLeftPosition").getNodeValue());
-				final int topPos = Integer.valueOf(attr.getNamedItem("imageTopPosition").getNodeValue());
-				gifReaderFrame.getGraphics().drawImage(image, leftPos, topPos, null);
-				final SpritePixels pixels = ImageUtil.getImageSpritePixels(gifReaderFrame, client);
-				clientThread.invoke(() -> client.ayyy(pixels));
-				gifReaderIdx++;
-			}
+			final Picture picture = backgroundFrameGrabber.getNativeFrame();
+			final BufferedImage bufferedImage = AWTUtil.toBufferedImage(picture);
+			return ImageUtil.getImageSpritePixels(bufferedImage, client);
 		}
 		catch (IOException e)
 		{
-			log.error("error loading frame of animated login screen gif", e);
+			log.error("Error retrieving frame of MP4 file", e);
 		}
+
+		return null;
 	}
 }
