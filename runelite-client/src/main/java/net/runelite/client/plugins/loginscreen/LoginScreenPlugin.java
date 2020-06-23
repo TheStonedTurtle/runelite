@@ -327,12 +327,14 @@ public class LoginScreenPlugin extends Plugin implements KeyListener
 
 	private IndexedSprite getIndexedSprite(LoginScreenSprites sprite)
 	{
-		if (config.loginSprites() == LoginScreenSpriteOverride.OFF)
+		final BufferedImage img = sprite.getOverrideImage(config.loginSprites());
+		if (img == null)
 		{
+			// Default to the current jagex sprite
 			return getIndexedSpriteFromSpriteManager(sprite);
 		}
 
-		return getIndexedSpriteFromFile(sprite, config.loginSprites());
+		return ImageUtil.getImageIndexedSprite(img, client);
 	}
 
 	private IndexedSprite getIndexedSpriteFromSpriteManager(LoginScreenSprites sprite)
@@ -342,18 +344,6 @@ public class LoginScreenPlugin extends Plugin implements KeyListener
 		{
 			// These sprites should always exist?
 			return ImageUtil.getImageIndexedSprite(new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB), client);
-		}
-
-		return ImageUtil.getImageIndexedSprite(img, client);
-	}
-
-	private IndexedSprite getIndexedSpriteFromFile(LoginScreenSprites sprite, LoginScreenSpriteOverride override)
-	{
-		final BufferedImage img = sprite.getOverrideImage(override);
-		if (img == null)
-		{
-			// Default to the current jagex sprite
-			return getIndexedSpriteFromSpriteManager(sprite);
 		}
 
 		return ImageUtil.getImageIndexedSprite(img, client);

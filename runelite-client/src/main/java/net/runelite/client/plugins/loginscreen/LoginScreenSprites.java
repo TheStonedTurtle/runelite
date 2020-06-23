@@ -25,14 +25,11 @@
 package net.runelite.client.plugins.loginscreen;
 
 import java.awt.image.BufferedImage;
-import java.io.File;
 import javax.annotation.Nullable;
-import javax.imageio.ImageIO;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.SpriteID;
-import net.runelite.client.RuneLite;
 import net.runelite.client.util.ImageUtil;
 
 @Getter
@@ -40,21 +37,20 @@ import net.runelite.client.util.ImageUtil;
 @Slf4j
 public enum LoginScreenSprites
 {
-	LOGO(SpriteID.LOGIN_SCREEN_RUNESCAPE_LOGO, new File(RuneLite.RUNELITE_DIR, "login-logo.png")),
-	DIALOG_BACKGROUND(SpriteID.LOGIN_SCREEN_DIALOG_BACKGROUND, new File(RuneLite.RUNELITE_DIR, "login-dialog.png")),
-	BUTTON_BACKGROUND(SpriteID.LOGIN_SCREEN_BUTTON_BACKGROUND, new File(RuneLite.RUNELITE_DIR, "login-button.png")),
-	MUSIC_BUTTON(SpriteID.LOGIN_SCREEN_MUSIC_BUTTON, new File(RuneLite.RUNELITE_DIR, "login-music.png")),
-	MUSIC_BUTTON_MUTED(SpriteID.LOGIN_SCREEN_MUSIC_BUTTON, 1, new File(RuneLite.RUNELITE_DIR, "login-music-mute.png")),
-	WORLD_SELECT(SpriteID.LOGIN_SCREEN_WORLD_SELECT_BUTTON, new File(RuneLite.RUNELITE_DIR, "login-world-select.png")),
+	LOGO(SpriteID.LOGIN_SCREEN_RUNESCAPE_LOGO),
+	DIALOG_BACKGROUND(SpriteID.LOGIN_SCREEN_DIALOG_BACKGROUND),
+	BUTTON_BACKGROUND(SpriteID.LOGIN_SCREEN_BUTTON_BACKGROUND),
+	MUSIC_BUTTON(SpriteID.LOGIN_SCREEN_MUSIC_BUTTON),
+	MUSIC_BUTTON_MUTED(SpriteID.LOGIN_SCREEN_MUSIC_BUTTON, 1),
+	WORLD_SELECT(SpriteID.LOGIN_SCREEN_WORLD_SELECT_BUTTON),
 	;
 
 	private final int spriteID;
 	private final int fileIdx;
-	private final File customFile;
 
-	LoginScreenSprites(int spriteID, File customFile)
+	LoginScreenSprites(int spriteID)
 	{
-		this(spriteID, 0, customFile);
+		this(spriteID, 0);
 	}
 
 	@Nullable
@@ -63,26 +59,6 @@ public enum LoginScreenSprites
 		if (type == LoginScreenSpriteOverride.OFF)
 		{
 			return null;
-		}
-
-		if (type == LoginScreenSpriteOverride.CUSTOM)
-		{
-			if (!customFile.exists())
-			{
-				return null;
-			}
-
-			try
-			{
-				synchronized (ImageIO.class)
-				{
-					return ImageIO.read(customFile);
-				}
-			}
-			catch (Exception e)
-			{
-				return null;
-			}
 		}
 
 		final String filename = String.format("sprites/%s-%s-%s.png", type.getFilePrefix(), this.spriteID, this.fileIdx);

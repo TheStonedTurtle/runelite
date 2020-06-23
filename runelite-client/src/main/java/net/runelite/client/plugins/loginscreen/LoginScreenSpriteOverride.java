@@ -33,9 +33,7 @@ public enum LoginScreenSpriteOverride
 {
 	OFF,
 	NORMAL("normal"),
-	INFERNO("inferno"),
-	CUSTOM
-	;
+	INFERNO("inferno");
 
 	@Getter
 	private final String filePrefix;
