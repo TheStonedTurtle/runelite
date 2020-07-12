@@ -24,78 +24,41 @@
  */
 package net.runelite.client.plugins.devtools.inventory;
 
-import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.util.function.Consumer;
-import javax.swing.JLabel;
 import javax.swing.SwingConstants;
 import lombok.Setter;
 import net.runelite.api.Constants;
 import net.runelite.api.Item;
-import net.runelite.client.ui.ColorScheme;
 
-class GridItem extends JLabel
+class GridItem extends SelectableLabel
 {
 	static final Dimension ITEM_SIZE = new Dimension(Constants.ITEM_SPRITE_WIDTH + 4, Constants.ITEM_SPRITE_HEIGHT);
 
-	private static final Color UNSELECTED_BACKGROUND = ColorScheme.DARKER_GRAY_COLOR;
-	private static final Color UNSELECTED_HOVER_BACKGROUND = ColorScheme.DARKER_GRAY_HOVER_COLOR;
-
-	private static final Color SELECTED_BACKGROUND = new Color(0, 70, 0);
-	private static final Color SELECTED_HOVER_BACKGROUND =  new Color(0, 100, 0);
+	private final Item item;
 
 	@Setter
 	private Consumer<Item> selectionConsumer;
-	private boolean selected = false;
 
 	GridItem(final Item item)
 	{
 		super();
 
-		setOpaque(true);
+		this.item = item;
+		setPreferredSize(ITEM_SIZE);
 		setVerticalAlignment(SwingConstants.CENTER);
 		setHorizontalAlignment(SwingConstants.CENTER);
-		setPreferredSize(ITEM_SIZE);
-
-		addMouseListener(new MouseAdapter()
-		{
-			@Override
-			public void mousePressed(MouseEvent mouseEvent)
-			{
-				if (mouseEvent.getButton() == MouseEvent.BUTTON1)
-				{
-					if (selected || selectionConsumer == null)
-					{
-						return;
-					}
-
-					selectionConsumer.accept(item);
-					selected = true;
-					setBackground(SELECTED_HOVER_BACKGROUND);
-				}
-			}
-
-			@Override
-			public void mouseEntered(MouseEvent e)
-			{
-				final GridItem item = (GridItem) e.getSource();
-				item.setBackground(selected ? SELECTED_HOVER_BACKGROUND : UNSELECTED_HOVER_BACKGROUND);
-			}
-
-			@Override
-			public void mouseExited(MouseEvent e)
-			{
-				final GridItem item = (GridItem) e.getSource();
-				item.setBackground(selected ? SELECTED_BACKGROUND : UNSELECTED_BACKGROUND);
-			}
-		});
 	}
 
-	public void setSelected(final boolean selected)
+	@Override
+	public void select()
 	{
-		this.selected = selected;
-		setBackground(selected ? SELECTED_BACKGROUND : UNSELECTED_BACKGROUND);
+		if (selectionConsumer == null)
+		{
+			return;
+		}
+
+		selectionConsumer.accept(item);
+		super.select();
 	}
 }

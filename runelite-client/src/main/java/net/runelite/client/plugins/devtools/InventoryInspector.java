@@ -25,12 +25,10 @@
 package net.runelite.client.plugins.devtools;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import javax.annotation.Nullable;
@@ -58,6 +56,7 @@ import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.plugins.devtools.inventory.InventoryLog;
 import net.runelite.client.plugins.devtools.inventory.ItemGrid;
+import net.runelite.client.plugins.devtools.inventory.SelectableLabel;
 import net.runelite.client.ui.ClientUI;
 import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.DynamicGridLayout;
@@ -224,39 +223,42 @@ public class InventoryInspector extends JFrame
 			{
 				labelText +=  " - " + invLog.getContainerName();
 			}
-			final JLabel label = new JLabel(labelText);
-			label.setToolTipText(labelText);
-			label.setBackground(ColorScheme.DARK_GRAY_COLOR);
-			label.setForeground(ColorScheme.LIGHT_GRAY_COLOR);
-			label.setOpaque(true);
-			label.addMouseListener(new MouseAdapter()
+
+			final SelectableLabel label = new SelectableLabel()
 			{
 				@Override
-				public void mousePressed(MouseEvent e)
+				public void select()
 				{
+					// Deselect all other labels
+					for (final Component c : tracker.getComponents())
+					{
+						if (c instanceof SelectableLabel)
+						{
+							((SelectableLabel) c).setSelected(false);
+						}
+					}
+
+					super.select();
 					itemGrid.displayItems(invLog.getItems(), (item) -> selectItem(item));
 				}
+			};
+			label.setText(labelText);
+			label.setToolTipText(labelText);
+			label.setUnselectedBackground(ColorScheme.DARK_GRAY_COLOR);
+			label.setUnselectedHoverBackground(ColorScheme.DARK_GRAY_HOVER_COLOR);
 
-				@Override
-				public void mouseEntered(MouseEvent e)
-				{
-					label.setBackground(ColorScheme.DARK_GRAY_HOVER_COLOR);
-					label.setForeground(Color.WHITE);
-				}
-
-				@Override
-				public void mouseExited(MouseEvent e)
-				{
-					label.setBackground(ColorScheme.DARK_GRAY_COLOR);
-					label.setForeground(ColorScheme.LIGHT_GRAY_COLOR);
-				}
-			});
 			tracker.add(label);
 
 			// Cull very old stuff
 			for (; tracker.getComponentCount() > MAX_LOG_ENTRIES; )
 			{
-				tracker.remove(0);
+				final Component c = tracker.getComponent(0);
+				tracker.remove(c);
+
+				if (c instanceof SelectableLabel && ((SelectableLabel) c).isSelected())
+				{
+					itemGrid.clearGrid();
+				}
 			}
 
 			tracker.revalidate();
