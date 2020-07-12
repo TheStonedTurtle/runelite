@@ -43,6 +43,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
 import javax.swing.SwingUtilities;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
@@ -149,7 +150,6 @@ public class InventoryInspector extends JFrame
 		bottomRow.add(clearBtn);
 
 		leftSide.add(bottomRow, BorderLayout.SOUTH);
-		add(leftSide, BorderLayout.WEST);
 
 		final JPanel rightSide = new JPanel();
 		rightSide.setLayout(new BorderLayout());
@@ -160,7 +160,9 @@ public class InventoryInspector extends JFrame
 
 		rightSide.add(editor, BorderLayout.NORTH);
 		rightSide.add(gridScroller, BorderLayout.CENTER);
-		add(rightSide, BorderLayout.CENTER);
+
+		final JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftSide, rightSide);
+		add(split, BorderLayout.CENTER);
 
 		pack();
 	}
