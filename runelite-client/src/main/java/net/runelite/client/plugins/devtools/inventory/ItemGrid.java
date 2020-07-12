@@ -29,6 +29,7 @@ import java.awt.GridLayout;
 import java.awt.Rectangle;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -38,9 +39,12 @@ import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 import net.runelite.api.Item;
 import net.runelite.client.game.ItemManager;
+import net.runelite.client.ui.FontManager;
 
 public class ItemGrid extends JPanel implements Scrollable
 {
+	private static final DecimalFormat COMMA_FORMAT = new DecimalFormat("#,###");
+
 	private final ItemManager itemManager;
 	private final List<GridItem> gridItems = new ArrayList<>();
 
@@ -72,11 +76,25 @@ public class ItemGrid extends JPanel implements Scrollable
 	{
 		clearGrid();
 
-		for (final Item item : items)
+		for (int i = 0; i < items.length; i++)
 		{
+			final Item item = items[i];
 			final GridItem gridItem = new GridItem(item);
-			gridItem.setSelectionConsumer(selectionConsumer);
-			itemManager.getImage(item.getId(), item.getQuantity(), item.getQuantity() > 1).addTo(gridItem);
+			if (item.getId() == -1)
+			{
+				gridItem.setText("EMPTY");
+				gridItem.setFont(FontManager.getRunescapeSmallFont());
+			}
+			else
+			{
+				gridItem.setSelectionConsumer(selectionConsumer);
+				itemManager.getImage(item.getId(), item.getQuantity(), item.getQuantity() > 1).addTo(gridItem);
+			}
+
+			gridItem.setToolTipText("<html>Slot: " + i
+				+ "<br/>Item ID: " + item.getId()
+				+ "<br/>Quantity: " + COMMA_FORMAT.format(item.getQuantity())
+				+ "</html>");
 
 			gridItems.add(gridItem);
 			add(gridItem);
