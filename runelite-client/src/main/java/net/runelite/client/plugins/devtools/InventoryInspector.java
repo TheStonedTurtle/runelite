@@ -25,16 +25,29 @@
 package net.runelite.client.plugins.devtools;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.event.AdjustmentEvent;
+import java.awt.event.AdjustmentListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
+import javax.swing.SwingUtilities;
+import javax.swing.border.CompoundBorder;
+import javax.swing.border.EmptyBorder;
 import lombok.extern.slf4j.Slf4j;
+import net.runelite.api.Client;
 import net.runelite.api.InventoryID;
 import net.runelite.api.Item;
 import net.runelite.api.ItemID;
@@ -42,25 +55,32 @@ import net.runelite.api.events.ItemContainerChanged;
 import net.runelite.client.eventbus.EventBus;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.game.ItemManager;
+import net.runelite.client.plugins.devtools.inventory.InventoryLog;
 import net.runelite.client.plugins.devtools.inventory.ItemGrid;
 import net.runelite.client.ui.ClientUI;
 import net.runelite.client.ui.ColorScheme;
+import net.runelite.client.ui.DynamicGridLayout;
+import net.runelite.client.ui.FontManager;
 
 @Slf4j
 @Singleton
 public class InventoryInspector extends JFrame
 {
+	private static final int MAX_LOG_ENTRIES = 200;
+
+	private final Client client;
 	private final EventBus eventBus;
 
 	private final JPanel tracker = new JPanel();
 	private final JPanel editor = new JPanel();
 	private final ItemGrid itemGrid;
-	private int lastTick;
+	private int lastTick = -1;
 
 	@Inject
-	InventoryInspector(EventBus eventBus, DevToolsPlugin plugin, ItemManager itemManager)
+	InventoryInspector(Client client, EventBus eventBus, DevToolsPlugin plugin, ItemManager itemManager)
 	{
 		this.eventBus = eventBus;
+		this.client = client;
 		this.itemGrid = new ItemGrid(itemManager);
 
 		setTitle("RuneLite Inventory Inspector");
@@ -79,6 +99,57 @@ public class InventoryInspector extends JFrame
 				plugin.getInventoryInspector().setActive(false);
 			}
 		});
+
+		tracker.setLayout(new DynamicGridLayout(0, 1, 0, 3));
+		tracker.setBorder(new EmptyBorder(2, 2, 2, 2));
+
+		final JPanel leftSide = new JPanel();
+		leftSide.setLayout(new BorderLayout());
+
+		final JPanel trackerWrapper = new JPanel();
+		trackerWrapper.setLayout(new BorderLayout());
+		trackerWrapper.add(tracker, BorderLayout.NORTH);
+
+		final JScrollPane trackerScroller = new JScrollPane(trackerWrapper);
+		trackerScroller.setPreferredSize(new Dimension(150, 400));
+
+		final JScrollBar vertical = trackerScroller.getVerticalScrollBar();
+		vertical.addAdjustmentListener(new AdjustmentListener()
+		{
+			int lastMaximum = actualMax();
+
+			private int actualMax()
+			{
+				return vertical.getMaximum() - vertical.getModel().getExtent();
+			}
+
+			@Override
+			public void adjustmentValueChanged(AdjustmentEvent e)
+			{
+				if (vertical.getValue() >= lastMaximum)
+				{
+					vertical.setValue(actualMax());
+				}
+				lastMaximum = actualMax();
+			}
+		});
+
+		leftSide.add(trackerScroller, BorderLayout.CENTER);
+
+		final JPanel bottomRow = new JPanel();
+
+		final JButton clearBtn = new JButton("Clear");
+		clearBtn.addActionListener(e ->
+		{
+			itemGrid.clearGrid();
+			tracker.removeAll();
+			tracker.revalidate();
+		});
+
+		bottomRow.add(clearBtn);
+
+		leftSide.add(bottomRow, BorderLayout.SOUTH);
+		add(leftSide, BorderLayout.WEST);
 
 		final JPanel rightSide = new JPanel();
 		rightSide.setLayout(new BorderLayout());
@@ -130,10 +201,71 @@ public class InventoryInspector extends JFrame
 		itemGrid.deselectGridItems();
 	}
 
+	private void addLog(final InventoryLog invLog)
+	{
+		SwingUtilities.invokeLater(() ->
+		{
+			if (invLog.getTick() != lastTick)
+			{
+				lastTick = invLog.getTick();
+				final JLabel header = new JLabel("Tick " + lastTick);
+				header.setFont(FontManager.getRunescapeSmallFont());
+				header.setBorder(new CompoundBorder(
+					BorderFactory.createMatteBorder(0, 0, 1, 0, ColorScheme.LIGHT_GRAY_COLOR),
+					BorderFactory.createEmptyBorder(3, 6, 0, 0)
+				));
+				tracker.add(header);
+			}
+
+			String labelText = String.valueOf(invLog.getContainerId());
+			if (invLog.getContainerName() != null)
+			{
+				labelText +=  " - " + invLog.getContainerName();
+			}
+			final JLabel label = new JLabel(labelText);
+			label.setToolTipText(labelText);
+			label.setBackground(ColorScheme.DARK_GRAY_COLOR);
+			label.setForeground(ColorScheme.LIGHT_GRAY_COLOR);
+			label.setOpaque(true);
+			label.addMouseListener(new MouseAdapter()
+			{
+				@Override
+				public void mousePressed(MouseEvent e)
+				{
+					itemGrid.displayItems(invLog.getItems(), (item) -> selectItem(item));
+				}
+
+				@Override
+				public void mouseEntered(MouseEvent e)
+				{
+					label.setBackground(ColorScheme.DARK_GRAY_HOVER_COLOR);
+					label.setForeground(Color.WHITE);
+				}
+
+				@Override
+				public void mouseExited(MouseEvent e)
+				{
+					label.setBackground(ColorScheme.DARK_GRAY_COLOR);
+					label.setForeground(ColorScheme.LIGHT_GRAY_COLOR);
+				}
+			});
+			tracker.add(label);
+
+			// Cull very old stuff
+			for (; tracker.getComponentCount() > MAX_LOG_ENTRIES; )
+			{
+				tracker.remove(0);
+			}
+
+			tracker.revalidate();
+		});
+	}
+
 	@Subscribe
 	public void onItemContainerChanged(ItemContainerChanged event)
 	{
-		log.info("Item container {} has been updated. Named {}", event.getContainerId(), getNameForInventoryID(event.getContainerId()));
+		final int id = event.getContainerId();
+		addLog(new InventoryLog(id, getNameForInventoryID(id), event.getItemContainer().getItems(), client.getTickCount()));
 	}
 
 	@Nullable
