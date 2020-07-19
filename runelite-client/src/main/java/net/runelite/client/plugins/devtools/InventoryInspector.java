@@ -64,7 +64,7 @@ import net.runelite.client.plugins.devtools.inventory.InventoryDelta;
 import net.runelite.client.plugins.devtools.inventory.InventoryLog;
 import net.runelite.client.plugins.devtools.inventory.InventoryLogNode;
 import net.runelite.client.plugins.devtools.inventory.InventoryTreeNode;
-import net.runelite.client.plugins.devtools.inventory.ItemGrid;
+import net.runelite.client.plugins.devtools.inventory.InventoryDeltaPanel;
 import net.runelite.client.plugins.devtools.inventory.SlotState;
 import net.runelite.client.ui.ClientUI;
 import net.runelite.client.ui.ColorScheme;
@@ -85,7 +85,7 @@ public class InventoryInspector extends JFrame
 	private final Map<Integer, InventoryLog> logMap = new HashMap<>();
 	private final JPanel tracker = new JPanel();
 	private final JPanel editor = new JPanel();
-	private final ItemGrid itemGrid;
+	private final InventoryDeltaPanel deltaPanel;
 	private boolean autoRefresh = false;
 
 	@Inject
@@ -93,7 +93,7 @@ public class InventoryInspector extends JFrame
 	{
 		this.eventBus = eventBus;
 		this.client = client;
-		this.itemGrid = new ItemGrid(itemManager);
+		this.deltaPanel = new InventoryDeltaPanel(itemManager);
 
 		final Boolean refreshVal = configManager.getConfiguration("devtools", REFRESH_CONFIG_KEY, Boolean.class);
 		if (refreshVal != null)
@@ -129,7 +129,7 @@ public class InventoryInspector extends JFrame
 		trackerWrapper.add(tracker, BorderLayout.NORTH);
 
 		final JScrollPane trackerScroller = new JScrollPane(trackerWrapper);
-		trackerScroller.setPreferredSize(new Dimension(300, 400));
+		trackerScroller.setPreferredSize(new Dimension(200, 400));
 
 		final JScrollBar vertical = trackerScroller.getVerticalScrollBar();
 		vertical.addAdjustmentListener(new AdjustmentListener()
@@ -172,7 +172,7 @@ public class InventoryInspector extends JFrame
 		clearBtn.addActionListener(e -> clearTracker());
 
 		final JPanel bottomRow = new JPanel();
-		bottomRow.add(autoRefreshBtn);
+		//bottomRow.add(autoRefreshBtn);
 		bottomRow.add(refreshBtn);
 		bottomRow.add(clearBtn);
 
@@ -182,7 +182,7 @@ public class InventoryInspector extends JFrame
 		rightSide.setLayout(new BorderLayout());
 		rightSide.setPreferredSize(new Dimension(200, 400));
 
-		final JScrollPane gridScroller = new JScrollPane(itemGrid);
+		final JScrollPane gridScroller = new JScrollPane(deltaPanel);
 		gridScroller.getViewport().setBackground(ColorScheme.DARK_GRAY_COLOR);
 
 		rightSide.add(editor, BorderLayout.NORTH);
@@ -248,7 +248,7 @@ public class InventoryInspector extends JFrame
 	private void clearTracker()
 	{
 		nodeMap.clear();
-		itemGrid.clearGrid();
+		deltaPanel.clear();
 		tracker.removeAll();
 		tracker.revalidate();
 	}
@@ -287,7 +287,7 @@ public class InventoryInspector extends JFrame
 					// No previous snapshot to compare against
 					if (idx <= 0)
 					{
-						itemGrid.displayItems(logNode.getLog().getItems(), null);
+						deltaPanel.displayItems(logNode.getLog().getItems(), null);
 						return;
 					}
 
@@ -299,7 +299,7 @@ public class InventoryInspector extends JFrame
 					final InventoryLogNode prevLogNode = (InventoryLogNode) prevNode;
 
 					final InventoryDelta delta = compareItemSnapshots(prevLogNode.getLog().getItems(), logNode.getLog().getItems());
-					itemGrid.displayItems(logNode.getLog().getItems(), null);
+					deltaPanel.displayItems(logNode.getLog().getItems(), delta);
 				}
 			});
 
