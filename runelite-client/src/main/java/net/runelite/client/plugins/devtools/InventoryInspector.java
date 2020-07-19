@@ -25,63 +25,74 @@
 package net.runelite.client.plugins.devtools;
 
 import java.awt.BorderLayout;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.util.HashMap;
+import java.util.Map;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import javax.swing.BorderFactory;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
+import javax.swing.JTree;
 import javax.swing.SwingUtilities;
-import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.InventoryID;
-import net.runelite.api.Item;
-import net.runelite.api.ItemID;
 import net.runelite.api.events.ItemContainerChanged;
+import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.EventBus;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.plugins.devtools.inventory.InventoryLog;
+import net.runelite.client.plugins.devtools.inventory.InventoryLogNode;
+import net.runelite.client.plugins.devtools.inventory.InventoryTreeNode;
 import net.runelite.client.plugins.devtools.inventory.ItemGrid;
-import net.runelite.client.plugins.devtools.inventory.SelectableLabel;
 import net.runelite.client.ui.ClientUI;
 import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.DynamicGridLayout;
-import net.runelite.client.ui.FontManager;
 
 @Slf4j
 @Singleton
 public class InventoryInspector extends JFrame
 {
-	private static final int MAX_LOG_ENTRIES = 200;
+	private static final int MAX_LOG_ENTRIES = 25;
+	private static final String REFRESH_CONFIG_KEY = "inventory-auto-refresh";
 
 	private final Client client;
 	private final EventBus eventBus;
 
+	private final Map<Integer, InventoryTreeNode> nodeMap = new HashMap<>();
+	// Used to store the most recent inventory log updates if not auto refreshing
+	private final Map<Integer, InventoryLog> logMap = new HashMap<>();
 	private final JPanel tracker = new JPanel();
 	private final JPanel editor = new JPanel();
 	private final ItemGrid itemGrid;
-	private int lastTick = -1;
+	private boolean autoRefresh = false;
 
 	@Inject
-	InventoryInspector(Client client, EventBus eventBus, DevToolsPlugin plugin, ItemManager itemManager)
+	InventoryInspector(Client client, EventBus eventBus, DevToolsPlugin plugin, ItemManager itemManager, ConfigManager configManager)
 	{
 		this.eventBus = eventBus;
 		this.client = client;
 		this.itemGrid = new ItemGrid(itemManager);
+
+		final Boolean refreshVal = configManager.getConfiguration("devtools", REFRESH_CONFIG_KEY, Boolean.class);
+		if (refreshVal != null)
+		{
+			autoRefresh = refreshVal;
+		}
 
 		setTitle("RuneLite Inventory Inspector");
 		setIconImage(ClientUI.ICON);
@@ -111,7 +122,7 @@ public class InventoryInspector extends JFrame
 		trackerWrapper.add(tracker, BorderLayout.NORTH);
 
 		final JScrollPane trackerScroller = new JScrollPane(trackerWrapper);
-		trackerScroller.setPreferredSize(new Dimension(150, 400));
+		trackerScroller.setPreferredSize(new Dimension(300, 400));
 
 		final JScrollBar vertical = trackerScroller.getVerticalScrollBar();
 		vertical.addAdjustmentListener(new AdjustmentListener()
@@ -136,23 +147,33 @@ public class InventoryInspector extends JFrame
 
 		leftSide.add(trackerScroller, BorderLayout.CENTER);
 
-		final JPanel bottomRow = new JPanel();
-
-		final JButton clearBtn = new JButton("Clear");
-		clearBtn.addActionListener(e ->
+		final JCheckBox autoRefreshBtn = new JCheckBox("Auto Refresh");
+		autoRefreshBtn.setSelected(autoRefresh);
+		autoRefreshBtn.setFocusable(false);
+		autoRefreshBtn.addActionListener(e ->
 		{
-			itemGrid.clearGrid();
-			tracker.removeAll();
-			tracker.revalidate();
+			autoRefresh = !autoRefresh;
+			configManager.setConfiguration("devtools", REFRESH_CONFIG_KEY, autoRefresh);
 		});
 
+		final JButton refreshBtn = new JButton("Refresh");
+		refreshBtn.setFocusable(false);
+		refreshBtn.addActionListener(e -> refreshTracker());
+
+		final JButton clearBtn = new JButton("Clear");
+		clearBtn.setFocusable(false);
+		clearBtn.addActionListener(e -> clearTracker());
+
+		final JPanel bottomRow = new JPanel();
+		bottomRow.add(autoRefreshBtn);
+		bottomRow.add(refreshBtn);
 		bottomRow.add(clearBtn);
 
 		leftSide.add(bottomRow, BorderLayout.SOUTH);
 
 		final JPanel rightSide = new JPanel();
 		rightSide.setLayout(new BorderLayout());
-		rightSide.setPreferredSize(new Dimension(400, 400));
+		rightSide.setPreferredSize(new Dimension(200, 400));
 
 		final JScrollPane gridScroller = new JScrollPane(itemGrid);
 		gridScroller.getViewport().setBackground(ColorScheme.DARK_GRAY_COLOR);
@@ -172,104 +193,90 @@ public class InventoryInspector extends JFrame
 		setVisible(true);
 		toFront();
 		repaint();
-
-		itemGrid.displayItems(new Item[]{
-			new Item(995, 124567890),
-			new Item(ItemID.DRAGON_CLAWS, 2),
-			new Item(ItemID.DRAGON_2H_SWORD, 2),
-			new Item(ItemID.DRAGON_AXE, 2),
-			new Item(ItemID.DRAGON_BATTLEAXE, 2),
-			new Item(ItemID.VOID_KNIGHT_GLOVES, 1),
-			new Item(ItemID.VOID_KNIGHT_ROBE, 1),
-			new Item(ItemID.VOID_KNIGHT_TOP, 1),
-			new Item(ItemID.VOID_MELEE_HELM, 1),
-			new Item(ItemID.BANDOS_CHESTPLATE, 1),
-			new Item(ItemID.BANDOS_TASSETS, 1),
-			new Item(ItemID.BANDOS_BOOTS, 1),
-			new Item(ItemID.INFERNAL_CAPE, 1),
-			new Item(ItemID.SCYTHE_OF_VITUR, 1),
-		}, this::selectItem);
 	}
 
 	public void close()
 	{
 		eventBus.unregister(this);
+		clearTracker();
 		setVisible(false);
-	}
-
-	private void selectItem(final Item item)
-	{
-		itemGrid.deselectGridItems();
-	}
-
-	private void addLog(final InventoryLog invLog)
-	{
-		SwingUtilities.invokeLater(() ->
-		{
-			if (invLog.getTick() != lastTick)
-			{
-				lastTick = invLog.getTick();
-				final JLabel header = new JLabel("Tick " + lastTick);
-				header.setFont(FontManager.getRunescapeSmallFont());
-				header.setBorder(new CompoundBorder(
-					BorderFactory.createMatteBorder(0, 0, 1, 0, ColorScheme.LIGHT_GRAY_COLOR),
-					BorderFactory.createEmptyBorder(3, 6, 0, 0)
-				));
-				tracker.add(header);
-			}
-
-			String labelText = String.valueOf(invLog.getContainerId());
-			if (invLog.getContainerName() != null)
-			{
-				labelText +=  " - " + invLog.getContainerName();
-			}
-
-			final SelectableLabel label = new SelectableLabel()
-			{
-				@Override
-				public void select()
-				{
-					// Deselect all other labels
-					for (final Component c : tracker.getComponents())
-					{
-						if (c instanceof SelectableLabel)
-						{
-							((SelectableLabel) c).setSelected(false);
-						}
-					}
-
-					super.select();
-					itemGrid.displayItems(invLog.getItems(), (item) -> selectItem(item));
-				}
-			};
-			label.setText(labelText);
-			label.setToolTipText(labelText);
-			label.setUnselectedBackground(ColorScheme.DARK_GRAY_COLOR);
-			label.setUnselectedHoverBackground(ColorScheme.DARK_GRAY_HOVER_COLOR);
-
-			tracker.add(label);
-
-			// Cull very old stuff
-			for (; tracker.getComponentCount() > MAX_LOG_ENTRIES; )
-			{
-				final Component c = tracker.getComponent(0);
-				tracker.remove(c);
-
-				if (c instanceof SelectableLabel && ((SelectableLabel) c).isSelected())
-				{
-					itemGrid.clearGrid();
-				}
-			}
-
-			tracker.revalidate();
-		});
+		nodeMap.clear();
+		logMap.clear();
 	}
 
 	@Subscribe
 	public void onItemContainerChanged(ItemContainerChanged event)
 	{
 		final int id = event.getContainerId();
-		addLog(new InventoryLog(id, getNameForInventoryID(id), event.getItemContainer().getItems(), client.getTickCount()));
+		final InventoryLog log = new InventoryLog(id, getNameForInventoryID(id), event.getItemContainer().getItems(), client.getTickCount());
+
+		if (!autoRefresh)
+		{
+			logMap.put(id, log);
+			return;
+		}
+
+		addLog(log);
+		refreshTracker();
+	}
+
+	private void addLog(final InventoryLog invLog)
+	{
+		InventoryTreeNode node = nodeMap.get(invLog.getContainerId());
+		if (node == null)
+		{
+			node = new InventoryTreeNode(invLog.getContainerId(), invLog.getContainerName());
+			nodeMap.put(invLog.getContainerId(), node);
+		}
+
+		node.add(new InventoryLogNode(invLog));
+
+		// Cull very old stuff
+		for (; node.getChildCount() > MAX_LOG_ENTRIES; )
+		{
+			node.remove(0);
+		}
+	}
+
+	private void clearTracker()
+	{
+		itemGrid.clearGrid();
+		tracker.removeAll();
+		tracker.revalidate();
+	}
+
+	private void refreshTracker()
+	{
+		if (logMap.size() > 0)
+		{
+			logMap.values().forEach(this::addLog);
+			logMap.clear();
+		}
+
+		// TODO: Look into storing root node for better updating?
+		SwingUtilities.invokeLater(() ->
+		{
+			tracker.removeAll();
+
+			final DefaultMutableTreeNode root = new DefaultMutableTreeNode();
+			final JTree tree = new JTree(root);
+			tree.setRootVisible(false);
+			tree.setShowsRootHandles(true);
+			tree.addTreeSelectionListener(e -> {
+				final Object node = e.getNewLeadSelectionPath().getLastPathComponent();
+				if (node instanceof InventoryLogNode)
+				{
+					final InventoryLogNode logNode = (InventoryLogNode) node;
+					itemGrid.displayItems(logNode.getLog().getItems(), null);
+				}
+			});
+
+			nodeMap.values().forEach(root::add);
+
+			tree.setModel(new DefaultTreeModel(root));
+			tracker.add(tree);
+			tracker.revalidate();
+		});
 	}
 
 	@Nullable

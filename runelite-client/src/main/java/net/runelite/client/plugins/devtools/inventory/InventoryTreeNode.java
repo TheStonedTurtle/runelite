@@ -25,16 +25,27 @@
 package net.runelite.client.plugins.devtools.inventory;
 
 import javax.annotation.Nullable;
-import lombok.Value;
-import net.runelite.api.Item;
+import javax.swing.tree.DefaultMutableTreeNode;
+import lombok.Getter;
 
-@Value
-public class InventoryLog
+@Getter
+public class InventoryTreeNode extends DefaultMutableTreeNode
 {
-	int containerId;
+	final int id;
 	@Nullable
-	String containerName;
-	Item[] items;
-	int tick;
-}
+	final String name;
 
+	public InventoryTreeNode(final int id, @Nullable final String name)
+	{
+		super();
+
+		this.id = id;
+		this.name = name;
+	}
+
+	@Override
+	public String toString()
+	{
+		return id + (name == null ? "" : " - " + name);
+	}
+}
