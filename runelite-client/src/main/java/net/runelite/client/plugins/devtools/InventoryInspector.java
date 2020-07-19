@@ -39,7 +39,6 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollBar;
@@ -56,15 +55,14 @@ import net.runelite.api.Client;
 import net.runelite.api.InventoryID;
 import net.runelite.api.Item;
 import net.runelite.api.events.ItemContainerChanged;
-import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.EventBus;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.plugins.devtools.inventory.InventoryDelta;
+import net.runelite.client.plugins.devtools.inventory.InventoryDeltaPanel;
 import net.runelite.client.plugins.devtools.inventory.InventoryLog;
 import net.runelite.client.plugins.devtools.inventory.InventoryLogNode;
 import net.runelite.client.plugins.devtools.inventory.InventoryTreeNode;
-import net.runelite.client.plugins.devtools.inventory.InventoryDeltaPanel;
 import net.runelite.client.plugins.devtools.inventory.SlotState;
 import net.runelite.client.ui.ClientUI;
 import net.runelite.client.ui.ColorScheme;
@@ -84,22 +82,14 @@ public class InventoryInspector extends JFrame
 	// Used to store the most recent inventory log updates if not auto refreshing
 	private final Map<Integer, InventoryLog> logMap = new HashMap<>();
 	private final JPanel tracker = new JPanel();
-	private final JPanel editor = new JPanel();
 	private final InventoryDeltaPanel deltaPanel;
-	private boolean autoRefresh = false;
 
 	@Inject
-	InventoryInspector(Client client, EventBus eventBus, DevToolsPlugin plugin, ItemManager itemManager, ConfigManager configManager)
+	InventoryInspector(Client client, EventBus eventBus, DevToolsPlugin plugin, ItemManager itemManager)
 	{
 		this.eventBus = eventBus;
 		this.client = client;
 		this.deltaPanel = new InventoryDeltaPanel(itemManager);
-
-		final Boolean refreshVal = configManager.getConfiguration("devtools", REFRESH_CONFIG_KEY, Boolean.class);
-		if (refreshVal != null)
-		{
-			autoRefresh = refreshVal;
-		}
 
 		setTitle("RuneLite Inventory Inspector");
 		setIconImage(ClientUI.ICON);
@@ -154,15 +144,6 @@ public class InventoryInspector extends JFrame
 
 		leftSide.add(trackerScroller, BorderLayout.CENTER);
 
-		final JCheckBox autoRefreshBtn = new JCheckBox("Auto Refresh");
-		autoRefreshBtn.setSelected(autoRefresh);
-		autoRefreshBtn.setFocusable(false);
-		autoRefreshBtn.addActionListener(e ->
-		{
-			autoRefresh = !autoRefresh;
-			configManager.setConfiguration("devtools", REFRESH_CONFIG_KEY, autoRefresh);
-		});
-
 		final JButton refreshBtn = new JButton("Refresh");
 		refreshBtn.setFocusable(false);
 		refreshBtn.addActionListener(e -> refreshTracker());
@@ -172,23 +153,16 @@ public class InventoryInspector extends JFrame
 		clearBtn.addActionListener(e -> clearTracker());
 
 		final JPanel bottomRow = new JPanel();
-		//bottomRow.add(autoRefreshBtn);
 		bottomRow.add(refreshBtn);
 		bottomRow.add(clearBtn);
 
 		leftSide.add(bottomRow, BorderLayout.SOUTH);
 
-		final JPanel rightSide = new JPanel();
-		rightSide.setLayout(new BorderLayout());
-		rightSide.setPreferredSize(new Dimension(200, 400));
-
 		final JScrollPane gridScroller = new JScrollPane(deltaPanel);
 		gridScroller.getViewport().setBackground(ColorScheme.DARK_GRAY_COLOR);
+		gridScroller.setPreferredSize(new Dimension(200, 400));
 
-		rightSide.add(editor, BorderLayout.NORTH);
-		rightSide.add(gridScroller, BorderLayout.CENTER);
-
-		final JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftSide, rightSide);
+		final JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftSide, gridScroller);
 		add(split, BorderLayout.CENTER);
 
 		pack();
@@ -217,14 +191,7 @@ public class InventoryInspector extends JFrame
 		final int id = event.getContainerId();
 		final InventoryLog log = new InventoryLog(id, getNameForInventoryID(id), event.getItemContainer().getItems(), client.getTickCount());
 
-		if (!autoRefresh)
-		{
-			logMap.put(id, log);
-			return;
-		}
-
-		addLog(log);
-		refreshTracker();
+		logMap.put(id, log);
 	}
 
 	private void addLog(final InventoryLog invLog)
