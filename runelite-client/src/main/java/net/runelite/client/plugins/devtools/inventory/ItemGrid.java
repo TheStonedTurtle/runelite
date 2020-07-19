@@ -29,17 +29,23 @@ import java.awt.GridLayout;
 import java.awt.Rectangle;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.text.DecimalFormat;
 import javax.annotation.Nullable;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.Scrollable;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
+import net.runelite.api.Constants;
 import net.runelite.api.Item;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.ui.FontManager;
 
 public class ItemGrid extends JPanel implements Scrollable
 {
+	private static final DecimalFormat COMMA_FORMAT = new DecimalFormat("#,###");
+	private static final Dimension ITEM_SIZE = new Dimension(Constants.ITEM_SPRITE_WIDTH + 4, Constants.ITEM_SPRITE_HEIGHT);
+
 	private final ItemManager itemManager;
 
 	public ItemGrid(final ItemManager itemManager)
@@ -52,7 +58,7 @@ public class ItemGrid extends JPanel implements Scrollable
 		addComponentListener(new ComponentAdapter() {
 			public void componentResized(final ComponentEvent componentEvent) {
 				// Account for container and slot padding
-				final int cols = Math.max((getWidth() - 4) / (GridItem.ITEM_SIZE.width + 1), 1);
+				final int cols = Math.max((getWidth() - 4) / (ITEM_SIZE.width + 1), 1);
 				setLayout(new GridLayout(0, cols, 1, 1));
 			}
 		});
@@ -74,7 +80,17 @@ public class ItemGrid extends JPanel implements Scrollable
 		{
 			final Item item = items[i];
 			final SlotState slotState = slotStates.length > i ? slotStates[i] : SlotState.UNCHANGED;
-			final GridItem gridItem = new GridItem(item, i);
+			final JLabel gridItem = new JLabel();
+			gridItem.setOpaque(true);
+			gridItem.setPreferredSize(ITEM_SIZE);
+			gridItem.setVerticalAlignment(SwingConstants.CENTER);
+			gridItem.setHorizontalAlignment(SwingConstants.CENTER);
+
+			gridItem.setToolTipText("<html>Slot: " + i
+				+ "<br/>Item ID: " + item.getId()
+				+ "<br/>Quantity: " + COMMA_FORMAT.format(item.getQuantity())
+				+ "</html>");
+
 			if (item.getId() == -1)
 			{
 				gridItem.setText("EMPTY");
@@ -106,13 +122,13 @@ public class ItemGrid extends JPanel implements Scrollable
 	@Override
 	public int getScrollableUnitIncrement(Rectangle visibleRect, int orientation, int direction)
 	{
-		return 1 + (orientation == SwingConstants.VERTICAL ? GridItem.ITEM_SIZE.height : GridItem.ITEM_SIZE.width);
+		return 1 + (orientation == SwingConstants.VERTICAL ? ITEM_SIZE.height : ITEM_SIZE.width);
 	}
 
 	@Override
 	public int getScrollableBlockIncrement(Rectangle visibleRect, int orientation, int direction)
 	{
-		return 1 + (orientation == SwingConstants.VERTICAL ? GridItem.ITEM_SIZE.height : GridItem.ITEM_SIZE.width);
+		return 1 + (orientation == SwingConstants.VERTICAL ? ITEM_SIZE.height : ITEM_SIZE.width);
 	}
 
 	@Override
