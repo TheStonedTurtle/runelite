@@ -31,7 +31,10 @@ import java.awt.event.AdjustmentListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -47,18 +50,22 @@ import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreeNode;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.InventoryID;
+import net.runelite.api.Item;
 import net.runelite.api.events.ItemContainerChanged;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.EventBus;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.game.ItemManager;
+import net.runelite.client.plugins.devtools.inventory.InventoryDelta;
 import net.runelite.client.plugins.devtools.inventory.InventoryLog;
 import net.runelite.client.plugins.devtools.inventory.InventoryLogNode;
 import net.runelite.client.plugins.devtools.inventory.InventoryTreeNode;
 import net.runelite.client.plugins.devtools.inventory.ItemGrid;
+import net.runelite.client.plugins.devtools.inventory.SlotState;
 import net.runelite.client.ui.ClientUI;
 import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.DynamicGridLayout;
@@ -240,6 +247,7 @@ public class InventoryInspector extends JFrame
 
 	private void clearTracker()
 	{
+		nodeMap.clear();
 		itemGrid.clearGrid();
 		tracker.removeAll();
 		tracker.revalidate();
@@ -267,6 +275,30 @@ public class InventoryInspector extends JFrame
 				if (node instanceof InventoryLogNode)
 				{
 					final InventoryLogNode logNode = (InventoryLogNode) node;
+
+					final InventoryTreeNode treeNode = nodeMap.get(logNode.getLog().getContainerId());
+					if (treeNode == null)
+					{
+						log.warn("Attempted to click on a node that doesn't map anywhere");
+						return;
+					}
+
+					final int idx = treeNode.getIndex(logNode);
+					// No previous snapshot to compare against
+					if (idx <= 0)
+					{
+						itemGrid.displayItems(logNode.getLog().getItems(), null);
+						return;
+					}
+
+					final TreeNode prevNode = treeNode.getChildAt(idx - 1);
+					if (!(prevNode instanceof InventoryLogNode))
+					{
+						return;
+					}
+					final InventoryLogNode prevLogNode = (InventoryLogNode) prevNode;
+
+					final InventoryDelta delta = compareItemSnapshots(prevLogNode.getLog().getItems(), logNode.getLog().getItems());
 					itemGrid.displayItems(logNode.getLog().getItems(), null);
 				}
 			});
@@ -277,6 +309,85 @@ public class InventoryInspector extends JFrame
 			tracker.add(tree);
 			tracker.revalidate();
 		});
+	}
+
+	private static InventoryDelta compareItemSnapshots(final Item[] previous, final Item[] current)
+	{
+		// ItemContainers shouldn't become smaller over time, but just in case
+		final int maxSlots = Math.max(previous.length, current.length);
+		final SlotState[] slotStates = new SlotState[maxSlots];
+
+		Map<Integer, Integer> qtyMap = new HashMap<>();
+		for (int i = 0; i < maxSlots; i++)
+		{
+			final Item prev = previous.length > i ? previous[i] : null;
+			final Item cur = current.length > i ? current[i] : null;
+
+			if (Objects.equals(cur, prev))
+			{
+				slotStates[i] = SlotState.UNCHANGED;
+				continue;
+			}
+
+			slotStates[i] = SlotState.MODIFIED;
+			if (prev != null)
+			{
+				qtyMap.merge(prev.getId(), -1 * prev.getQuantity(), Integer::sum);
+			}
+			if (cur != null)
+			{
+				qtyMap.merge(cur.getId(), cur.getQuantity(), Integer::sum);
+			}
+		}
+
+		for (int i = 0; i < current.length; i++)
+		{
+			if (slotStates[i] != SlotState.MODIFIED)
+			{
+				continue;
+			}
+
+			final Item cur = current[i];
+			// If the previous slot didn't exist this slot was added regardless of what happened with the items
+			if (i >= previous.length)
+			{
+				slotStates[i] = SlotState.ADDED;
+				continue;
+			}
+
+			if (cur.getId() == -1)
+			{
+				// Item may have been removed, check what was previous in this spot
+				final Item prev = previous[i];
+				final int delta = qtyMap.getOrDefault(prev.getId(), 0);
+				if (delta < 0)
+				{
+					slotStates[i] = SlotState.REMOVED;
+				}
+
+				continue;
+			}
+
+			final int delta = qtyMap.getOrDefault(cur.getId(), 0);
+			if (delta > 0)
+			{
+				slotStates[i] = SlotState.ADDED;
+			}
+			else if (delta < 0)
+			{
+				slotStates[i] = SlotState.REMOVED;
+			}
+		}
+
+		final Map<Boolean, List<Item>> result = qtyMap.entrySet().stream()
+			.filter(e -> e.getValue() != 0)
+			.map(e -> new Item(e.getKey(), e.getValue()))
+			.collect(Collectors.partitioningBy(item -> item.getQuantity() > 0));
+
+		final Item[] added = result.get(true).toArray(new Item[0]);
+		final Item[] removed = result.get(false).toArray(new Item[0]);
+
+		return new InventoryDelta(added, removed, slotStates);
 	}
 
 	@Nullable
