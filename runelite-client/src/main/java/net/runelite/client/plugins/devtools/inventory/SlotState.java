@@ -27,8 +27,10 @@ package net.runelite.client.plugins.devtools.inventory;
 import java.awt.Color;
 import javax.annotation.Nullable;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 @AllArgsConstructor
+@Getter
 public enum SlotState
 {
 	UNCHANGED(null),
