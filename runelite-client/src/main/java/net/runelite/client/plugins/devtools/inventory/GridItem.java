@@ -24,41 +24,55 @@
  */
 package net.runelite.client.plugins.devtools.inventory;
 
+import java.awt.Color;
 import java.awt.Dimension;
-import java.util.function.Consumer;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.text.DecimalFormat;
+import javax.swing.JLabel;
 import javax.swing.SwingConstants;
-import lombok.Setter;
 import net.runelite.api.Constants;
 import net.runelite.api.Item;
+import net.runelite.client.ui.ColorScheme;
 
-class GridItem extends SelectableLabel
+class GridItem extends JLabel
 {
+	private static final DecimalFormat COMMA_FORMAT = new DecimalFormat("#,###");
 	static final Dimension ITEM_SIZE = new Dimension(Constants.ITEM_SPRITE_WIDTH + 4, Constants.ITEM_SPRITE_HEIGHT);
 
-	private final Item item;
+	private Color originalBackground;
 
-	@Setter
-	private Consumer<Item> selectionConsumer;
-
-	GridItem(final Item item)
+	GridItem(final Item item, final int slot)
 	{
 		super();
 
-		this.item = item;
+		setOpaque(true);
 		setPreferredSize(ITEM_SIZE);
 		setVerticalAlignment(SwingConstants.CENTER);
 		setHorizontalAlignment(SwingConstants.CENTER);
-	}
 
-	@Override
-	public void select()
-	{
-		if (selectionConsumer == null)
+		addMouseListener(new MouseAdapter()
 		{
-			return;
-		}
+			@Override
+			public void mouseEntered(MouseEvent e)
+			{
+				final JLabel item = (JLabel) e.getSource();
+				originalBackground = item.getBackground();
+				item.setBackground(ColorScheme.DARKER_GRAY_HOVER_COLOR);
+			}
 
-		selectionConsumer.accept(item);
-		super.select();
+			@Override
+			public void mouseExited(MouseEvent e)
+			{
+				final JLabel item = (JLabel) e.getSource();
+				item.setBackground(originalBackground);
+				originalBackground = null;
+			}
+		});
+
+		setToolTipText("<html>Slot: " + slot
+			+ "<br/>Item ID: " + item.getId()
+			+ "<br/>Quantity: " + COMMA_FORMAT.format(item.getQuantity())
+			+ "</html>");
 	}
 }

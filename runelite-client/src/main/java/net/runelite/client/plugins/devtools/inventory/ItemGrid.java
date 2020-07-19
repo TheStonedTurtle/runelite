@@ -29,10 +29,7 @@ import java.awt.GridLayout;
 import java.awt.Rectangle;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
-import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.Consumer;
+import javax.annotation.Nullable;
 import javax.swing.JPanel;
 import javax.swing.Scrollable;
 import javax.swing.SwingConstants;
@@ -43,10 +40,7 @@ import net.runelite.client.ui.FontManager;
 
 public class ItemGrid extends JPanel implements Scrollable
 {
-	private static final DecimalFormat COMMA_FORMAT = new DecimalFormat("#,###");
-
 	private final ItemManager itemManager;
-	private final List<GridItem> gridItems = new ArrayList<>();
 
 	public ItemGrid(final ItemManager itemManager)
 	{
@@ -66,20 +60,21 @@ public class ItemGrid extends JPanel implements Scrollable
 
 	public void clearGrid()
 	{
-		gridItems.clear();
 		removeAll();
 		revalidate();
 		repaint();
 	}
 
-	public void displayItems(final Item[] items, final Consumer<Item> selectionConsumer)
+	public void displayItems(final Item[] items, @Nullable final InventoryDelta delta)
 	{
 		clearGrid();
 
+		final SlotState[] slotStates = delta == null ? new SlotState[0] : delta.getSlotStates();
 		for (int i = 0; i < items.length; i++)
 		{
 			final Item item = items[i];
-			final GridItem gridItem = new GridItem(item);
+			final SlotState slotState = slotStates.length > i ? slotStates[i] : SlotState.UNCHANGED;
+			final GridItem gridItem = new GridItem(item, i);
 			if (item.getId() == -1)
 			{
 				gridItem.setText("EMPTY");
@@ -87,26 +82,19 @@ public class ItemGrid extends JPanel implements Scrollable
 			}
 			else
 			{
-				gridItem.setSelectionConsumer(selectionConsumer);
 				itemManager.getImage(item.getId(), item.getQuantity(), item.getQuantity() > 1).addTo(gridItem);
 			}
 
-			gridItem.setToolTipText("<html>Slot: " + i
-				+ "<br/>Item ID: " + item.getId()
-				+ "<br/>Quantity: " + COMMA_FORMAT.format(item.getQuantity())
-				+ "</html>");
+			if (slotState.getColor() != null)
+			{
+				gridItem.setBackground(slotState.getColor());
+			}
 
-			gridItems.add(gridItem);
 			add(gridItem);
 		}
 
 		revalidate();
 		repaint();
-	}
-
-	public void deselectGridItems()
-	{
-		gridItems.forEach(gi -> gi.setSelected(false));
 	}
 
 	@Override
