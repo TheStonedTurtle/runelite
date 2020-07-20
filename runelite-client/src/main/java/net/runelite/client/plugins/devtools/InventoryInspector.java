@@ -63,7 +63,6 @@ import net.runelite.client.plugins.devtools.inventory.InventoryLogNode;
 import net.runelite.client.plugins.devtools.inventory.InventoryTreeNode;
 import net.runelite.client.ui.ClientUI;
 import net.runelite.client.ui.ColorScheme;
-import net.runelite.client.ui.DynamicGridLayout;
 
 @Slf4j
 @Singleton
@@ -78,7 +77,8 @@ public class InventoryInspector extends JFrame
 	private final Map<Integer, InventoryTreeNode> nodeMap = new HashMap<>();
 	// Used to store the most recent inventory log updates if not auto refreshing
 	private final Map<Integer, InventoryLog> logMap = new HashMap<>();
-	private final JPanel tracker = new JPanel();
+	private final DefaultMutableTreeNode trackerRootNode = new DefaultMutableTreeNode();
+	private final JTree tree;
 	private final InventoryDeltaPanel deltaPanel;
 
 	@Inject
@@ -105,17 +105,53 @@ public class InventoryInspector extends JFrame
 			}
 		});
 
-		tracker.setLayout(new DynamicGridLayout(0, 1, 0, 3));
-		tracker.setBorder(new EmptyBorder(2, 2, 2, 2));
+		tree = new JTree(trackerRootNode);
+		tree.setBorder(new EmptyBorder(2, 2, 2, 2));
+		tree.setRootVisible(false);
+		tree.setShowsRootHandles(true);
+		tree.addTreeSelectionListener(e -> {
+			if (e.getNewLeadSelectionPath() == null)
+			{
+				return;
+			}
+
+			final Object node = e.getNewLeadSelectionPath().getLastPathComponent();
+			if (node instanceof InventoryLogNode)
+			{
+				final InventoryLogNode logNode = (InventoryLogNode) node;
+
+				final InventoryTreeNode treeNode = nodeMap.get(logNode.getLog().getContainerId());
+				if (treeNode == null)
+				{
+					log.warn("Attempted to click on a node that doesn't map anywhere: {}", logNode);
+					return;
+				}
+
+				final int idx = treeNode.getIndex(logNode);
+				// No previous snapshot to compare against
+				if (idx <= 0)
+				{
+					deltaPanel.displayItems(logNode.getLog().getItems());
+					return;
+				}
+
+				final TreeNode prevNode = treeNode.getChildAt(idx - 1);
+				if (!(prevNode instanceof InventoryLogNode))
+				{
+					return;
+				}
+				final InventoryLogNode prevLogNode = (InventoryLogNode) prevNode;
+
+				final Item[][] delta = compareItemSnapshots(prevLogNode.getLog().getItems(), logNode.getLog().getItems());
+				deltaPanel.displayItems(logNode.getLog().getItems(), delta[0], delta[1]);
+			}
+		});
+		tree.setModel(new DefaultTreeModel(trackerRootNode));
 
 		final JPanel leftSide = new JPanel();
 		leftSide.setLayout(new BorderLayout());
 
-		final JPanel trackerWrapper = new JPanel();
-		trackerWrapper.setLayout(new BorderLayout());
-		trackerWrapper.add(tracker, BorderLayout.NORTH);
-
-		final JScrollPane trackerScroller = new JScrollPane(trackerWrapper);
+		final JScrollPane trackerScroller = new JScrollPane(tree);
 		trackerScroller.setPreferredSize(new Dimension(200, 400));
 
 		final JScrollBar vertical = trackerScroller.getVerticalScrollBar();
@@ -213,8 +249,8 @@ public class InventoryInspector extends JFrame
 	{
 		nodeMap.clear();
 		deltaPanel.clear();
-		tracker.removeAll();
-		tracker.revalidate();
+		trackerRootNode.removeAllChildren();
+		tree.setModel(new DefaultTreeModel(trackerRootNode));
 	}
 
 	private void refreshTracker()
@@ -225,53 +261,11 @@ public class InventoryInspector extends JFrame
 			logMap.clear();
 		}
 
-		// TODO: Look into storing root node for better updating?
 		SwingUtilities.invokeLater(() ->
 		{
-			tracker.removeAll();
-
-			final DefaultMutableTreeNode root = new DefaultMutableTreeNode();
-			final JTree tree = new JTree(root);
-			tree.setRootVisible(false);
-			tree.setShowsRootHandles(true);
-			tree.addTreeSelectionListener(e -> {
-				final Object node = e.getNewLeadSelectionPath().getLastPathComponent();
-				if (node instanceof InventoryLogNode)
-				{
-					final InventoryLogNode logNode = (InventoryLogNode) node;
-
-					final InventoryTreeNode treeNode = nodeMap.get(logNode.getLog().getContainerId());
-					if (treeNode == null)
-					{
-						log.warn("Attempted to click on a node that doesn't map anywhere");
-						return;
-					}
-
-					final int idx = treeNode.getIndex(logNode);
-					// No previous snapshot to compare against
-					if (idx <= 0)
-					{
-						deltaPanel.displayItems(logNode.getLog().getItems());
-						return;
-					}
-
-					final TreeNode prevNode = treeNode.getChildAt(idx - 1);
-					if (!(prevNode instanceof InventoryLogNode))
-					{
-						return;
-					}
-					final InventoryLogNode prevLogNode = (InventoryLogNode) prevNode;
-
-					final Item[][] delta = compareItemSnapshots(prevLogNode.getLog().getItems(), logNode.getLog().getItems());
-					deltaPanel.displayItems(logNode.getLog().getItems(), delta[0], delta[1]);
-				}
-			});
-
-			nodeMap.values().forEach(root::add);
-
-			tree.setModel(new DefaultTreeModel(root));
-			tracker.add(tree);
-			tracker.revalidate();
+			trackerRootNode.removeAllChildren();
+			nodeMap.values().forEach(trackerRootNode::add);
+			tree.setModel(new DefaultTreeModel(trackerRootNode));
 		});
 	}
 
