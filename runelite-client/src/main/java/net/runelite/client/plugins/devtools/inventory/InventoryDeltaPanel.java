@@ -25,7 +25,6 @@
 package net.runelite.client.plugins.devtools.inventory;
 
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.Rectangle;
@@ -86,6 +85,9 @@ public class InventoryDeltaPanel extends JPanel implements Scrollable
 
 	public void clear()
 	{
+		addedGrid.removeAll();
+		removedGrid.removeAll();
+		currentGrid.removeAll();
 		removeAll();
 		revalidate();
 		repaint();
@@ -107,10 +109,9 @@ public class InventoryDeltaPanel extends JPanel implements Scrollable
 			add(label);
 			add(addedGrid);
 
-			addItemsToPanel(addedGrid, added);
-			for (final Component c : addedGrid.getComponents())
+			for (final Item item : added)
 			{
-				c.setBackground(new Color(0, 100, 0));
+				addItemToPanel(item, addedGrid).setBackground(new Color(0, 100, 0));
 			}
 		}
 
@@ -121,10 +122,9 @@ public class InventoryDeltaPanel extends JPanel implements Scrollable
 			add(label);
 			add(removedGrid);
 
-			addItemsToPanel(removedGrid, removed);
-			for (final Component c : removedGrid.getComponents())
+			for (final Item item : removed)
 			{
-				c.setBackground(new Color(120, 0, 0));
+				addItemToPanel(item, removedGrid).setBackground(new Color(120, 0, 0));
 			}
 		}
 
@@ -133,42 +133,44 @@ public class InventoryDeltaPanel extends JPanel implements Scrollable
 		add(label);
 		add(currentGrid);
 
-		addItemsToPanel(currentGrid, items);
+		currentGrid.removeAll();
+		for (int i = 0; i < items.length; i++)
+		{
+			final Item item = items[i];
+			addItemToPanel(item, currentGrid).setToolTipText("<html>Slot: " + i
+				+ "<br/>Item ID: " + item.getId()
+				+ "<br/>Quantity: " + COMMA_FORMAT.format(item.getQuantity())
+				+ "</html>");
+		}
 
 		revalidate();
 		repaint();
 	}
 
-	private void addItemsToPanel(final JPanel panel, final Item[] items)
+	private JLabel addItemToPanel(final Item item, final JPanel panel)
 	{
-		panel.removeAll();
+		final JLabel gridItem = new JLabel();
+		gridItem.setOpaque(true);
+		gridItem.setPreferredSize(ITEM_SIZE);
+		gridItem.setVerticalAlignment(SwingConstants.CENTER);
+		gridItem.setHorizontalAlignment(SwingConstants.CENTER);
 
-		for (int i = 0; i < items.length; i++)
+		gridItem.setToolTipText("<html>Item ID: " + item.getId()
+			+ "<br/>Quantity: " + COMMA_FORMAT.format(item.getQuantity())
+			+ "</html>");
+
+		if (item.getId() == -1)
 		{
-			final Item item = items[i];
-			final JLabel gridItem = new JLabel();
-			gridItem.setOpaque(true);
-			gridItem.setPreferredSize(ITEM_SIZE);
-			gridItem.setVerticalAlignment(SwingConstants.CENTER);
-			gridItem.setHorizontalAlignment(SwingConstants.CENTER);
-
-			gridItem.setToolTipText("<html>Slot: " + i
-				+ "<br/>Item ID: " + item.getId()
-				+ "<br/>Quantity: " + COMMA_FORMAT.format(item.getQuantity())
-				+ "</html>");
-
-			if (item.getId() == -1)
-			{
-				gridItem.setText("EMPTY");
-				gridItem.setFont(FontManager.getRunescapeSmallFont());
-			}
-			else
-			{
-				itemManager.getImage(item.getId(), item.getQuantity(), item.getQuantity() > 1).addTo(gridItem);
-			}
-
-			panel.add(gridItem);
+			gridItem.setText("EMPTY");
+			gridItem.setFont(FontManager.getRunescapeSmallFont());
 		}
+		else
+		{
+			itemManager.getImage(item.getId(), item.getQuantity(), item.getQuantity() > 1).addTo(gridItem);
+		}
+
+		panel.add(gridItem);
+		return gridItem;
 	}
 
 	@Override
