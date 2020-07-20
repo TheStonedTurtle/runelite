@@ -30,7 +30,6 @@ import java.awt.Rectangle;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.text.DecimalFormat;
-import java.util.Arrays;
 import javax.annotation.Nullable;
 import javax.swing.BoxLayout;
 import javax.swing.JLabel;
@@ -90,37 +89,33 @@ public class InventoryDeltaPanel extends JPanel implements Scrollable
 		repaint();
 	}
 
-	public void displayItems(final Item[] items, @Nullable final InventoryDelta delta)
+	public void displayItems(final Item[] items)
+	{
+		displayItems(items, null, null);
+	}
+
+	public void displayItems(final Item[] items, @Nullable final Item[] added, @Nullable final Item[] removed)
 	{
 		clear();
 
-		if (delta != null)
+		if (added != null && added.length > 0)
 		{
-			final Item[] added = delta.getAdded();
-			if (added.length > 0)
-			{
-				final JLabel label = new JLabel("Items Added:", JLabel.CENTER);
-				label.setAlignmentX(JLabel.CENTER_ALIGNMENT);
-				add(label);
-				add(addedGrid);
+			final JLabel label = new JLabel("Items Added:", JLabel.CENTER);
+			label.setAlignmentX(JLabel.CENTER_ALIGNMENT);
+			add(label);
+			add(addedGrid);
 
-				final SlotState[] states = new SlotState[added.length];
-				Arrays.fill(states, SlotState.ADDED);
-				addItemsToPanel(addedGrid, added, states);
-			}
+			addItemsToPanel(addedGrid, added);
+		}
 
-			final Item[] removed = delta.getRemoved();
-			if (removed.length > 0)
-			{
-				final JLabel label = new JLabel("Items Removed:", JLabel.CENTER);
-				label.setAlignmentX(JLabel.CENTER_ALIGNMENT);
-				add(label);
-				add(removedGrid);
+		if (removed != null && removed.length > 0)
+		{
+			final JLabel label = new JLabel("Items Removed:", JLabel.CENTER);
+			label.setAlignmentX(JLabel.CENTER_ALIGNMENT);
+			add(label);
+			add(removedGrid);
 
-				final SlotState[] states = new SlotState[removed.length];
-				Arrays.fill(states, SlotState.REMOVED);
-				addItemsToPanel(removedGrid, removed, states);
-			}
+			addItemsToPanel(removedGrid, removed);
 		}
 
 		final JLabel label = new JLabel("Items in Inventory:", JLabel.CENTER);
@@ -128,20 +123,19 @@ public class InventoryDeltaPanel extends JPanel implements Scrollable
 		add(label);
 		add(currentGrid);
 
-		addItemsToPanel(currentGrid, items, delta == null ? null : delta.getSlotStates());
+		addItemsToPanel(currentGrid, items);
 
 		revalidate();
 		repaint();
 	}
 
-	private void addItemsToPanel(final JPanel panel, final Item[] items, @Nullable final SlotState[] slotStates)
+	private void addItemsToPanel(final JPanel panel, final Item[] items)
 	{
 		panel.removeAll();
 
 		for (int i = 0; i < items.length; i++)
 		{
 			final Item item = items[i];
-			final SlotState slotState = slotStates != null && slotStates.length > i ? slotStates[i] : SlotState.UNCHANGED;
 			final JLabel gridItem = new JLabel();
 			gridItem.setOpaque(true);
 			gridItem.setPreferredSize(ITEM_SIZE);
@@ -161,11 +155,6 @@ public class InventoryDeltaPanel extends JPanel implements Scrollable
 			else
 			{
 				itemManager.getImage(item.getId(), item.getQuantity(), item.getQuantity() > 1).addTo(gridItem);
-			}
-
-			if (slotState.getColor() != null)
-			{
-				gridItem.setBackground(slotState.getColor());
 			}
 
 			panel.add(gridItem);
