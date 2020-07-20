@@ -24,6 +24,8 @@
  */
 package net.runelite.client.plugins.devtools.inventory;
 
+import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.Rectangle;
@@ -106,6 +108,10 @@ public class InventoryDeltaPanel extends JPanel implements Scrollable
 			add(addedGrid);
 
 			addItemsToPanel(addedGrid, added);
+			for (final Component c : addedGrid.getComponents())
+			{
+				c.setBackground(new Color(0, 100, 0));
+			}
 		}
 
 		if (removed != null && removed.length > 0)
@@ -116,6 +122,10 @@ public class InventoryDeltaPanel extends JPanel implements Scrollable
 			add(removedGrid);
 
 			addItemsToPanel(removedGrid, removed);
+			for (final Component c : removedGrid.getComponents())
+			{
+				c.setBackground(new Color(120, 0, 0));
+			}
 		}
 
 		final JLabel label = new JLabel("Items in Inventory:", JLabel.CENTER);
