@@ -69,13 +69,11 @@ import net.runelite.client.ui.ColorScheme;
 public class InventoryInspector extends JFrame
 {
 	private static final int MAX_LOG_ENTRIES = 25;
-	private static final String REFRESH_CONFIG_KEY = "inventory-auto-refresh";
 
 	private final Client client;
 	private final EventBus eventBus;
 
 	private final Map<Integer, InventoryTreeNode> nodeMap = new HashMap<>();
-	// Used to store the most recent inventory log updates if not auto refreshing
 	private final Map<Integer, InventoryLog> logMap = new HashMap<>();
 	private final DefaultMutableTreeNode trackerRootNode = new DefaultMutableTreeNode();
 	private final JTree tree;
