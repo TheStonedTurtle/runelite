@@ -71,7 +71,7 @@ import net.runelite.client.ui.ColorScheme;
 
 @Slf4j
 @Singleton
-public class InventoryInspector extends JFrame
+class InventoryInspector extends JFrame
 {
 	private static final int MAX_LOG_ENTRIES = 25;
 
