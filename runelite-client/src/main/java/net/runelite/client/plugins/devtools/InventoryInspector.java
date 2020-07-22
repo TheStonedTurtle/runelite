@@ -222,6 +222,7 @@ public class InventoryInspector extends JFrame
 		final int id = event.getContainerId();
 		final InventoryLog log = new InventoryLog(id, getNameForInventoryID(id), event.getItemContainer().getItems(), client.getTickCount());
 
+		// Delay updates until refresh button is pressed
 		logMap.put(id, log);
 	}
 
@@ -245,6 +246,7 @@ public class InventoryInspector extends JFrame
 
 	private void clearTracker()
 	{
+		logMap.clear();
 		nodeMap.clear();
 		deltaPanel.clear();
 		trackerRootNode.removeAllChildren();
