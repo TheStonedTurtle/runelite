@@ -78,7 +78,6 @@ public class InventoryInspector extends JFrame
 	private final Client client;
 	private final EventBus eventBus;
 	private final ItemManager itemManager;
-	private final ClientThread clientThread;
 
 	private final Map<Integer, InventoryTreeNode> nodeMap = new HashMap<>();
 	private final Map<Integer, InventoryLog> logMap = new HashMap<>();
@@ -92,7 +91,6 @@ public class InventoryInspector extends JFrame
 		this.client = client;
 		this.eventBus = eventBus;
 		this.itemManager = itemManager;
-		this.clientThread = clientThread;
 
 		this.deltaPanel = new InventoryDeltaPanel(itemManager);
 
