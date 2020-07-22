@@ -130,7 +130,11 @@ public class InventoryDeltaPanel extends JPanel implements Scrollable
 
 		for (final InventoryItem item : items)
 		{
-			addItemToPanel(item, currentGrid);
+			addItemToPanel(item, currentGrid).setToolTipText("<html>Name:" + item.getName()
+				+ "<br/>Item ID: " + item.getItem().getId()
+				+ "<br/>Quantity: " + COMMA_FORMAT.format(item.getItem().getQuantity())
+				+ "<br/>Slot: " + item.getSlot()
+				+ "</html>");
 		}
 
 		revalidate();
@@ -149,7 +153,6 @@ public class InventoryDeltaPanel extends JPanel implements Scrollable
 		gridItem.setToolTipText("<html>Name:" + inventoryItem.getName()
 			+ "<br/>Item ID: " + item.getId()
 			+ "<br/>Quantity: " + COMMA_FORMAT.format(item.getQuantity())
-			+ "<br/>Slot: " + inventoryItem.getSlot()
 			+ "</html>");
 
 		if (item.getId() == -1)
