@@ -94,10 +94,9 @@ class InventoryInspector extends JFrame
 
 		this.deltaPanel = new InventoryDeltaPanel(itemManager);
 
+		setLayout(new BorderLayout());
 		setTitle("RuneLite Inventory Inspector");
 		setIconImage(ClientUI.ICON);
-
-		setLayout(new BorderLayout());
 
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		// Reset highlight on close
@@ -195,8 +194,6 @@ class InventoryInspector extends JFrame
 		eventBus.unregister(this);
 		clearTracker();
 		setVisible(false);
-		nodeMap.clear();
-		logMap.clear();
 	}
 
 	@Subscribe
@@ -211,13 +208,7 @@ class InventoryInspector extends JFrame
 
 	private void addLog(final InventoryLog invLog)
 	{
-		InventoryTreeNode node = nodeMap.get(invLog.getContainerId());
-		if (node == null)
-		{
-			node = new InventoryTreeNode(invLog.getContainerId(), invLog.getContainerName());
-			nodeMap.put(invLog.getContainerId(), node);
-		}
-
+		final InventoryTreeNode node = nodeMap.computeIfAbsent(invLog.getContainerId(), (k) -> new InventoryTreeNode(invLog.getContainerId(), invLog.getContainerName()));
 		node.add(new InventoryLogNode(invLog));
 
 		// Cull very old stuff
@@ -238,6 +229,8 @@ class InventoryInspector extends JFrame
 
 	private void refreshTracker()
 	{
+		deltaPanel.clear();
+
 		if (logMap.size() > 0)
 		{
 			logMap.values().forEach(this::addLog);
@@ -296,7 +289,7 @@ class InventoryInspector extends JFrame
 	}
 
 	/**
-	 * Compares the current inventory to the old one returning the items that were added and removed.
+	 * Compares the current inventory to the old one returning the InventoryItems that were added and removed.
 	 * @param previous old snapshot
 	 * @param current new snapshot
 	 * @return The first InventoryItem[] contains the items that were added and the second contains the items that were removed
