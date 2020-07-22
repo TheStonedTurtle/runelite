@@ -133,7 +133,7 @@ public class InventoryDeltaPanel extends JPanel implements Scrollable
 			final JLabel gridItem = addItemToPanel(item, currentGrid);
 			if (item.getItem().getId() != -1)
 			{
-				gridItem.setToolTipText("<html>Name:" + item.getName()
+				gridItem.setToolTipText("<html>Name: " + item.getName()
 					+ "<br/>Item ID: " + item.getItem().getId()
 					+ "<br/>Quantity: " + COMMA_FORMAT.format(item.getItem().getQuantity())
 					+ "<br/>Slot: " + item.getSlot()
@@ -162,7 +162,7 @@ public class InventoryDeltaPanel extends JPanel implements Scrollable
 		else
 		{
 			itemManager.getImage(item.getId(), item.getQuantity(), item.getQuantity() > 1).addTo(gridItem);
-			gridItem.setToolTipText("<html>Name:" + inventoryItem.getName()
+			gridItem.setToolTipText("<html>Name: " + inventoryItem.getName()
 				+ "<br/>Item ID: " + item.getId()
 				+ "<br/>Quantity: " + COMMA_FORMAT.format(item.getQuantity())
 				+ "</html>");
