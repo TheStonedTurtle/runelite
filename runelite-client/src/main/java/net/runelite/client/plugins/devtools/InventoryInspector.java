@@ -304,7 +304,7 @@ public class InventoryInspector extends JFrame
 		final Item[] added = result.get(true).toArray(new Item[0]);
 		final Item[] removed = result.get(false).stream()
 			// Make quantities positive now that its been sorted.
-			.map(i -> new Item(i.getId(), i.getQuantity() * -1))
+			.map(i -> new Item(i.getId(), -i.getQuantity()))
 			.toArray(Item[]::new);
 
 		return new Item[][]{
