@@ -24,14 +24,16 @@
  */
 package net.runelite.client.plugins.devtools.inventory;
 
-import lombok.Value;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import net.runelite.api.Item;
 
-@Value
+@Data
+@AllArgsConstructor
 public class InventoryItem
 {
-	int slot;
-	Item item;
-	String name;
-	boolean stackable;
+	private final int slot;
+	private Item item;
+	private final String name;
+	private final boolean stackable;
 }

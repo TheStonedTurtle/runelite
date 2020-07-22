@@ -30,6 +30,7 @@ import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -265,7 +266,7 @@ public class InventoryInspector extends JFrame
 		final Item[] curItems = logNode.getLog().getItems();
 		final InventoryItem[] curInventory = convertToInventoryItems(curItems);
 
-		Item[][] delta = null;
+		InventoryItem[][] deltas = null;
 		// Compare against previous snapshot
 		if (treeNode.getIndex(logNode) > 0)
 		{
@@ -273,12 +274,12 @@ public class InventoryInspector extends JFrame
 			if (prevNode instanceof InventoryLogNode)
 			{
 				final InventoryLogNode prevLogNode = (InventoryLogNode) prevNode;
-				delta = compareItemSnapshots(prevLogNode.getLog().getItems(), curItems);
+				deltas = compareItemSnapshots(prevLogNode.getLog().getItems(), curItems);
 			}
 		}
 
-		final InventoryItem[] added = delta == null ? null : convertToInventoryItems(delta[0]);
-		final InventoryItem[] removed = delta == null ? null : convertToInventoryItems(delta[1]);
+		final InventoryItem[] added = deltas == null ? null : deltas[0];
+		final InventoryItem[] removed = deltas == null ? null : deltas[1];
 
 		SwingUtilities.invokeLater(() -> deltaPanel.displayItems(curInventory, added, removed));
 	}
@@ -300,9 +301,9 @@ public class InventoryInspector extends JFrame
 	 * Compares the current inventory to the old one returning the items that were added and removed.
 	 * @param previous old snapshot
 	 * @param current new snapshot
-	 * @return The first Item[] contains the items that were added and the second contains the items that were removed
+	 * @return The first InventoryItem[] contains the items that were added and the second contains the items that were removed
 	 */
-	private static Item[][] compareItemSnapshots(final Item[] previous, final Item[] current)
+	private InventoryItem[][] compareItemSnapshots(final Item[] previous, final Item[] current)
 	{
 		final Map<Integer, Integer> qtyMap = new HashMap<>();
 
@@ -323,18 +324,37 @@ public class InventoryInspector extends JFrame
 			}
 		}
 
-		final Map<Boolean, List<Item>> result = qtyMap.entrySet().stream()
+		final Map<Boolean, List<InventoryItem>> result = qtyMap.entrySet().stream()
 			.filter(e -> e.getValue() != 0)
-			.map(e -> new Item(e.getKey(), e.getValue()))
-			.collect(Collectors.partitioningBy(item -> item.getQuantity() > 0));
+			.flatMap(e -> {
+				final int id = e.getKey();
+				final int qty = e.getValue();
+				final ItemComposition c = itemManager.getItemComposition(e.getKey());
 
-		final Item[] added = result.get(true).toArray(new Item[0]);
-		final Item[] removed = result.get(false).stream()
+				InventoryItem[] items = new InventoryItem[]{
+					new InventoryItem(-1, new Item(id, qty), c.getName(), c.isStackable())
+				};
+				if (!c.isStackable() && (qty > 1 || qty < -1))
+				{
+					items = new InventoryItem[Math.abs(qty)];
+					for (int i = 0; i < Math.abs(qty); i++)
+					{
+						final Item item = new Item(id, Integer.signum(qty));
+						items[i] = new InventoryItem(-1, item, c.getName(), c.isStackable());
+					}
+				}
+
+				return Arrays.stream(items);
+			})
+			.collect(Collectors.partitioningBy(item -> item.getItem().getQuantity() > 0));
+
+		final InventoryItem[] added = result.get(true).toArray(new InventoryItem[0]);
+		final InventoryItem[] removed = result.get(false).stream()
 			// Make quantities positive now that its been sorted.
-			.map(i -> new Item(i.getId(), -i.getQuantity()))
-			.toArray(Item[]::new);
+			.peek(i -> i.setItem(new Item(i.getItem().getId(), -i.getItem().getQuantity())))
+			.toArray(InventoryItem[]::new);
 
-		return new Item[][]{
+		return new InventoryItem[][]{
 			added, removed
 		};
 	}
