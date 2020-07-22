@@ -34,6 +34,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -53,11 +54,14 @@ import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.InventoryID;
 import net.runelite.api.Item;
+import net.runelite.api.ItemComposition;
 import net.runelite.api.events.ItemContainerChanged;
+import net.runelite.client.callback.ClientThread;
 import net.runelite.client.eventbus.EventBus;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.plugins.devtools.inventory.InventoryDeltaPanel;
+import net.runelite.client.plugins.devtools.inventory.InventoryItem;
 import net.runelite.client.plugins.devtools.inventory.InventoryLog;
 import net.runelite.client.plugins.devtools.inventory.InventoryLogNode;
 import net.runelite.client.plugins.devtools.inventory.InventoryTreeNode;
@@ -72,6 +76,8 @@ public class InventoryInspector extends JFrame
 
 	private final Client client;
 	private final EventBus eventBus;
+	private final ItemManager itemManager;
+	private final ClientThread clientThread;
 
 	private final Map<Integer, InventoryTreeNode> nodeMap = new HashMap<>();
 	private final Map<Integer, InventoryLog> logMap = new HashMap<>();
@@ -80,10 +86,13 @@ public class InventoryInspector extends JFrame
 	private final InventoryDeltaPanel deltaPanel;
 
 	@Inject
-	InventoryInspector(Client client, EventBus eventBus, DevToolsPlugin plugin, ItemManager itemManager)
+	InventoryInspector(Client client, EventBus eventBus, DevToolsPlugin plugin, ItemManager itemManager, ClientThread clientThread)
 	{
-		this.eventBus = eventBus;
 		this.client = client;
+		this.eventBus = eventBus;
+		this.itemManager = itemManager;
+		this.clientThread = clientThread;
+
 		this.deltaPanel = new InventoryDeltaPanel(itemManager);
 
 		setTitle("RuneLite Inventory Inspector");
@@ -116,32 +125,7 @@ public class InventoryInspector extends JFrame
 			final Object node = e.getNewLeadSelectionPath().getLastPathComponent();
 			if (node instanceof InventoryLogNode)
 			{
-				final InventoryLogNode logNode = (InventoryLogNode) node;
-
-				final InventoryTreeNode treeNode = nodeMap.get(logNode.getLog().getContainerId());
-				if (treeNode == null)
-				{
-					log.warn("Attempted to click on a node that doesn't map anywhere: {}", logNode);
-					return;
-				}
-
-				final int idx = treeNode.getIndex(logNode);
-				// No previous snapshot to compare against
-				if (idx <= 0)
-				{
-					deltaPanel.displayItems(logNode.getLog().getItems());
-					return;
-				}
-
-				final TreeNode prevNode = treeNode.getChildAt(idx - 1);
-				if (!(prevNode instanceof InventoryLogNode))
-				{
-					return;
-				}
-				final InventoryLogNode prevLogNode = (InventoryLogNode) prevNode;
-
-				final Item[][] delta = compareItemSnapshots(prevLogNode.getLog().getItems(), logNode.getLog().getItems());
-				deltaPanel.displayItems(logNode.getLog().getItems(), delta[0], delta[1]);
+				clientThread.invoke(() -> displayItemSnapshot((InventoryLogNode) node));
 			}
 		});
 		tree.setModel(new DefaultTreeModel(trackerRootNode));
@@ -267,6 +251,50 @@ public class InventoryInspector extends JFrame
 			nodeMap.values().forEach(trackerRootNode::add);
 			tree.setModel(new DefaultTreeModel(trackerRootNode));
 		});
+	}
+
+	private void displayItemSnapshot(@Nonnull final InventoryLogNode logNode)
+	{
+		final InventoryTreeNode treeNode = nodeMap.get(logNode.getLog().getContainerId());
+		if (treeNode == null)
+		{
+			log.warn("Clicked on a JTree node that doesn't map anywhere: {}", logNode);
+			return;
+		}
+
+		final Item[] curItems = logNode.getLog().getItems();
+		final InventoryItem[] curInventory = convertToInventoryItems(curItems);
+		InventoryItem[] added = null;
+		InventoryItem[] removed = null;
+
+		final int idx = treeNode.getIndex(logNode);
+		// There's a previous snapshot to compare against
+		if (idx > 0)
+		{
+			final TreeNode prevNode = treeNode.getChildAt(idx - 1);
+			if (prevNode instanceof InventoryLogNode)
+			{
+				final InventoryLogNode prevLogNode = (InventoryLogNode) prevNode;
+				final Item[][] delta = compareItemSnapshots(prevLogNode.getLog().getItems(), curItems);
+				added = convertToInventoryItems(delta[0]);
+				removed = convertToInventoryItems(delta[1]);
+			}
+		}
+
+		deltaPanel.displayItems(curInventory, added, removed);
+	}
+
+	private InventoryItem[] convertToInventoryItems(final Item[] items)
+	{
+		final InventoryItem[] out = new InventoryItem[items.length];
+		for (int i = 0; i < items.length; i++)
+		{
+			final Item item = items[i];
+			final ItemComposition c = itemManager.getItemComposition(item.getId());
+			out[i] = new InventoryItem(i, item, c.getName(), c.isStackable());
+		}
+
+		return out;
 	}
 
 	/**

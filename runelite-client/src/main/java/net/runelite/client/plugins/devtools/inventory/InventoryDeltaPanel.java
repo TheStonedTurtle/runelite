@@ -93,12 +93,7 @@ public class InventoryDeltaPanel extends JPanel implements Scrollable
 		repaint();
 	}
 
-	public void displayItems(final Item[] items)
-	{
-		displayItems(items, null, null);
-	}
-
-	public void displayItems(final Item[] items, @Nullable final Item[] added, @Nullable final Item[] removed)
+	public void displayItems(final InventoryItem[] items, @Nullable final InventoryItem[] added, @Nullable final InventoryItem[] removed)
 	{
 		clear();
 
@@ -109,7 +104,7 @@ public class InventoryDeltaPanel extends JPanel implements Scrollable
 			add(label);
 			add(addedGrid);
 
-			for (final Item item : added)
+			for (final InventoryItem item : added)
 			{
 				addItemToPanel(item, addedGrid).setBackground(new Color(0, 100, 0));
 			}
@@ -122,7 +117,7 @@ public class InventoryDeltaPanel extends JPanel implements Scrollable
 			add(label);
 			add(removedGrid);
 
-			for (final Item item : removed)
+			for (final InventoryItem item : removed)
 			{
 				addItemToPanel(item, removedGrid).setBackground(new Color(120, 0, 0));
 			}
@@ -133,21 +128,16 @@ public class InventoryDeltaPanel extends JPanel implements Scrollable
 		add(label);
 		add(currentGrid);
 
-		currentGrid.removeAll();
-		for (int i = 0; i < items.length; i++)
+		for (final InventoryItem item : items)
 		{
-			final Item item = items[i];
-			addItemToPanel(item, currentGrid).setToolTipText("<html>Slot: " + i
-				+ "<br/>Item ID: " + item.getId()
-				+ "<br/>Quantity: " + COMMA_FORMAT.format(item.getQuantity())
-				+ "</html>");
+			addItemToPanel(item, currentGrid);
 		}
 
 		revalidate();
 		repaint();
 	}
 
-	private JLabel addItemToPanel(final Item item, final JPanel panel)
+	private JLabel addItemToPanel(final InventoryItem inventoryItem, final JPanel panel)
 	{
 		final JLabel gridItem = new JLabel();
 		gridItem.setOpaque(true);
@@ -155,8 +145,11 @@ public class InventoryDeltaPanel extends JPanel implements Scrollable
 		gridItem.setVerticalAlignment(SwingConstants.CENTER);
 		gridItem.setHorizontalAlignment(SwingConstants.CENTER);
 
-		gridItem.setToolTipText("<html>Item ID: " + item.getId()
+		final Item item = inventoryItem.getItem();
+		gridItem.setToolTipText("<html>Name:" + inventoryItem.getName()
+			+ "<br/>Item ID: " + item.getId()
 			+ "<br/>Quantity: " + COMMA_FORMAT.format(item.getQuantity())
+			+ "<br/>Slot: " + inventoryItem.getSlot()
 			+ "</html>");
 
 		if (item.getId() == -1)
