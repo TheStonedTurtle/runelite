@@ -130,11 +130,15 @@ public class InventoryDeltaPanel extends JPanel implements Scrollable
 
 		for (final InventoryItem item : items)
 		{
-			addItemToPanel(item, currentGrid).setToolTipText("<html>Name:" + item.getName()
-				+ "<br/>Item ID: " + item.getItem().getId()
-				+ "<br/>Quantity: " + COMMA_FORMAT.format(item.getItem().getQuantity())
-				+ "<br/>Slot: " + item.getSlot()
-				+ "</html>");
+			final JLabel gridItem = addItemToPanel(item, currentGrid);
+			if (item.getItem().getId() != -1)
+			{
+				gridItem.setToolTipText("<html>Name:" + item.getName()
+					+ "<br/>Item ID: " + item.getItem().getId()
+					+ "<br/>Quantity: " + COMMA_FORMAT.format(item.getItem().getQuantity())
+					+ "<br/>Slot: " + item.getSlot()
+					+ "</html>");
+			}
 		}
 
 		revalidate();
@@ -148,21 +152,20 @@ public class InventoryDeltaPanel extends JPanel implements Scrollable
 		gridItem.setPreferredSize(ITEM_SIZE);
 		gridItem.setVerticalAlignment(SwingConstants.CENTER);
 		gridItem.setHorizontalAlignment(SwingConstants.CENTER);
+		gridItem.setFont(FontManager.getRunescapeSmallFont());
 
 		final Item item = inventoryItem.getItem();
-		gridItem.setToolTipText("<html>Name:" + inventoryItem.getName()
-			+ "<br/>Item ID: " + item.getId()
-			+ "<br/>Quantity: " + COMMA_FORMAT.format(item.getQuantity())
-			+ "</html>");
-
 		if (item.getId() == -1)
 		{
 			gridItem.setText("EMPTY");
-			gridItem.setFont(FontManager.getRunescapeSmallFont());
 		}
 		else
 		{
 			itemManager.getImage(item.getId(), item.getQuantity(), item.getQuantity() > 1).addTo(gridItem);
+			gridItem.setToolTipText("<html>Name:" + inventoryItem.getName()
+				+ "<br/>Item ID: " + item.getId()
+				+ "<br/>Quantity: " + COMMA_FORMAT.format(item.getQuantity())
+				+ "</html>");
 		}
 
 		panel.add(gridItem);
