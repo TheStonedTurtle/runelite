@@ -35,7 +35,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -245,7 +244,7 @@ class InventoryInspector extends JFrame
 		});
 	}
 
-	private void displayItemSnapshot(@Nonnull final InventoryLogNode logNode)
+	private void displayItemSnapshot(final InventoryLogNode logNode)
 	{
 		final InventoryTreeNode treeNode = nodeMap.get(logNode.getLog().getContainerId());
 		if (treeNode == null)
