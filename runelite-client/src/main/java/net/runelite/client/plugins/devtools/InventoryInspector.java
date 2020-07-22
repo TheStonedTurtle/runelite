@@ -264,24 +264,23 @@ public class InventoryInspector extends JFrame
 
 		final Item[] curItems = logNode.getLog().getItems();
 		final InventoryItem[] curInventory = convertToInventoryItems(curItems);
-		InventoryItem[] added = null;
-		InventoryItem[] removed = null;
 
-		final int idx = treeNode.getIndex(logNode);
-		// There's a previous snapshot to compare against
-		if (idx > 0)
+		Item[][] delta = null;
+		// Compare against previous snapshot
+		if (treeNode.getIndex(logNode) > 0)
 		{
-			final TreeNode prevNode = treeNode.getChildAt(idx - 1);
+			final TreeNode prevNode = treeNode.getChildBefore(logNode);
 			if (prevNode instanceof InventoryLogNode)
 			{
 				final InventoryLogNode prevLogNode = (InventoryLogNode) prevNode;
-				final Item[][] delta = compareItemSnapshots(prevLogNode.getLog().getItems(), curItems);
-				added = convertToInventoryItems(delta[0]);
-				removed = convertToInventoryItems(delta[1]);
+				delta = compareItemSnapshots(prevLogNode.getLog().getItems(), curItems);
 			}
 		}
 
-		deltaPanel.displayItems(curInventory, added, removed);
+		final InventoryItem[] added = delta == null ? null : convertToInventoryItems(delta[0]);
+		final InventoryItem[] removed = delta == null ? null : convertToInventoryItems(delta[1]);
+
+		SwingUtilities.invokeLater(() -> deltaPanel.displayItems(curInventory, added, removed));
 	}
 
 	private InventoryItem[] convertToInventoryItems(final Item[] items)
