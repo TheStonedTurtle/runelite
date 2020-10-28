@@ -26,7 +26,9 @@ package net.runelite.client.config;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ComparisonChain;
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.SetMultimap;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Point;
@@ -66,7 +68,10 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
+import net.runelite.api.Client;
+import net.runelite.api.GameState;
 import net.runelite.api.coords.WorldPoint;
+import net.runelite.api.events.GameStateChanged;
 import net.runelite.client.RuneLite;
 import net.runelite.client.account.AccountSession;
 import net.runelite.client.eventbus.EventBus;
@@ -88,28 +93,48 @@ public class ConfigManager
 	private final File settingsFileInput;
 	private final EventBus eventBus;
 	private final OkHttpClient okHttpClient;
+	private final Client rlClient;
 
 	private AccountSession session;
 	private ConfigClient client;
 	private File propertiesFile;
+	private String username;
 
 	private final ConfigInvocationHandler handler = new ConfigInvocationHandler(this);
 	private final Properties properties = new Properties();
 	private final Map<String, String> pendingChanges = new HashMap<>();
+	private final SetMultimap<String, String> accountSpecificConfigs = HashMultimap.create();
 
 	@Inject
 	public ConfigManager(
 		@Named("config") File config,
 		ScheduledExecutorService scheduledExecutorService,
 		EventBus eventBus,
-		OkHttpClient okHttpClient)
+		OkHttpClient okHttpClient,
+		Client client)
 	{
 		this.settingsFileInput = config;
 		this.eventBus = eventBus;
 		this.okHttpClient = okHttpClient;
+		this.rlClient = client;
 		this.propertiesFile = getPropertiesFile();
 
 		scheduledExecutorService.scheduleWithFixedDelay(this::sendConfig, 30, 30, TimeUnit.SECONDS);
+		eventBus.register(this);
+	}
+
+	@Subscribe
+	public void onGameStateChanged(GameStateChanged c)
+	{
+		if (c.getGameState() != GameState.LOGGING_IN || rlClient.getUsername().length() < 1 || rlClient.getUsername().equals(username))
+		{
+			return;
+		}
+
+		final String oldUsername = username;
+		username = rlClient.getUsername();
+		handler.invalidate();
+		updateAccountSpecificConfigs(oldUsername, username);
 	}
 
 	public final void switchSession(AccountSession session)
@@ -186,8 +211,10 @@ public class ConfigManager
 		for (ConfigEntry entry : configuration.getConfig())
 		{
 			log.debug("Loading configuration value from client {}: {}", entry.getKey(), entry.getValue());
-			final String[] split = entry.getKey().split("\\.", 2);
 
+			// Split username off early
+			final String[] accountSplit = entry.getKey().split("~", 2);
+			final String[] split = accountSplit[accountSplit.length - 1].split("\\.", 2);
 			if (split.length != 2)
 			{
 				continue;
@@ -197,9 +224,29 @@ public class ConfigManager
 			final String key = split[1];
 			final String value = entry.getValue();
 			final String oldValue = (String) properties.setProperty(entry.getKey(), value);
+			String user = null;
+
+			if (accountSplit.length == 2)
+			{
+				user = accountSplit[0];
+				accountSpecificConfigs.put(groupName, key);
+
+				// Only send Generic events if this entry is for the active user
+				if (username != null && username.equalsIgnoreCase(user))
+				{
+					// Trigger a generic config changed event with the username removed from the groupName
+					// This will ensure plugins checking for matching group/key names will process AccountSpecific configs correctly
+					ConfigChanged genericChange = new ConfigChanged();
+					genericChange.setGroup(groupName);
+					genericChange.setKey(key);
+					genericChange.setOldValue(oldValue);
+					genericChange.setNewValue(value);
+					eventBus.post(genericChange);
+				}
+			}
 
 			ConfigChanged configChanged = new ConfigChanged();
-			configChanged.setGroup(groupName);
+			configChanged.setGroup(addUsernameToGroup(user, groupName));
 			configChanged.setKey(key);
 			configChanged.setOldValue(oldValue);
 			configChanged.setNewValue(value);
@@ -310,7 +357,9 @@ public class ConfigManager
 			Map<String, String> copy = (Map) ImmutableMap.copyOf(properties);
 			copy.forEach((groupAndKey, value) ->
 			{
-				final String[] split = groupAndKey.split("\\.", 2);
+				// Split username off early
+				final String[] accountSplit = groupAndKey.split("~", 2);
+				final String[] split = accountSplit[accountSplit.length - 1].split("\\.", 2);
 				if (split.length != 2)
 				{
 					log.debug("Properties key malformed!: {}", groupAndKey);
@@ -320,9 +369,29 @@ public class ConfigManager
 
 				final String groupName = split[0];
 				final String key = split[1];
+				String user = null;
+
+				if (accountSplit.length == 2)
+				{
+					user = accountSplit[0];
+					accountSpecificConfigs.put(groupName, key);
+
+					// Only send Generic events if this entry is for the active user
+					if (username != null && username.equalsIgnoreCase(user))
+					{
+						// Trigger a generic config changed event with the username removed from the groupName
+						// This will ensure plugins checking for matching group/key names will process AccountSpecific configs correctly
+						ConfigChanged genericChange = new ConfigChanged();
+						genericChange.setGroup(groupName);
+						genericChange.setKey(key);
+						genericChange.setOldValue(null);
+						genericChange.setNewValue(value);
+						eventBus.post(genericChange);
+					}
+				}
 
 				ConfigChanged configChanged = new ConfigChanged();
-				configChanged.setGroup(groupName);
+				configChanged.setGroup(addUsernameToGroup(user, groupName));
 				configChanged.setKey(key);
 				configChanged.setOldValue(null);
 				configChanged.setNewValue(value);
@@ -427,6 +496,25 @@ public class ConfigManager
 		configChanged.setNewValue(value);
 
 		eventBus.post(configChanged);
+
+		// If this config option is AccountSpecific trigger a generic config changed event with the username removed from the groupName
+		// This will ensure plugins checking for matching group/key names will process AccountSpecific configs correctly
+		final String[] accountSplit = groupName.split("~", 2);
+		if (accountSplit.length == 2)
+		{
+			final String user = accountSplit[0];
+			final String group = accountSplit[1];
+			// Only send Generic events if this entry is for the active user
+			if (username != null && username.equalsIgnoreCase(user))
+			{
+				ConfigChanged genericChange = new ConfigChanged();
+				genericChange.setGroup(group);
+				genericChange.setKey(key);
+				genericChange.setOldValue(oldValue);
+				genericChange.setNewValue(value);
+				eventBus.post(genericChange);
+			}
+		}
 	}
 
 	public void setConfiguration(String groupName, String key, Object value)
@@ -457,6 +545,25 @@ public class ConfigManager
 		configChanged.setOldValue(oldValue);
 
 		eventBus.post(configChanged);
+
+
+		// If this config option is AccountSpecific trigger a generic config changed event with the username removed from the groupName
+		// This will ensure plugins checking for matching group/key names will process AccountSpecific configs correctly
+		final String[] accountSplit = groupName.split("~", 2);
+		if (accountSplit.length == 2)
+		{
+			final String user = accountSplit[0];
+			final String group = accountSplit[1];
+			// Only send Generic events if this entry is for the active user
+			if (username != null && username.equalsIgnoreCase(user))
+			{
+				ConfigChanged genericChange = new ConfigChanged();
+				genericChange.setGroup(group);
+				genericChange.setKey(key);
+				genericChange.setOldValue(oldValue);
+				eventBus.post(genericChange);
+			}
+		}
 	}
 
 	public ConfigDescriptor getConfigDescriptor(Config configurationProxy)
@@ -500,7 +607,8 @@ public class ConfigManager
 				m.getReturnType(),
 				m.getDeclaredAnnotation(Range.class),
 				m.getDeclaredAnnotation(Alpha.class),
-				m.getDeclaredAnnotation(Units.class)
+				m.getDeclaredAnnotation(Units.class),
+				m.getDeclaredAnnotation(AccountSpecific.class)
 			))
 			.sorted((a, b) -> ComparisonChain.start()
 				.compare(a.getItem().position(), b.getItem().position())
@@ -757,5 +865,41 @@ public class ConfigManager
 		}
 
 		return future;
+	}
+
+	// Triggers ConfigChanged events for all account-specific config options.
+	private void updateAccountSpecificConfigs(final String oldUsername, final String newUsername)
+	{
+		for (Map.Entry<String, String> configEntry : accountSpecificConfigs.entries())
+		{
+			final String group = configEntry.getKey();
+			final String key = configEntry.getValue();
+
+			ConfigChanged update = new ConfigChanged();
+			update.setGroup(group);
+			update.setKey(key);
+			update.setNewValue(getConfiguration(addUsernameToGroup(newUsername, group), key));
+			if (oldUsername != null)
+			{
+				update.setOldValue(getConfiguration(addUsernameToGroup(oldUsername, group), key));
+			}
+
+			eventBus.post(update);
+		}
+	}
+
+	public String addUsernameToGroup(final String group)
+	{
+		return addUsernameToGroup(username, group);
+	}
+
+	public static String addUsernameToGroup(final String username, final String group)
+	{
+		if (username != null && username.length() > 0)
+		{
+			return username + "~" + group;
+		}
+
+		return group;
 	}
 }

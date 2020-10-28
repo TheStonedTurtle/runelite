@@ -83,7 +83,12 @@ class ConfigInvocationHandler implements InvocationHandler
 			log.trace("cache miss (size: {}, group: {}, key: {})", cache.size(), group.value(), item.keyName());
 
 			// Getting configuration item
-			String value = manager.getConfiguration(group.value(), item.keyName());
+			String groupName = group.value();
+			if (method.getAnnotation(AccountSpecific.class) != null)
+			{
+				groupName = manager.addUsernameToGroup(groupName);
+			}
+			String value = manager.getConfiguration(groupName, item.keyName());
 
 			if (value == null)
 			{
@@ -109,7 +114,7 @@ class ConfigInvocationHandler implements InvocationHandler
 			}
 			catch (Exception e)
 			{
-				log.warn("Unable to unmarshal {}.{} ", group.value(), item.keyName(), e);
+				log.warn("Unable to unmarshal {}.{} ", groupName, item.keyName(), e);
 				if (method.isDefault())
 				{
 					return callDefaultMethod(proxy, method, null);
@@ -127,9 +132,14 @@ class ConfigInvocationHandler implements InvocationHandler
 			}
 
 			Object newValue = args[0];
+			String groupName = group.value();
+			if (method.getAnnotation(AccountSpecific.class) != null)
+			{
+				groupName = manager.addUsernameToGroup(groupName);
+			}
 
 			Class<?> type = method.getParameterTypes()[0];
-			Object oldValue = manager.getConfiguration(group.value(), item.keyName(), type);
+			Object oldValue = manager.getConfiguration(groupName, item.keyName(), type);
 
 			if (Objects.equals(oldValue, newValue))
 			{
@@ -144,19 +154,19 @@ class ConfigInvocationHandler implements InvocationHandler
 				if (Objects.equals(newValue, defaultValue))
 				{
 					// Just unset if it goes back to the default
-					manager.unsetConfiguration(group.value(), item.keyName());
+					manager.unsetConfiguration(groupName, item.keyName());
 					return null;
 				}
 			}
 
 			if (newValue == null)
 			{
-				manager.unsetConfiguration(group.value(), item.keyName());
+				manager.unsetConfiguration(groupName, item.keyName());
 			}
 			else
 			{
 				String newValueStr = ConfigManager.objectToString(newValue);
-				manager.setConfiguration(group.value(), item.keyName(), newValueStr);
+				manager.setConfiguration(groupName, item.keyName(), newValueStr);
 			}
 			return null;
 		}

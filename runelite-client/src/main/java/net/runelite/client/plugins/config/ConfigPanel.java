@@ -594,35 +594,41 @@ class ConfigPanel extends PluginPanel
 			}
 		}
 
+		String groupName = cd.getGroup().value();
+		if (cid.getAccountSpecific() != null)
+		{
+			groupName = configManager.addUsernameToGroup(groupName);
+		}
+
 		if (component instanceof JCheckBox)
 		{
 			JCheckBox checkbox = (JCheckBox) component;
-			configManager.setConfiguration(cd.getGroup().value(), cid.getItem().keyName(), "" + checkbox.isSelected());
+			configManager.setConfiguration(groupName, cid.getItem().keyName(), "" + checkbox.isSelected());
 		}
 		else if (component instanceof JSpinner)
 		{
 			JSpinner spinner = (JSpinner) component;
-			configManager.setConfiguration(cd.getGroup().value(), cid.getItem().keyName(), "" + spinner.getValue());
+			configManager.setConfiguration(groupName, cid.getItem().keyName(), "" + spinner.getValue());
 		}
 		else if (component instanceof JTextComponent)
 		{
 			JTextComponent textField = (JTextComponent) component;
-			configManager.setConfiguration(cd.getGroup().value(), cid.getItem().keyName(), textField.getText());
+			configManager.setConfiguration(groupName, cid.getItem().keyName(), textField.getText());
 		}
 		else if (component instanceof RuneliteColorPicker)
 		{
 			RuneliteColorPicker colorPicker = (RuneliteColorPicker) component;
-			configManager.setConfiguration(cd.getGroup().value(), cid.getItem().keyName(), colorPicker.getSelectedColor().getRGB() + "");
+			configManager.setConfiguration(groupName, cid.getItem().keyName(), colorPicker.getSelectedColor().getRGB() + "");
 		}
 		else if (component instanceof JComboBox)
 		{
 			JComboBox jComboBox = (JComboBox) component;
-			configManager.setConfiguration(cd.getGroup().value(), cid.getItem().keyName(), ((Enum) jComboBox.getSelectedItem()).name());
+			configManager.setConfiguration(groupName, cid.getItem().keyName(), ((Enum) jComboBox.getSelectedItem()).name());
 		}
 		else if (component instanceof HotkeyButton)
 		{
 			HotkeyButton hotkeyButton = (HotkeyButton) component;
-			configManager.setConfiguration(cd.getGroup().value(), cid.getItem().keyName(), hotkeyButton.getValue());
+			configManager.setConfiguration(groupName, cid.getItem().keyName(), hotkeyButton.getValue());
 		}
 	}
 
