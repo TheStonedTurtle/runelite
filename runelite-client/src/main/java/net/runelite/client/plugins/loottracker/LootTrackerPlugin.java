@@ -81,7 +81,9 @@ import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.ItemContainerChanged;
 import net.runelite.api.events.MenuOptionClicked;
 import net.runelite.api.events.WidgetLoaded;
+import net.runelite.api.widgets.Widget;
 import net.runelite.api.widgets.WidgetID;
+import net.runelite.api.widgets.WidgetInfo;
 import net.runelite.client.account.AccountSession;
 import net.runelite.client.account.SessionManager;
 import net.runelite.client.callback.ClientThread;
@@ -252,6 +254,8 @@ public class LootTrackerPlugin extends Plugin
 	private static final String TEMPOROSS_CASKET_EVENT = "Casket (Tempoross)";
 	private static final String TEMPOROSS_LOOT_STRING = "You found some loot: ";
 	private static final int TEMPOROSS_REGION = 12588;
+
+	private static final String SIRE_REWARD_TEXT = "the font consumes the unsired";
 
 	private static final Set<Character> VOWELS = ImmutableSet.of('a', 'e', 'i', 'o', 'u');
 
@@ -595,6 +599,21 @@ public class LootTrackerPlugin extends Plugin
 				setEvent(LootRecordType.EVENT, "Drift Net", client.getBoostedSkillLevel(Skill.FISHING));
 				container = client.getItemContainer(InventoryID.DRIFT_NET_FISHING_REWARD);
 				break;
+			case (WidgetID.DIALOG_SPRITE_GROUP_ID):
+				Widget text = client.getWidget(WidgetInfo.DIALOG_SPRITE_TEXT);
+				if (text != null && text.getText().toLowerCase().contains(SIRE_REWARD_TEXT))
+				{
+					final Widget sprite = client.getWidget(WidgetInfo.DIALOG_SPRITE);
+					if (sprite == null || sprite.getItemId() == -1)
+					{
+						log.debug("Unsired was exchanged but couldn't find item ID");
+						return;
+					}
+
+					log.debug("Unsired was exchanged for item ID: {}", sprite.getItemId());
+					addLoot("Abyssal Sire", 350, LootRecordType.NPC, null, Collections.singletonList(new ItemStack(sprite.getItemId(), 1, null)));
+				}
+				return;
 			default:
 				return;
 		}
